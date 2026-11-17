@@ -21,6 +21,11 @@
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310.png" Square310x310Logo="Assets\Square310.png" />
         <uap:SplashScreen Image="Assets\Splash620.png" BackgroundColor="#101827" />
       </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="eyegazetrainer-exittest"/>
+        </uap:Extension>
+      </Extensions>
     </Application>
   </Applications>
   <Capabilities>
