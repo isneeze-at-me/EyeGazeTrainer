@@ -188,3 +188,12 @@ To isolate Windows/window exit from eye-tracker cleanup, added an **independent 
 **Interpretation:** If black-screen interruption occurs with the hardware-free path, generic UWP window teardown or external app/compositor behavior merits priority; if not, the field issue might involve residual gaze integration or a timing interaction, but a single negative trial does not rule out an intermittent generic UWP exit issue.
 
 No additional controls are added to the gaze page. This remains an experimental diagnostic, not a claimed fix. Window-close and native gaze release behavior remain unverified.
+
+
+## Two successful shutdown observations — 2026-11-17 ~14:34 PST
+
+User confirmed protocol activation now works after deployment/registration: **hardware-free exit test completed with no black screen**. They subsequently ran the application **normally with gaze tracking** and report it **exited cleanly**. This is an observed pass for both routes, not a demonstrated permanent fix.
+
+**Interpretation:** Generic UWP exit is capable of completing without the visual interruption, and the native gaze startup/cleanup/exit route can also complete cleanly. Because prior user tests showed intermittent black screen and TD Control brief freezes, the contrast cannot prove root cause or establish how reliably the full path works. Do not infer that protocol registration fixed gaze shutdown.
+
+Preserve the working full-window cursor, gaze-only 1.5-second Exit, four-stage watcher cleanup, navigation to the non-gaze MainPage, and two-second delayed app exit until there is evidence that changing any of them improves reliability. Do not close issue #9; avoid unattended use until verified recovery/robust repeated operation. No additional live test is required immediately.
