@@ -11,7 +11,7 @@ namespace EyeGazeApiViability
         {
             var frame = Window.Current.Content as Frame;
             if (frame == null) { frame = new Frame(); Window.Current.Content = frame; }
-            if (frame.Content == null) frame.Navigate(typeof(MainPage));
+            if (frame.Content == null) frame.Navigate(typeof(LevelOnePreview));
             Window.Current.Activate();
         }
     }
