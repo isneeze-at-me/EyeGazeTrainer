@@ -36,6 +36,7 @@ namespace EyeGazeApiViability
         private int targetIndex = -1;
         private bool insideTarget;
         private bool completed;
+        private bool exitRequested;
 
         public LevelOnePreview()
         {
@@ -256,11 +257,29 @@ namespace EyeGazeApiViability
             return Math.Max(min, Math.Min(max, value));
         }
 
+        private void OnExitRequested(object sender, RoutedEventArgs e)
+        {
+            if (exitRequested || stopping) return;
+            exitRequested = true;
+            ExitButton.IsEnabled = false;
+            LiveButton.IsEnabled = false;
+            BackButton.IsEnabled = false;
+            Trace("EXIT requested; source active=" + live);
+            if (live) BeginCleanup();
+            else NavigateToCleanExit();
+        }
+
         private void OnStopLive(object sender, RoutedEventArgs e)
+        {
+            BeginCleanup();
+        }
+
+        private void BeginCleanup()
         {
             if (!live || stopping) return;
             stopping = true;
             StopButton.IsEnabled = false;
+            ExitButton.IsEnabled = false;
             LiveStatusText.Text = "STOPPING: staged resource cleanup; do not close the app.";
             cleanupStage = 0;
             cleanupTimer = new DispatcherTimer();
@@ -296,8 +315,17 @@ namespace EyeGazeApiViability
                     LiveStatusText.Text =
                         "TRACKER RELEASE REQUESTED. Verify TD Control still responds BEFORE exiting.";
                     Trace("FINISHED staged cleanup; TD Control status not verified");
-                    LiveButton.IsEnabled = true;
-                    BackButton.IsEnabled = true;
+                    if (exitRequested)
+                    {
+                        Trace("Cleanup complete; navigating off gaze page before exit");
+                        NavigateToCleanExit();
+                    }
+                    else
+                    {
+                        LiveButton.IsEnabled = true;
+                        BackButton.IsEnabled = true;
+                        ExitButton.IsEnabled = true;
+                    }
                     return;
             }
             Trace("BEGIN " + phaseName);
@@ -338,6 +366,33 @@ namespace EyeGazeApiViability
                 LiveStatusText.Text = "HALTED at " + phaseName +
                     ". Helper assistance needed; do not close.";
                 cleanupTimer.Stop();
+                // Do not navigate or exit after a failed cleanup.
+                exitRequested = false;
+                ExitButton.IsEnabled = true;
+            }
+        }
+
+        private void NavigateToCleanExit()
+        {
+            // Based on the successful observed Back -> X run, not a safety guarantee.
+            Trace("BEGIN navigation away from gaze page");
+            try
+            {
+                bool navigated = Frame.Navigate(typeof(MainPage), "EXIT_AFTER_GAZE_CLEANUP");
+                if (!navigated)
+                {
+                    Trace("ERROR navigation returned false; exit cancelled");
+                    LiveStatusText.Text = "Unable to navigate; app remains open.";
+                    exitRequested = false;
+                    ExitButton.IsEnabled = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace("ERROR navigation: " + ex);
+                LiveStatusText.Text = "Navigation failed; app remains open.";
+                exitRequested = false;
+                ExitButton.IsEnabled = true;
             }
         }
 
@@ -363,9 +418,8 @@ namespace EyeGazeApiViability
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
-            // Never silently force tracker shutdown or automatic process exit.
-            // Navigation is disabled during live mode. External Windows closure
-            // is not yet proven safe; use only with independent recovery.
+            Trace("Page OnNavigatedFrom; gaze active=" + live +
+                  " cleanup stage=" + cleanupStage + " exit requested=" + exitRequested);
             base.OnNavigatedFrom(e);
         }
     }
