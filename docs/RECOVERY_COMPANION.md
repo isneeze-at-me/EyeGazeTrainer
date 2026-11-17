@@ -29,3 +29,27 @@ The app ID came from a read-only local `Get-StartApps` inventory. Microsoft docu
 
 ## Additional engineering work
 Find a supported, documented method to reinitialize TD Control's gaze session **without affecting shared tracker services or other communication/accessibility software**. No vendor contact, per user request. If that method does not exist, consider an isolated spare PC for further investigation instead of experimenting on the user's essential system.
+
+## Timestamped baseline snapshots (2026-11-17)
+
+Added `tools/TDControl-CaptureSnapshot.cmd` to **Test**. It runs independently of the UWP app and is an observation-only companion. It does not stop processes, change service states, restart the tracker, or access the Windows gaze APIs.
+
+It writes a unique timestamped report under:
+`%USERPROFILE%\Documents\EyeGazeTrainerDiagnostics\TDControl-Snapshot-YYYYMMDD-HHMMSS.txt`
+
+The report includes time, matching Tobii/EyeAssist/Tdx process names/PIDs/parent PIDs, known process presence, and known service states. This is intentionally **not** a log of gaze coordinates, a probe of tracker responsiveness, or an automatic watchdog. A missing process or service may be normal depending on software version.
+
+### Baseline validation (while TD Control works normally)
+
+1. Pull `Test`.
+2. In Visual Studio Developer PowerShell, run `.\tools\TDControl-CaptureSnapshot.cmd`. Windows CMD scripts do not require changing PowerShell's script-execution policy.
+3. Confirm TD Control stays responsive to eye movements. Upload the created report for review if comfortable; review its contents first.
+4. Do not run or intentionally recreate the live-gaze shutdown failure. This snapshot would only be useful for a future comparison if an independent recovery and control path has been established.
+
+### Research note
+
+Current TD Control manuals describe *Pause Gaze / Resume Gaze* as a user feature, but that does **not** constitute a documented way to revive an already-visible, unresponsive gaze cursor. Microsoft's Windows Eye Control troubleshooting applies to a different feature and is not evidence of a safe TD Control restart method. Sources:
+- https://download.mytobiidynavox.com/Computer%20Control/Documentation/Users%20Manual/TobiiDynavox_UsersManual_TDControl_en-US.pdf
+- https://support.microsoft.com/en-us/accessibility/windows/eye-control/eye-control-troubleshooting-guide
+
+The live shutdown incident is still open and no independently validated automated recovery exists. Do not interpret normal snapshot output as recovery success.
