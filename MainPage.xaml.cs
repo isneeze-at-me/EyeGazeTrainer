@@ -52,14 +52,19 @@ namespace EyeGazeApiViability
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            bool cleanExit = (e.Parameter as string) == "EXIT_AFTER_GAZE_CLEANUP";
-            LogLifecycle("Main dashboard entered; requestedExit=" + cleanExit);
-            if (cleanExit)
+            string route = e.Parameter as string;
+            bool cleanExit = route == "EXIT_AFTER_GAZE_CLEANUP";
+            bool noGazeExitTest = route == "EXIT_NO_GAZE_DIAGNOSTIC";
+            LogLifecycle("Main dashboard entered; requestedExit=" + cleanExit +
+                         "; hardwareFreeExitTest=" + noGazeExitTest);
+            if (cleanExit || noGazeExitTest)
             {
-                // Do not keep the previously active gaze page in navigation history.
+                // Avoid retaining a previously active gaze page in back history.
                 Frame.BackStack.Clear();
                 Frame.ForwardStack.Clear();
-                ScheduleExit("after gaze-page navigation");
+                ScheduleExit(noGazeExitTest
+                    ? "HARDWARE FREE: no gaze APIs ever opened"
+                    : "after gaze-page navigation");
             }
         }
 
