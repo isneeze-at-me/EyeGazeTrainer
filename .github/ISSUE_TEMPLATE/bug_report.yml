@@ -1,0 +1,37 @@
+name: Bug report
+description: Report a reproducible malfunction without uploading personal gaze data
+title: "fix: "
+labels: []
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Include expected and observed behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: App commit/version, Windows build, eye tracker, associated eye-gaze software and Visual Studio version if applicable.
+    validations:
+      required: true
+  - type: textarea
+    id: recovery
+    attributes:
+      label: Accessibility and recovery impact
+      description: Was communication or control lost? Describe without including sensitive identifying information.
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Evidence and diagnostic output
+      description: Redact private data; do not attach raw gaze traces.
