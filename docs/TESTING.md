@@ -168,3 +168,23 @@ Two other recent sessions (13:06 and 12:57) similarly recorded MainPage scheduli
 **Inference boundary:** The last trace entry is the call to `Application.Current.Exit()`, not proof that the app has fully terminated or every native gaze resource is free. `Window.Closed` and `Suspending` do not appear in these logs: there is no basis to interpret their absence as either a crash or completion, because UWP lifecycle event semantics differ for programmatic exit. User has not supplied a precise timestamp for the black-screen/freeze interval, so it cannot be placed conclusively before/after the exit call. The trace **narrows the investigation** toward window/process teardown or cross-process focus/compositor handoff; it **does not prove root cause**, or rule out asynchronous effects initiated by `watcher.Stop()` or object release.
 
 **Next engineering priority:** preserve the current working cleanup stages and visible UI; research non-disruptive UWP exit/lifecycle behavior and native gaze API handoff, and design logging capable of distinguishing managed exit request from actual process termination without adding a background watcher or disrupting TD Control. Do not claim a clean shutdown based only on the last logged line. Do not repeat live testing merely to reconfirm the same successful stage logs.
+
+
+## Hardware-free UWP exit isolation (2026-11-17)
+
+Microsoft confirms `Application.Exit()` shuts down a UWP app and `Window.Close()` closes its window, but these descriptions do not say anything about coordinated handoff to TD Control. Existing field logs show the gaze page leaves successfully and the non-gaze dashboard calls `Application.Current.Exit()`, while intermittent visual/TD Control interruptions remain unlocated.
+
+To isolate Windows/window exit from eye-tracker cleanup, added an **independent URI protocol activation** to `Test`:
+- Manifest protocol: `eyegazetrainer-exittest:`.
+- `App.OnActivated` accepts only that protocol, directly navigates to `MainPage` with `EXIT_NO_GAZE_DIAGNOSTIC`, activates its window, and **does not instantiate `LevelOnePreview`, create a watcher, or open gaze APIs**. If an EyeGazeTrainer gaze page is already active, it refuses the diagnostic rather than bypassing cleanup.
+- `MainPage` identifies the hardware-free route in `gaze-lifecycle-trace.txt`, then runs the **same existing 2-second delayed `Application.Current.Exit()`** as a normal managed exit. The normal live gaze startup and supervised shutdown paths are untouched.
+
+**Safest next test (after successful build/deploy; do not run while the live app is open):**
+1. Confirm EyeGazeTrainer is closed and TD Control is working normally.
+2. With independent keyboard/mouse available, run `Start-Process 'eyegazetrainer-exittest:'` in Developer PowerShell or the Windows Run dialog. This is a protocol URI, **not** a gaze diagnostic. It should briefly open the non-gaze dashboard and exit by itself without touching the tracker.
+3. Observe whether the same black screen or TD Control circle/freeze occurs. Do not run repeated trials if any disruption occurs.
+4. The final `gaze-lifecycle-trace.txt` should include `HARDWARE-FREE exit-isolation protocol invoked`, `hardwareFreeExitTest=True`, and `CALL Application.Current.Exit()`. No `level1-live-gaze-trace.txt` should be rewritten by this session.
+
+**Interpretation:** If black-screen interruption occurs with the hardware-free path, generic UWP window teardown or external app/compositor behavior merits priority; if not, the field issue might involve residual gaze integration or a timing interaction, but a single negative trial does not rule out an intermittent generic UWP exit issue.
+
+No additional controls are added to the gaze page. This remains an experimental diagnostic, not a claimed fix. Window-close and native gaze release behavior remain unverified.
