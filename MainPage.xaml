@@ -4,23 +4,23 @@
   <Grid Background="#101827">
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <StackPanel Margin="24,18,24,10" Spacing="8">
-      <TextBlock Text="WINDOWS GAZE API — 60-SECOND TEST" FontSize="25" FontWeight="Bold" Foreground="White"/>
-      <TextBlock Text="SAFETY HOLD: Do not run without supervised recovery. Prior test left TD Control unresponsive." TextWrapping="Wrap" FontSize="17" Foreground="#FCA5A5"/>
-      <Button x:Name="ArmButton" Content="ARM 60-SECOND DIAGNOSTIC (supervised only)" Click="ArmDiagnostic" FontSize="18" HorizontalAlignment="Left" Padding="18,12"/>
-      <TextBlock x:Name="CountdownText" Text="Not armed — gaze watcher OFF" FontSize="23" Foreground="#FBBF24"/>
+      <TextBlock Text="EyeGazeTrainer — SAFE DRY RUN" FontSize="25" FontWeight="Bold" Foreground="White"/>
+      <TextBlock Text="HARDWARE TEST LOCKED: prior shutdown left TD Control unresponsive. This mode NEVER opens gaze APIs." TextWrapping="Wrap" FontSize="17" Foreground="#FCA5A5"/>
+      <Button x:Name="ArmButton" Content="START DRY RUN (NO EYE TRACKER)" Click="StartDryRun" FontSize="18" HorizontalAlignment="Left" Padding="18,12"/>
+      <TextBlock x:Name="CountdownText" Text="Idle — eye tracker untouched" FontSize="23" Foreground="#FBBF24"/>
       <TextBlock x:Name="StageText" Text="Stage: IDLE — no gaze APIs opened" FontSize="20" Foreground="#86EFAC" TextWrapping="Wrap"/>
       <TextBlock x:Name="TraceText" Text="Log: not started" FontSize="16" Foreground="#CBD5E1" TextWrapping="Wrap"/>
-      <TextBlock x:Name="DeviceText" Text="Waiting for Windows eye-tracking device…" FontSize="20" Foreground="#E5E7EB" TextWrapping="Wrap"/>
+      <TextBlock x:Name="DeviceText" Text="Eye tracker access DISABLED in this build" FontSize="20" Foreground="#E5E7EB" TextWrapping="Wrap"/>
       <TextBlock x:Name="DataText" Text="No gaze coordinates received" FontSize="22" Foreground="#93C5FD"/>
       <TextBlock x:Name="CountText" Text="Valid samples: 0 | Coordinate changes: 0" FontSize="18" Foreground="#CBD5E1"/>
     </StackPanel>
     <Canvas x:Name="GazeCanvas" Grid.Row="1" Background="#17253D" Margin="20">
       <Ellipse x:Name="GazeDot" Width="35" Height="35" Fill="#34D399" Visibility="Collapsed"/>
-      <TextBlock Text="Move your eyes around this area. No clicks or dwell required." FontSize="18" Foreground="#CBD5E1" Canvas.Left="18" Canvas.Top="15"/>
+      <TextBlock Text="Dry run: verify visible checkpoints without opening gaze input." FontSize="18" Foreground="#CBD5E1" Canvas.Left="18" Canvas.Top="15"/>
     </Canvas>
     <StackPanel Grid.Row="2" Margin="24,10,24,18" Spacing="5">
       <TextBlock x:Name="ResultText" Text="Result: pending" FontSize="20" FontWeight="SemiBold" Foreground="#F8FAFC"/>
-      <TextBlock Text="Diagnostic must be explicitly armed. It does NOT close or restart TD Control. Stage checkpoints are logged locally. This is NOT a safe unattended watchdog." FontSize="16" Foreground="#CBD5E1" TextWrapping="Wrap"/>
+      <TextBlock Text="No gaze watcher, no gaze subscriptions, no TD Control control, no automatic app exit. Logs are saved to UWP LocalFolder." FontSize="16" Foreground="#CBD5E1" TextWrapping="Wrap"/>
     </StackPanel>
   </Grid>
 </Page>
