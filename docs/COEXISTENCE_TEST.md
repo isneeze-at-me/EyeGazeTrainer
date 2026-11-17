@@ -1,3 +1,5 @@
+> **TESTING PAUSED (2026-11-17):** A user-reported run ended with display freezing/blackout and TD Control becoming unresponsive, requiring reboot. **Do not execute Stage A or Stage B** until [critical issue #9](https://github.com/isneeze-at-me/EyeGazeTrainer/issues/9) is resolved and independent recovery is in place. The instructions below are retained as historical draft only.
+
 # PCEye 5 / TD Control coexistence validation
 
 **Status:** protocol proposed on 2026-11-17; **not executed**. Related: #2, #4.
