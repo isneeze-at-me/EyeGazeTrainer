@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
          xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
-         IgnorableNamespaces="uap">
+         xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+         IgnorableNamespaces="uap mp">
   <Identity Name="EyeGazeApiViability" Publisher="CN=EyeGazeApiViability" Version="1.0.0.0" />
+  <mp:PhoneIdentity PhoneProductId="8E31C3ED-B3E7-482F-899F-D8233F3EEDC4" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Eye Gaze API Viability</DisplayName>
     <PublisherDisplayName>Eye Gaze API Viability</PublisherDisplayName>
