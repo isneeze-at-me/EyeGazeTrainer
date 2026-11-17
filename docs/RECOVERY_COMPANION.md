@@ -118,3 +118,14 @@ The user has completed a baseline snapshot with all expected named components an
 4. **Do not** deliberately freeze the application, rerun the live gaze diagnostic, use the manual launch tool, or stop/restart any Tobii components.
 
 No independent recovery has been validated. Issue #9 remains blocking.
+
+## Windows UI health check result (user screenshot, 2026-11-17 ~12:04)
+
+Read-only `tools/TDControl-UIHealth.cmd` produced these results in a normal-operation session:
+- `Tdx.ComputerControl.exe` PID 5640: `tasklist /v` Status=`Running`, Window Title=`Hidden Window`.
+- `TobiiDynavox.EyeAssist.Engine.exe` PID 17132: Status=`Running`, Window Title=`N/A`.
+- `TobiiDynavox.EyeAssist.Smorgasbord.exe` PID 18064: Status=`Running`, Window Title=`Hidden Window`.
+- `TobiiDynavox.EyeAssist.RegionInteraction.Startup.exe` PID 17904: Status=`Running`, Window Title=`Hidden Window`.
+- `Get-Process -Name Tdx.ComputerControl`: `Responding=True`, `MainWindowHandle=0`, empty `MainWindowTitle`.
+
+**Implication:** Neither `tasklist /v` `Running` nor the `Responding=True` property, especially with no conventional main window handle, validates live gaze input. No actual frozen-cursor health sample yet, and no recovery demonstrated. The screenshot itself did not explicitly confirm that eye tracking remained responsive after the command. Avoid cycling through additional overlapping process-status checks as a substitute for validated recovery.
