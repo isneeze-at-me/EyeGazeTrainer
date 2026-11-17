@@ -62,6 +62,7 @@ function Test-OwnWindow($window) {
 $changed = [IntPtr]::Zero
 $alreadySetWindow = [IntPtr]::Zero
 $lastReported = ''
+$lastForegroundDescriptor = ''
 $deadline = [DateTime]::UtcNow.AddSeconds($DurationSeconds)
 Write-Host "EyeGazeTrainer / TD Control overlay probe"
 Write-Host ("Mode: " + $(if ($Apply) { 'APPLY (experimental window-style flag)' } else { 'OBSERVE ONLY (no changes)' }))
@@ -114,9 +115,24 @@ try {
                 }
             }
         }
-        elseif ($lastReported -ne 'other') {
-            Write-Host 'Waiting for EyeGazeTrainer window...'
-            $lastReported = 'other'
+        else {
+            # Read-only identification of the foreground UWP host. A strict
+            # title mismatch is a common reason the experimental flag does
+            # not get applied at all. Avoid logging unrelated window titles.
+            $description = if ($null -eq $identity) { 'No foreground window' }
+                elseif ($identity.Class -ceq 'ApplicationFrameWindow') {
+                    "Foreground UWP window: title='" + $identity.Title +
+                    "', class='" + $identity.Class + "'"
+                }
+                else { "Other foreground window class='" + $identity.Class + "'" }
+            if ($description -ne $lastForegroundDescriptor) {
+                Write-Host $description
+                $lastForegroundDescriptor = $description
+            }
+            if ($lastReported -ne 'other') {
+                Write-Host 'Waiting for EyeGazeTrainer title and class match. No window style changed.'
+                $lastReported = 'other'
+            }
         }
         Start-Sleep -Milliseconds 250
     }
