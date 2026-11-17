@@ -76,9 +76,6 @@ namespace EyeGazeApiViability
             }
 
             live = true;
-            LiveButton.IsEnabled = false;
-            StopButton.IsEnabled = true;
-            BackButton.IsEnabled = false;
             LiveStatusText.Text = "LIVE GAZE: requesting tracker. Helper must retain separate control.";
             Trace("BEGIN watcher start");
             try
@@ -95,7 +92,7 @@ namespace EyeGazeApiViability
             {
                 Trace("ERROR watcher start: " + ex);
                 LiveStatusText.Text = "Tracker setup failed: " + ex.GetType().Name +
-                                      ". Use supervised STOP to clean up.";
+                                      ". Use EXIT for supervised cleanup.";
             }
         }
 
@@ -183,9 +180,7 @@ namespace EyeGazeApiViability
                 gazeControlTriggered = false;
             }
             lastGazeAt = now;
-            Button target = null;
-            if (InsideButton(ExitButton, viewPoint)) target = ExitButton;
-            else if (InsideButton(StopButton, viewPoint)) target = StopButton;
+            Button target = InsideButton(ExitButton, viewPoint) ? ExitButton : null;
             if (target == null)
             {
                 gazeControlTarget = null;
@@ -201,15 +196,13 @@ namespace EyeGazeApiViability
             if (gazeControlTriggered) return;
             double progress = (now - gazeControlEnteredAt).TotalMilliseconds /
                               ControlDwell.TotalMilliseconds;
-            LiveStatusText.Text = (target == ExitButton ? "EXIT APP" : "STOP GAZE") +
-                                  " — gaze hold " + Math.Min(100, (int)(progress * 100)) + "%";
+            LiveStatusText.Text = "EXIT APP — gaze hold " +
+                                  Math.Min(100, (int)(progress * 100)) + "%";
             if (progress < 1.0) return;
             gazeControlTriggered = true;
             gazeControlTarget = null;
-            Trace("Native gaze control activated: " +
-                  (target == ExitButton ? "EXIT" : "STOP"));
-            if (target == ExitButton) OnExitRequested(null, null);
-            else OnStopLive(null, null);
+            Trace("Native gaze control activated: EXIT");
+            OnExitRequested(null, null);
         }
 
         private bool InsideButton(Button button, Point gaze)
@@ -330,23 +323,15 @@ namespace EyeGazeApiViability
             if (exitRequested || stopping) return;
             exitRequested = true;
             ExitButton.IsEnabled = false;
-            LiveButton.IsEnabled = false;
-            BackButton.IsEnabled = false;
             Trace("EXIT requested; source active=" + live);
             if (live) BeginCleanup();
             else NavigateToCleanExit();
-        }
-
-        private void OnStopLive(object sender, RoutedEventArgs e)
-        {
-            BeginCleanup();
         }
 
         private void BeginCleanup()
         {
             if (!live || stopping) return;
             stopping = true;
-            StopButton.IsEnabled = false;
             ExitButton.IsEnabled = false;
             LiveStatusText.Text = "STOPPING: staged resource cleanup; do not close the app.";
             cleanupStage = 0;
@@ -387,12 +372,6 @@ namespace EyeGazeApiViability
                     {
                         Trace("Cleanup complete; navigating off gaze page before exit");
                         NavigateToCleanExit();
-                    }
-                    else
-                    {
-                        LiveButton.IsEnabled = true;
-                        BackButton.IsEnabled = true;
-                        ExitButton.IsEnabled = true;
                     }
                     return;
             }
@@ -476,12 +455,6 @@ namespace EyeGazeApiViability
             {
                 LiveStatusText.Text = "Trace failed: " + ex.GetType().Name;
             }
-        }
-
-        private void OnBack(object sender, RoutedEventArgs e)
-        {
-            if (live || stopping) return;
-            if (Frame.CanGoBack) Frame.GoBack();
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
