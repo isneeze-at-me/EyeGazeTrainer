@@ -98,3 +98,9 @@ User reports that after cleanly building the dedicated-exit implementation, the 
 References:
 - https://learn.microsoft.com/en-us/windows/uwp/ui-input/gaze-interactions
 - https://github.com/Tolt-Technologies/eye-gaze-aware
+
+## Single Exit control (2026-11-17)
+
+At user request the active gaze screen now has **one visible action button**: a large, full-width, minimum 96px-high **EXIT APP — LOOK FOR 1.5 SECONDS** control. Removed the Stop Gaze, Restart Gaze and Back to Diagnostics buttons from this screen and corresponding unused handlers. Direct UWP gaze-coordinate hit testing activates Exit after a 1500ms continuous look; mouse/touch click remains a helper fallback. Opening the app still auto-starts the gaze source. Exit continues the existing staged unsubscribe/watcher cleanup, navigation to a non-gaze page, and delayed application exit.
+
+**Unverified:** this UI change alone does not fix or hide the TD Control circle/trace and does not prove safe gaze handoff. Running with PCEye 5 remains supervised only; prior user runs showed a brief loss of TD Control with direct X and a successful Back→X sequence. The dedicated Exit must be explicitly validated separately. No training levels added.
