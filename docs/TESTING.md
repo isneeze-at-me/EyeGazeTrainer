@@ -124,3 +124,18 @@ User reports that on the most recent test, after using Exit the app **briefly di
 The brief Diagnostics window is consistent with the current intentional route: staged gaze cleanup -> `Frame.Navigate(typeof(MainPage), "EXIT_AFTER_GAZE_CLEANUP")` -> MainPage's 2-second scheduled `Application.Current.Exit()`. The visible navigation is an expected consequence of this design, not by itself a failure.
 
 **Evidence boundary:** This is a successful observed shutdown, not proof that every shutdown will remain interruption-free. The earlier transient black-screen and TD Control effects remain documented. Preserve the working route while gathering reliability evidence; don't replace navigation and exit timing just to suppress the brief Diagnostics view without isolated validation.
+
+
+## Full-window in-app gaze cursor and TD Control overlay (2026-11-17)
+
+User requested that EyeGazeTrainer's **green circle follow gaze throughout the entire application window**, including the large Exit button, and that the **external TD Control circle be removed**.
+
+**Implemented on Test:** The green `PreviewDot` has moved from inside `TrainingCanvas` to a topmost, `IsHitTestVisible=False` `CursorOverlay` spanning all three rows of `RootLayout`. On every valid `GazeMoved`, `UpdateCursor` uses application-view gaze coordinates to position it throughout the page. The existing canvas-relative training area calculations and full-page gaze Exit hit test remain unchanged. The transparent/noninteractive overlay does **not** block the Exit button. This covers the UWP **page content/client area**, not the OS-drawn title bar outside the page.
+
+**TD Control external overlay is NOT automatically hidden by this change.** A separate vendor option exists: TD Control's **Hide Trace** action (particularly documented in Repeat Click mode) hides its circular gaze trace without stopping tracking, and is reversible. A third-party draft Eye Gaze Aware convention suggests special Win32 foreground-window properties / TD-specific extended style to signal overlay suppression, but neither is a verified, supported UWP interaction here. Modifying a shared TD Control service/window or blindly applying the draft style is not safe or justified by these results. If hiding trace manually, user/helper should verify that TD Control remains accessible and that restoring visible trace is straightforward.
+
+Sources:
+- https://se.tobiidynavox.com/blogs/support-articles/how-do-i-use-repeat-click-in-td-control
+- https://github.com/Tolt-Technologies/eye-gaze-aware
+
+**Verification pending:** GitHub Windows CI and, only with helper/alternate input, a supervised test that the green dot moves over Exit and the unchanged staged Exit preserves TD Control functionality.
