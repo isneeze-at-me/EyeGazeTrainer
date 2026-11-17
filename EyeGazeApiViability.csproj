@@ -39,9 +39,19 @@
     <Page Include="MainPage.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></Page>
     <Page Include="LevelOnePreview.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></Page>
     <Content Include="Assets\*.png" />
+    <!-- Build the separately packaged full-trust helper from source. -->
+    <Content Include="OverlayCompanion\bin\$(Configuration)\OverlayCompanion.exe">
+      <Link>OverlayCompanion.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.14" />
   </ItemGroup>
+  <Target Name="BuildOverlayCompanion" BeforeTargets="PrepareForBuild">
+    <MSBuild Projects="$(MSBuildProjectDirectory)\OverlayCompanion\OverlayCompanion.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);Platform=x64" />
+  </Target>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
 </Project>
