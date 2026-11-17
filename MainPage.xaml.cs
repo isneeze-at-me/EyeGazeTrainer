@@ -2,283 +2,123 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Windows.Storage;
-using Windows.Devices.Input.Preview;
-using Windows.Foundation;
-using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Navigation;
-using Windows.ApplicationModel.Core;
 
 namespace EyeGazeApiViability
 {
+    // SAFETY HOLD: the previous live gaze diagnostic was followed by a TD Control
+    // freeze requiring reboot (see issue #9). This version is deliberately a
+    // NO-HARDWARE dry run. It never references or starts the gaze APIs.
     public sealed partial class MainPage : Page
     {
-        private const int TestSeconds = 60;
         private readonly Stopwatch clock = new Stopwatch();
         private readonly DispatcherTimer ticker = new DispatcherTimer();
-        private GazeDeviceWatcherPreview watcher;
-        private GazeInputSourcePreview source;
-        private bool started;
-        private bool finished;
-        private bool armed;
-        private bool shuttingDown;
-        private int shutdownStage;
-        private TimeSpan nextStageAt;
+        private int nextStage;
+        private TimeSpan nextStageTime;
         private string logPath;
-        private int validSamples;
-        private int coordinateChanges;
-        private Point? previous;
-        private string state = "Waiting for device";
+        private bool running;
+
+        private static readonly string[] Stages =
+        {
+            "01/06 — PREPARE (simulated)",
+            "02/06 — UNSUBSCRIBE GazeMoved (simulated)",
+            "03/06 — STOP device watcher (simulated)",
+            "04/06 — REMOVE watcher events (simulated)",
+            "05/06 — RELEASE references (simulated)",
+            "06/06 — EXIT APPLICATION (simulated; app remains open)"
+        };
 
         public MainPage()
         {
             InitializeComponent();
-            Loaded += OnLoaded;
+            StageText.Text = "Stage: IDLE — NO EYE TRACKER ACCESS";
+            ticker.Interval = TimeSpan.FromMilliseconds(100);
+            ticker.Tick += OnTick;
             Unloaded += OnUnloaded;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        private void StartDryRun(object sender, RoutedEventArgs e)
         {
-            // Deliberately idle on launch: previous automatic exit disabled TD Control.
-            // No device watcher or gaze stream is opened until a supervised arm click.
-            StageText.Text = "Stage: IDLE — gaze input NOT started";
-        }
-
-        private void ArmDiagnostic(object sender, RoutedEventArgs e)
-        {
-            if (armed || finished) return;
-            armed = true;
-            ArmButton.IsEnabled = false;
-            logPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "shutdown-trace.txt");
+            if (running) return;
             try
             {
+                // Logs contain stage names and timestamps only; no gaze positions.
+                logPath = Path.Combine(ApplicationData.Current.LocalFolder.Path,
+                                       "shutdown-dryrun-trace.txt");
                 File.WriteAllText(logPath,
-                    "EyeGazeTrainer supervised diagnostic (no raw gaze coordinates)\r\n" +
-                    "Known risk: TD Control remained visible but stopped responding after prior app exit.\r\n");
-                TraceText.Text = "Log: shutdown-trace.txt (UWP LocalFolder)";
+                    "EyeGazeTrainer NO-HARDWARE DRY RUN. No gaze APIs opened.\r\n" +
+                    "This test does not validate TD Control handoff or recovery.\r\n");
             }
             catch (Exception ex)
             {
-                TraceText.Text = "WARNING: log unavailable: " + ex.GetType().Name;
-                // Do not continue without a durable trace of the high-risk stages.
-                armed = false;
+                ResultText.Text = "Dry run unavailable: cannot create trace (" +
+                                  ex.GetType().Name + ")";
+                return;
+            }
+
+            running = true;
+            ArmButton.IsEnabled = false;
+            clock.Restart();
+            nextStage = 0;
+            nextStageTime = TimeSpan.Zero;
+            StageText.Text = "Stage: starting simulated checkpoints";
+            CountdownText.Text = "Dry-run sequence (no gaze access)";
+            DeviceText.Text = "NO EYE TRACKER ACCESS — deliberate safety lock";
+            DataText.Text = "No gaze samples will be collected";
+            CountText.Text = "This is a UI/logging verification only";
+            TraceText.Text = "Trace: shutdown-dryrun-trace.txt in UWP LocalFolder";
+            ResultText.Text = "SIMULATION — not a hardware test";
+            Log("START dry run");
+            ticker.Start();
+        }
+
+        private void OnTick(object sender, object e)
+        {
+            if (!running || clock.Elapsed < nextStageTime) return;
+            if (nextStage >= Stages.Length)
+            {
+                ticker.Stop();
+                running = false;
+                Log("COMPLETE all simulated checkpoints; no app exit invoked");
+                StageText.Text = "Stage: COMPLETE — hardware untouched";
+                CountdownText.Text = "Dry run complete";
+                ResultText.Text = "PASS: visible stages and trace written; TD Control not tested";
                 ArmButton.IsEnabled = true;
                 return;
             }
 
-            WriteTrace("ARMED; countdown begins; TD Control remains untouched");
-            clock.Start();
-            ticker.Interval = TimeSpan.FromMilliseconds(100);
-            ticker.Tick += Tick;
-            ticker.Start();
-            StageText.Text = "Stage: ACQUIRING GAZE INPUT";
-            try
-            {
-                WriteTrace("BEGIN watcher create/start");
-                watcher = GazeInputSourcePreview.CreateWatcher();
-                watcher.Added += DeviceAdded;
-                watcher.Updated += DeviceUpdated;
-                watcher.Removed += DeviceRemoved;
-                watcher.Start();
-                WriteTrace("END watcher create/start");
-            }
-            catch (Exception ex)
-            {
-                state = "Watcher error: " + ex.GetType().Name;
-                DeviceText.Text = state;
-                ResultText.Text = "FAIL: Windows gaze watcher unavailable";
-                WriteTrace("ERROR watcher create/start: " + ex);
-            }
+            string stage = Stages[nextStage];
+            StageText.Text = "Stage: " + stage;
+            CountdownText.Text = "Checkpoint " + (nextStage + 1) + " of " + Stages.Length;
+            Log("BEGIN " + stage);
+            // Intentional NO-OP. Do not insert watcher/stream cleanup here:
+            // this is safe simulation, not a hardware experiment.
+            Log("END " + stage);
+            nextStage++;
+            nextStageTime = clock.Elapsed + TimeSpan.FromSeconds(3);
         }
 
-        private void WriteTrace(string entry)
+        private void Log(string message)
         {
-            if (logPath == null) return;
             try
             {
                 File.AppendAllText(logPath,
                     DateTimeOffset.Now.ToString("O") + " | +" +
-                    clock.Elapsed.TotalSeconds.ToString("F1") + "s | " + entry + "\r\n");
+                    clock.Elapsed.TotalSeconds.ToString("F1") +
+                    "s | " + message + "\r\n");
             }
             catch (Exception ex)
             {
-                TraceText.Text = "WARNING: log write failed: " + ex.GetType().Name;
-            }
-        }
-
-        private void DeviceAdded(GazeDeviceWatcherPreview sender, GazeDeviceWatcherAddedPreviewEventArgs args)
-        {
-            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UseDevice(args.Device));
-        }
-        private void DeviceUpdated(GazeDeviceWatcherPreview sender, GazeDeviceWatcherUpdatedPreviewEventArgs args)
-        {
-            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UseDevice(args.Device));
-        }
-        private void DeviceRemoved(GazeDeviceWatcherPreview sender, GazeDeviceWatcherRemovedPreviewEventArgs args)
-        {
-            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-            {
-                if (finished) return;
-                state = "Eye tracker removed";
-                DeviceText.Text = state;
-                StopSource();
-            });
-        }
-
-        private void UseDevice(GazeDevicePreview device)
-        {
-            if (finished || shuttingDown) return;
-            state = "Device found | CanTrackEyes=" + device.CanTrackEyes +
-                    " | State=" + device.ConfigurationState;
-            DeviceText.Text = state;
-            if (!device.CanTrackEyes || device.ConfigurationState != GazeDeviceConfigurationStatePreview.Ready)
-            {
-                ResultText.Text = "Device found but not ready for gaze streaming";
-                return;
-            }
-            if (started) return;
-            try
-            {
-                // Must be invoked from UWP UI thread; triggers Windows consent on first use.
-                source = GazeInputSourcePreview.GetForCurrentView();
-                source.GazeMoved += GazeMoved;
-                started = true;
-                ResultText.Text = "Gaze source opened; waiting for live samples";
-            }
-            catch (Exception ex)
-            {
-                state = "Gaze source error: " + ex.GetType().Name + " (0x" + ex.HResult.ToString("X8") + ")";
-                DeviceText.Text = state;
-                ResultText.Text = "FAIL: Unable to open gaze source";
-            }
-        }
-
-        private void GazeMoved(GazeInputSourcePreview sender, GazeMovedPreviewEventArgs args)
-        {
-            if (finished || shuttingDown) return;
-            var position = args.CurrentPoint?.EyeGazePosition;
-            if (!position.HasValue) return;
-            var p = position.Value;
-            if (double.IsNaN(p.X) || double.IsNaN(p.Y)) return;
-            validSamples++;
-            if (previous.HasValue &&
-                (Math.Abs(p.X - previous.Value.X) > 2 || Math.Abs(p.Y - previous.Value.Y) > 2))
-                coordinateChanges++;
-            previous = p;
-            DataText.Text = $"LIVE EYE GAZE: X={p.X:F1}  Y={p.Y:F1}";
-            CountText.Text = $"Valid samples: {validSamples} | Coordinate changes: {coordinateChanges}";
-            GazeDot.Visibility = Visibility.Visible;
-            // Coordinates are DIP relative to application view. Canvas starts in row 1.
-            var canvasTop = GazeCanvas.TransformToVisual(this).TransformPoint(new Point(0, 0)).Y;
-            var canvasLeft = GazeCanvas.TransformToVisual(this).TransformPoint(new Point(0, 0)).X;
-            Canvas.SetLeft(GazeDot, Math.Max(0, Math.Min(GazeCanvas.ActualWidth - 35, p.X - canvasLeft - 17.5)));
-            Canvas.SetTop(GazeDot, Math.Max(0, Math.Min(GazeCanvas.ActualHeight - 35, p.Y - canvasTop - 17.5)));
-            ResultText.Text = coordinateChanges >= 5 ? "PASS: Independent gaze coordinates are changing" : "Receiving gaze samples; move your eyes around";
-            args.Handled = true;
-        }
-
-        private void Tick(object sender, object e)
-        {
-            if (!armed || finished) return;
-            if (shuttingDown)
-            {
-                if (clock.Elapsed >= nextStageAt)
-                    RunShutdownStage();
-                return;
-            }
-
-            var remaining = Math.Max(0, TestSeconds - clock.Elapsed.TotalSeconds);
-            CountdownText.Text = $"Cleanup stages begin in {Math.Ceiling(remaining):0} seconds";
-            if (remaining <= 0)
-            {
-                shuttingDown = true;
-                shutdownStage = 0;
-                WriteTrace("Gaze observation ended: samples=" + validSamples +
-                           " changes=" + coordinateChanges + " (no coordinates stored)");
-                RunShutdownStage();
-            }
-        }
-
-        // Each checkpoint is logged both BEFORE and AFTER its operation. The screen
-        // remains present for 3 seconds between operations to help isolate the step
-        // at which TD Control stops responding. NOT a guaranteed safe exit.
-        private void RunShutdownStage()
-        {
-            string name;
-            switch (shutdownStage)
-            {
-                case 0: name = "01/06 — PREPARE (no device changes)"; break;
-                case 1: name = "02/06 — UNSUBSCRIBE GazeMoved"; break;
-                case 2: name = "03/06 — STOP device watcher"; break;
-                case 3: name = "04/06 — REMOVE watcher events"; break;
-                case 4: name = "05/06 — RELEASE local references"; break;
-                case 5: name = "06/06 — EXIT APPLICATION"; break;
-                default: return;
-            }
-
-            StageText.Text = "Stage: " + name;
-            CountdownText.Text = "Shutdown checkpoint " + (shutdownStage + 1) + " of 6";
-            WriteTrace("BEGIN " + name);
-            try
-            {
-                switch (shutdownStage)
-                {
-                    case 0:
-                        // No-op baseline; observe TD Control before touching subscriptions.
-                        break;
-                    case 1:
-                        if (source != null) source.GazeMoved -= GazeMoved;
-                        started = false;
-                        break;
-                    case 2:
-                        if (watcher != null) watcher.Stop();
-                        break;
-                    case 3:
-                        if (watcher != null)
-                        {
-                            watcher.Added -= DeviceAdded;
-                            watcher.Updated -= DeviceUpdated;
-                            watcher.Removed -= DeviceRemoved;
-                        }
-                        break;
-                    case 4:
-                        source = null;
-                        watcher = null;
-                        break;
-                    case 5:
-                        WriteTrace("CALL CoreApplication.Exit() — final checkpoint");
-                        finished = true;
-                        ticker.Stop();
-                        CoreApplication.Exit();
-                        return;
-                }
-                WriteTrace("END " + name);
-            }
-            catch (Exception ex)
-            {
-                WriteTrace("ERROR " + name + ": " + ex);
-                StageText.Text = "HALTED at " + name + " — " + ex.GetType().Name;
-                ResultText.Text = "Cleanup failed. Do not run again. Recovery assistance required.";
+                TraceText.Text = "WARNING: trace write failed: " + ex.GetType().Name;
                 ticker.Stop();
-                return;
+                running = false;
+                ArmButton.IsEnabled = true;
             }
-
-            shutdownStage++;
-            nextStageAt = clock.Elapsed + TimeSpan.FromSeconds(3);
-        }
-
-        private void StopSource()
-        {
-            if (source != null) { source.GazeMoved -= GazeMoved; source = null; }
-            started = false;
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            // Do not recurse into an immediate teardown from Unloaded; manual close
-            // is an independently observable lifecycle event.
-            WriteTrace("PAGE Unloaded; phase=" + shutdownStage);
             ticker.Stop();
         }
     }
