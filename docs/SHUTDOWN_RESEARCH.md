@@ -53,3 +53,29 @@ If logs end at `BEGIN 03/06` without `END`, the watcher stop is a strong tempora
 ## Open request to Tobii Dynavox
 
 Ask whether Windows UWP gaze source subscriptions are expected to coexist with TD Control for PCEye 5; whether TD Control supports a documented suspend/resume or gaze-aware handoff; and how to safely restore its gaze input without reboot after third-party app exit.
+
+## Follow-up: interoperability and recovery investigation (2026-11-17)
+
+**Important new finding:** Tolt's draft explicitly distinguishes the general `eyegaze:aware` Win32 window property from a **Tobii Dynavox-specific** extended-window-style check using bit `0x2` (`WS_TOBIIGAZEAWARE`). This is a legacy interoperability convention described for TD Control/Communicator 5, not an officially verified public TD Control API. Setting Win32 HWND window properties from a sandboxed UWP app may not be feasible or safe; do not blindly apply `SetWindowLong` or change styles on another app. Source: https://github.com/Tolt-Technologies/eye-gaze-aware
+
+The draft also suggests registry discovery under `Software\\Classes\\eyegaze\\applications` and URI notifications such as `appuri:start` and `appuri:end`, but these are **draft conventions**, not proof that installed TD Control implements these callbacks or provides a restart/reacquire endpoint. Do not send guessed protocol URIs to the system.
+
+Tobii Dynavox's TD Control user manual documents a built-in **Pause Gaze / Resume Gaze** feature, where a paused state is visibly indicated by an orange border and resume is triggered by looking below the tracker. This is normal pause/resume functionality, **not a validated remedy for a frozen TD Control cursor** and cannot be assumed to work when gaze updates are missing. Manual: https://download.mytobiidynavox.com/Computer%20Control/Documentation/Users%20Manual/TobiiDynavox_UsersManual_TDControl_en-US.pdf
+
+**No supported external API or documented, verified command was found that safely restarts TD Control gaze acquisition after third-party UWP gaze app exit.** This remains an open vendor-support question.
+
+### Safer engineering direction
+
+1. Keep the diagnostic and shutdown instrumentation **not approved for use** until alternate non-eye-gaze control/recovery is established.
+2. Consult Tobii Dynavox regarding supported app handoff, exclusive/shared gaze stream ownership, TD Control version-specific interop, and a documented restart/reinitialization mechanism.
+3. Implement **non-invasive, read-only** application-state/log inspection first. Avoid experimenting with TD Control process termination, tracker driver resets, Win32 window flags or undocumented URI commands on an essential AAC computer.
+4. Any eventual stage-by-stage on-device test requires independent caregiver-accessible controls and explicit stop/recovery procedures. A 60-second in-process timer is not a reliable watchdog.
+5. If cooperation requires desktop HWND interop, evaluate a narrowly scoped desktop helper for future versions, but do not deploy it before documented compatibility and security review.
+
+### Evidence needed from Tobii Dynavox
+
+- Is there an official TD Control-compatible third-party gaze-aware app protocol for PCEye 5 and UWP apps?
+- Which window property/style and protocol URIs, if any, are supported by current TD Control builds?
+- Can TD Control release and reacquire eye-tracker data after another app closes without restarting Windows?
+- Is there a supported, safe restart/reinitialize action or documented automation surface?
+- What diagnostic logs and versions should be collected after a visible-but-unresponsive gaze cursor?
