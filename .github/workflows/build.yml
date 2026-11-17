@@ -25,6 +25,14 @@ jobs:
         run: nuget restore EyeGazeApiViability.csproj -NonInteractive
       - name: Build UWP diagnostic (Debug x64)
         run: msbuild EyeGazeApiViability.csproj /m /p:Configuration=Debug /p:Platform=x64 /p:AppxPackageSigningEnabled=false /p:GenerateAppxPackageOnBuild=false /v:minimal
+      - name: Verify packaged companion EXE exists
+        shell: pwsh
+        run: |
+          $exe = "OverlayCompanion/bin/Debug/OverlayCompanion.exe"
+          if (!(Test-Path $exe)) { throw "Full-trust overlay companion missing: $exe" }
+          Write-Host "Desktop overlay companion compiled from source: $exe"
+      - name: Validate UWP package generation with full-trust component
+        run: msbuild EyeGazeApiViability.csproj /m /p:Configuration=Debug /p:Platform=x64 /p:AppxPackageSigningEnabled=false /p:GenerateAppxPackageOnBuild=true /p:AppxBundle=Never /v:minimal
 
 # CI is a compilation check, not a hardware or auto-exit test.
 # The legacy UWP toolchain may not be installed on every hosted image.
