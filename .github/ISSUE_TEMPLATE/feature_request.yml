@@ -1,0 +1,34 @@
+name: Feature proposal
+description: Propose an improvement aligned with skill-gated independent operation
+title: "feat: "
+labels: []
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem / unmet need
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Suggested solution
+    validations:
+      required: true
+  - type: textarea
+    id: prerequisites
+    attributes:
+      label: Interaction skills required and already taught
+      description: Explain how the user can access, cancel, recover and exit this feature independently.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria and proposed tests
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Safety, privacy, or coexistence implications
