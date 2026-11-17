@@ -4,6 +4,7 @@ using System.IO;
 using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
 
 namespace EyeGazeApiViability
 {
@@ -18,6 +19,8 @@ namespace EyeGazeApiViability
         private TimeSpan nextStageTime;
         private string logPath;
         private bool running;
+        private bool exitScheduled;
+        private DispatcherTimer exitTimer;
 
         private static readonly string[] Stages =
         {
@@ -43,6 +46,67 @@ namespace EyeGazeApiViability
             // Developer preview only; does not acquire gaze resources.
             ticker.Stop();
             Frame.Navigate(typeof(LevelOnePreview));
+        }
+
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            bool cleanExit = (e.Parameter as string) == "EXIT_AFTER_GAZE_CLEANUP";
+            LogLifecycle("Main dashboard entered; requestedExit=" + cleanExit);
+            if (cleanExit)
+            {
+                // Do not keep the previously active gaze page in navigation history.
+                Frame.BackStack.Clear();
+                Frame.ForwardStack.Clear();
+                ScheduleExit("after gaze-page navigation");
+            }
+        }
+
+        private void OnExitFromMain(object sender, RoutedEventArgs e)
+        {
+            ScheduleExit("explicit main dashboard Exit button");
+        }
+
+        private void ScheduleExit(string reason)
+        {
+            if (exitScheduled) return;
+            exitScheduled = true;
+            ticker.Stop();
+            ExitAppButton.IsEnabled = false;
+            ArmButton.IsEnabled = false;
+            CountdownText.Text = "Closing from non-gaze dashboard in 2 seconds...";
+            StageText.Text = "Gaze page left; closing normally";
+            LogLifecycle("EXIT scheduled: " + reason);
+            exitTimer = new DispatcherTimer();
+            exitTimer.Interval = TimeSpan.FromSeconds(2);
+            exitTimer.Tick += OnExitTimer;
+            exitTimer.Start();
+        }
+
+        private void OnExitTimer(object sender, object e)
+        {
+            exitTimer.Stop();
+            exitTimer.Tick -= OnExitTimer;
+            exitTimer = null;
+            LogLifecycle("CALL Application.Current.Exit() from MainPage");
+            // The dashboard has no gaze watcher or source subscriptions.
+            Application.Current.Exit();
+        }
+
+        private void LogLifecycle(string message)
+        {
+            try
+            {
+                string path = Path.Combine(ApplicationData.Current.LocalFolder.Path,
+                                           "gaze-lifecycle-trace.txt");
+                File.AppendAllText(path, DateTimeOffset.Now.ToString("O") +
+                                   " | " + message + "\r\n");
+            }
+            catch (Exception)
+            {
+                // Logging failure must not trigger gaze device or process changes.
+            }
         }
 
         private void StartDryRun(object sender, RoutedEventArgs e)
@@ -127,6 +191,7 @@ namespace EyeGazeApiViability
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             ticker.Stop();
+            if (exitTimer != null) exitTimer.Stop();
         }
     }
 }
