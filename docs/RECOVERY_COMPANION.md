@@ -96,3 +96,25 @@ Monitored services `Tobii Service`, `TobiiGeneric`, `TobiiIS5LARGEPCEYE5`, `Tdx.
 **Not established:** Process presence, service RUNNING status, and exit codes **do not establish gaze-stream health** or prove which component froze. No user report of an actual frozen state has been captured by this snapshot. No automated or manual restoration action has been validated.
 
 **Status:** Read-only snapshot baseline COMPLETE; original TD Control shutdown incident #9 OPEN. The next engineering work should investigate documented and non-invasive application-level state/recovery rather than repeatedly collecting identical normal-operation snapshots. No live gaze test, service restart, forced process exit, or automatic relaunch.
+
+## Phase 2: Windows UI health (non-invasive, 2026-11-17)
+
+Added `tools/TDControl-UIHealth.cmd` to `Test`. This independent command-line companion queries:
+
+- `tasklist /v` for `Tdx.ComputerControl.exe`, `TobiiDynavox.EyeAssist.Engine.exe`, and TD Control UI companion processes, including Windows' **Status** field.
+- PowerShell `Get-Process` `Responding`, `MainWindowHandle`, and `MainWindowTitle` for `Tdx.ComputerControl` (when accessible).
+
+This is **read-only**: it does not open Windows Gaze APIs, alter services, kill/restart applications, change input focus deliberately, or run the live UWP diagnostic. Microsoft documents Windows `tasklist` status values as RUNNING, NOT RESPONDING or UNKNOWN (see https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/tasklist); PowerShell exposes Process.Responding (see https://learn.microsoft.com/en-us/powershell/scripting/learn/ps101/03-discovering-objects).
+
+**Critical limitation:** A responding window/message loop is not proof that TD Control consumes live gaze data. The user's prior failure (cursor remains visible but stops moving) might show RUNNING and Responding=True even while unusable. Background/helper processes may have no main window; their GUI status isn't a health test. This tool cannot fix or fully diagnose gaze-stream freezes. Avoid interpreting it as a watchdog or automatic recovery mechanism.
+
+The user has completed a baseline snapshot with all expected named components and five services present/running. No more repetitive process inventory is required; this UI status check is a *different* signal to evaluate separately, while everything is working normally.
+
+### Safe validation
+
+1. Pull the `Test` branch; review `tools/TDControl-UIHealth.cmd`.
+2. Run `.\tools\TDControl-UIHealth.cmd` from Visual Studio Developer PowerShell **with TD Control operating normally**.
+3. Record the displayed Status and Responding values, if any; TD Control must continue to accept gaze during and after.
+4. **Do not** deliberately freeze the application, rerun the live gaze diagnostic, use the manual launch tool, or stop/restart any Tobii components.
+
+No independent recovery has been validated. Issue #9 remains blocking.
