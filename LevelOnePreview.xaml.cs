@@ -159,6 +159,9 @@ namespace EyeGazeApiViability
 
             // UWP gaze points are in application-view coordinates, not
             // coordinates local to the canvas.
+            // Show the indicator across the entire page, including Exit.
+            // Gaze position remains in UWP view coordinates for button hit tests.
+            UpdateCursor(p);
             Point canvasOrigin = TrainingCanvas.TransformToVisual(this)
                                   .TransformPoint(new Point(0, 0));
             ProcessPosition(new Point(p.X - canvasOrigin.X, p.Y - canvasOrigin.Y));
@@ -224,7 +227,36 @@ namespace EyeGazeApiViability
         {
             // Mouse preview remains available only when hardware is not engaged.
             if (live || stopping) return;
-            ProcessPosition(e.GetCurrentPoint(TrainingCanvas).Position);
+            Point canvasPoint = e.GetCurrentPoint(TrainingCanvas).Position;
+            Point canvasOrigin = TrainingCanvas.TransformToVisual(this)
+                                  .TransformPoint(new Point(0, 0));
+            UpdateCursor(new Point(canvasPoint.X + canvasOrigin.X,
+                                   canvasPoint.Y + canvasOrigin.Y));
+            ProcessPosition(canvasPoint);
+        }
+
+        // This overlay belongs to the page, not the training canvas. It cannot
+        // intercept Exit Button clicks and is independent of TD Control's trace.
+        private void UpdateCursor(Point viewPoint)
+        {
+            if (CursorOverlay.ActualWidth <= DotDiameter ||
+                CursorOverlay.ActualHeight <= DotDiameter) return;
+            Point origin = CursorOverlay.TransformToVisual(this)
+                                        .TransformPoint(new Point(0, 0));
+            double x = viewPoint.X - origin.X;
+            double y = viewPoint.Y - origin.Y;
+            if (x < 0 || y < 0 ||
+                x > CursorOverlay.ActualWidth || y > CursorOverlay.ActualHeight)
+            {
+                PreviewDot.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            PreviewDot.Visibility = Visibility.Visible;
+            Canvas.SetLeft(PreviewDot, Clamp(x - DotDiameter / 2, 0,
+                CursorOverlay.ActualWidth - DotDiameter));
+            Canvas.SetTop(PreviewDot, Clamp(y - DotDiameter / 2, 0,
+                CursorOverlay.ActualHeight - DotDiameter));
         }
 
         private void ProcessPosition(Point p)
@@ -234,12 +266,6 @@ namespace EyeGazeApiViability
                 p.X < 0 || p.Y < 0 ||
                 p.X > TrainingCanvas.ActualWidth ||
                 p.Y > TrainingCanvas.ActualHeight) return;
-
-            PreviewDot.Visibility = Visibility.Visible;
-            Canvas.SetLeft(PreviewDot, Clamp(p.X - DotDiameter / 2, 0,
-                TrainingCanvas.ActualWidth - DotDiameter));
-            Canvas.SetTop(PreviewDot, Clamp(p.Y - DotDiameter / 2, 0,
-                TrainingCanvas.ActualHeight - DotDiameter));
 
             if (completed) return;
             if (targetIndex < 0)
