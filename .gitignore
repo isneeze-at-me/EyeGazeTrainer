@@ -1,0 +1,28 @@
+# Visual Studio / UWP build artifacts
+.vs/
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+ARM/
+ARM64/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+TestResults/
+*.trx
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+*.appxupload
+*.msixupload
+*.pfx
+*.cer
+*.log
+# Sensitive or local test captures
+gaze-captures/
+local-test-data/
