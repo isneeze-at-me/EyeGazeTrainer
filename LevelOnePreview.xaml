@@ -14,11 +14,10 @@
       <TextBlock x:Name="InstructionText"
                  Text="Confirm gaze tracking, then use EXIT APP to run staged cleanup and navigate away before closing."
                  FontSize="23" TextWrapping="Wrap" Foreground="#E2E8F0"/>
-      <StackPanel Orientation="Horizontal" Spacing="12">
-        <Button x:Name="LiveButton" Content="RESTART LIVE GAZE (HELPER)" Click="OnEnableLive" Padding="16,12" FontSize="17"/>
-        <Button x:Name="StopButton" Content="STOP GAZE — 1.5s LOOK" Click="OnStopLive" Padding="16,12" FontSize="17" IsEnabled="False"/>
-        <Button x:Name="ExitButton" Content="EXIT APP — 1.5s LOOK" Click="OnExitRequested" Padding="16,12" FontSize="17"/>
-      </StackPanel>
+      <Button x:Name="ExitButton" Content="EXIT APP — LOOK FOR 1.5 SECONDS"
+              Click="OnExitRequested" HorizontalAlignment="Stretch"
+              HorizontalContentAlignment="Center" MinHeight="96"
+              Padding="24,22" FontSize="27" FontWeight="Bold"/>
       <TextBlock x:Name="LiveStatusText" Text="Starting tracker on app launch (supervised test)" TextWrapping="Wrap" FontSize="17" Foreground="#FBBF24"/>
       <TextBlock x:Name="ProgressText" Text="Discover the moving circle" FontSize="18" Foreground="#93C5FD"/>
     </StackPanel>
@@ -28,12 +27,8 @@
                Stroke="#FBBF24" StrokeThickness="8" Fill="#344358" Visibility="Collapsed"/>
       <Ellipse x:Name="PreviewDot" Width="44" Height="44" Fill="#34D399" Visibility="Collapsed"/>
     </Canvas>
-    <Grid Grid.Row="2" Margin="28,10,28,22">
-      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-      <TextBlock Text="Gaze-only Stop and Exit: look for 1.5 seconds • No TD Control click needed" FontSize="17"
-                 Foreground="#CBD5E1" VerticalAlignment="Center" TextWrapping="Wrap"/>
-      <Button x:Name="BackButton" Grid.Column="1" Content="BACK TO DIAGNOSTICS (developer)"
-              Click="OnBack" FontSize="18" Padding="16,12"/>
-    </Grid>
+    <TextBlock Grid.Row="2" Margin="28,12,28,22"
+               Text="Exit is the only control. Gaze at it for 1.5 seconds to release tracking and close the app."
+               TextWrapping="Wrap" FontSize="18" Foreground="#CBD5E1"/>
   </Grid>
 </Page>
