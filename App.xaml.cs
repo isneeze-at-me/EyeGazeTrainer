@@ -47,6 +47,54 @@ namespace EyeGazeApiViability
             TraceLifecycle("Window.Activate completed");
         }
 
+        protected override void OnActivated(IActivatedEventArgs args)
+        {
+            if (args.Kind != ActivationKind.Protocol)
+            {
+                base.OnActivated(args);
+                return;
+            }
+
+            var protocol = args as ProtocolActivatedEventArgs;
+            if (protocol == null ||
+                protocol.Uri == null ||
+                !string.Equals(protocol.Uri.Scheme, "eyegazetrainer-exittest",
+                               StringComparison.OrdinalIgnoreCase))
+            {
+                TraceLifecycle("Unknown protocol activation ignored");
+                return;
+            }
+
+            TraceLifecycle("HARDWARE-FREE exit-isolation protocol invoked");
+            var frame = Window.Current.Content as Frame;
+
+            // Do not let this diagnostic interrupt or bypass cleanup for
+            // an existing active gaze session.
+            if (frame != null && frame.Content is LevelOnePreview)
+            {
+                TraceLifecycle("Exit-isolation refused: gaze page is active");
+                return;
+            }
+
+            if (frame == null)
+            {
+                frame = new Frame();
+                Window.Current.Content = frame;
+                TraceLifecycle("Hardware-free test root Frame created");
+            }
+            if (!windowEventsRegistered)
+            {
+                Window.Current.VisibilityChanged += OnVisibilityChanged;
+                Window.Current.Closed += OnWindowClosed;
+                windowEventsRegistered = true;
+            }
+
+            // Never construct LevelOnePreview or call a gaze API in this path.
+            frame.Navigate(typeof(MainPage), "EXIT_NO_GAZE_DIAGNOSTIC");
+            Window.Current.Activate();
+            TraceLifecycle("Hardware-free exit test Window.Activate completed");
+        }
+
         private void OnVisibilityChanged(object sender,
             Windows.UI.Core.VisibilityChangedEventArgs e)
         {
