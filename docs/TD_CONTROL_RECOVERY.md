@@ -49,3 +49,43 @@ If local execution policy blocks scripts, **stop and report the error** rather t
 
 ## Limits
 This inventory is not a watchdog, not a fix for issue #9 and not confirmation that the last diagnostic is safe. Collecting process names only reveals basic installation details and cannot establish causality or recoverability.
+
+## Confirmed local inventory (user screenshot, 2026-11-17)
+
+The user ran three **read-only** PowerShell commands successfully (the `.ps1` file itself had been blocked by execution policy; policy remained unchanged).
+
+Registered Start apps:
+- `TD Control` — `TobiiDynavox.ComputerControl`
+- `Eye Tracking Settings` — executable `TobiiDynavox.EyeTrackingSettings.exe` (long registered AppID with GUID/path prefix)
+
+Running matching processes (PIDs are a snapshot, not stable identifiers):
+- `Tobii.EyeX.Engine`, `Tobii.EyeX.Interaction`, `Tobii.Service`
+- `TobiiDynavox.EyeAssist.Engine`
+- `TobiiDynavox.EyeAssist.RegionInteraction.Startup`
+- `TobiiDynavox.EyeAssist.Smorgasbord`
+- `TobiiDynavox.EyeAssist.TrayIcon`
+- `TobiiDynavox.EyeTrackingSettings`
+- `TobiiVirtualDevice`
+
+Matching services reported RUNNING:
+- `Tdx.ComputerControl.Updater` — Tobii Dynavox Control Updater Service
+- `Tdx.Switcher.Updater` — Tobii Dynavox Switcher Updater Service
+- `Tobii Service` — Tobii Service
+- `TobiiGeneric` — Tobii Eye Tracker Generic Service
+- `TobiiIS5LARGEPCEYE5` — Tobii Runtime Service
+
+**Interpretation:** The UI and gaze-related processes are distinct. The previous incident (TD Control pointer visible but not moving) might be loss of incoming gaze data, a stuck TD Control input processor, or a handoff problem; this inventory **cannot determine which**. The Start AppID is a registered launch identity, *not* evidence that relaunching an already-running TD Control instance will restore gaze. Do not kill/restart any of these processes or services based on their names.
+
+## Read-only next step: correlate processes and service owners
+
+Use PowerShell *individual inline commands*, not an execution-policy override:
+
+```powershell
+Get-CimInstance Win32_Service | Where-Object { $_.Name -match 'Tobii|Tdx' } | Select-Object Name, State, ProcessId, StartMode
+```
+
+```powershell
+Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'Tobii|EyeAssist' } | Select-Object Name, ProcessId, ParentProcessId, ExecutablePath
+```
+
+These only query Windows management information. Paths can contain user-specific data; review before sharing. This identifies which service PID belongs to which process and whether TD Control's UI is hosted separately. It still does not establish a safe recovery mechanism. No hardware tests until independent control and recovery are validated.
