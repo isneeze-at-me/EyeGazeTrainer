@@ -53,3 +53,19 @@ Current TD Control manuals describe *Pause Gaze / Resume Gaze* as a user feature
 - https://support.microsoft.com/en-us/accessibility/windows/eye-control/eye-control-troubleshooting-guide
 
 The live shutdown incident is still open and no independently validated automated recovery exists. Do not interpret normal snapshot output as recovery success.
+
+## First real baseline capture and correction (2026-11-17 11:54)
+
+User uploaded `TDControl-Snapshot-20261117-115407.txt`. It confirms the following were present/running at capture:
+
+- `TobiiDynavox.EyeAssist.Engine`, PID 17132
+- `Tobii.EyeX.Engine.exe`, PID 7796
+- `Tobii.EyeX.Interaction.exe`, PID 7788
+- `TobiiVirtualDevice.exe`, PID 5272
+- Services `Tobii Service`, `TobiiGeneric`, `TobiiIS5LARGEPCEYE5`, `Tdx.ComputerControl.Updater`, and `Tdx.Switcher.Updater`: all reported RUNNING.
+
+**Script defect:** the PROCESS TREE section failed with `Get-CimInstance : A positional parameter cannot be found that accepts argument '^'`, because the CMD script passed caret-escaped pipe characters into a quoted PowerShell command. The rest of the snapshot completed normally. Fixed script on `Test` at commit `ea24335`; the first report is a **partial baseline**, not complete success.
+
+The captured process/service statuses do not prove gaze responsiveness, but this user's separate normal-operation reports establish that TD Control was responding during preceding read-only tests. Do not claim that the earlier fault is fixed or that recovery is validated.
+
+Next: optionally recapture the read-only baseline using the corrected script, without activating the UWP live gaze diagnostic.
