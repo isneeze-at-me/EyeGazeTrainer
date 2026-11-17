@@ -155,3 +155,16 @@ Added read-only `tools/Export-GazeExitLogs.cmd` on `Test`. When run from the rep
 The export does **not** start EyeGazeTrainer, access gaze APIs, stop/restart services or close processes. Share both logs for event-order investigation (review exception details for personal paths first). Their timestamps cannot by themselves identify the TD Control overlay process or the Windows compositor, but can distinguish whether the black screen appears while the app is still active, between page navigation and process exit, or after the last in-app trace.
 
 Do **not** change the working staged cleanup sequence or force further eye-gaze testing until these current logs are reviewed. No claim of clean exit reliability is warranted.
+
+
+## Uploaded shutdown traces — correlated timeline (2026-11-17, latest session 13:08–13:09 PST)
+
+User supplied exported `gaze-lifecycle-trace.txt` (historical appended launches/exits) and `level1-live-gaze-trace.txt` (latest session; overwritten on startup).
+
+Last recorded launch 13:08:57.037 App constructor, 13:08:57.177 OnLaunched, 13:08:57.263 Activate completed, 13:08:57.360 Window visible. Watcher started 13:08:57.296–13:08:57.301; subscription began/ended 13:08:57.338–13:08:57.341. Lesson complete 13:09:04.399; native-gaze Exit activated 13:09:06.875. Four resource-cleanup checkpoints all have BEGIN/END with no recorded exception: unsubscribe GazeMoved 13:09:06.879, watcher.Stop 13:09:09.890–.891, detach watcher events 13:09:12.923–.925, drop managed references 13:09:15.973–.974. Completed at 13:09:19.002, page OnNavigatedFrom 13:09:19.010 with gaze active=False and exit requested=True; MainPage navigated 13:09:19.011, scheduled exit 13:09:19.013, and invoked `Application.Current.Exit()` at **13:09:21.023**. All timestamps local -08:00.
+
+Two other recent sessions (13:06 and 12:57) similarly recorded MainPage scheduling and invoking `Application.Current.Exit()` without logged failures; older sessions lack expanded lifecycle instrumentation.
+
+**Inference boundary:** The last trace entry is the call to `Application.Current.Exit()`, not proof that the app has fully terminated or every native gaze resource is free. `Window.Closed` and `Suspending` do not appear in these logs: there is no basis to interpret their absence as either a crash or completion, because UWP lifecycle event semantics differ for programmatic exit. User has not supplied a precise timestamp for the black-screen/freeze interval, so it cannot be placed conclusively before/after the exit call. The trace **narrows the investigation** toward window/process teardown or cross-process focus/compositor handoff; it **does not prove root cause**, or rule out asynchronous effects initiated by `watcher.Stop()` or object release.
+
+**Next engineering priority:** preserve the current working cleanup stages and visible UI; research non-disruptive UWP exit/lifecycle behavior and native gaze API handoff, and design logging capable of distinguishing managed exit request from actual process termination without adding a background watcher or disrupting TD Control. Do not claim a clean shutdown based only on the last logged line. Do not repeat live testing merely to reconfirm the same successful stage logs.
