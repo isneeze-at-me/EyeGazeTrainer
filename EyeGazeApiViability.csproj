@@ -47,6 +47,10 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.14" />
+    <!-- FullTrustProcessLauncher lives in the Windows Desktop UWP extension contract. -->
+    <SDKReference Include="WindowsDesktop, Version=10.0.19041.0">
+      <Name>Windows Desktop Extensions for the UWP</Name>
+    </SDKReference>
   </ItemGroup>
   <Target Name="BuildOverlayCompanion" BeforeTargets="PrepareForBuild">
     <MSBuild Projects="$(MSBuildProjectDirectory)\OverlayCompanion\OverlayCompanion.csproj"
