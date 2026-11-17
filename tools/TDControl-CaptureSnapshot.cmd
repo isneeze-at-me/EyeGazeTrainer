@@ -20,7 +20,7 @@ echo Taking a read-only snapshot. TD Control will NOT be changed.
   echo Read-only: status information is NOT a gaze responsiveness test.
   echo.
   echo ==== PROCESS TREE: NAMES, IDS, PARENTS ====
-  powershell.exe -NoProfile -Command "Get-CimInstance Win32_Process ^| Where-Object { $_.Name -match 'Tobii^|EyeAssist^|Tdx' } ^| Select-Object Name,ProcessId,ParentProcessId ^| Format-Table -AutoSize ^| Out-String -Width 220"
+  powershell.exe -NoProfile -Command "$all = Get-CimInstance Win32_Process; $all.Where({ $_.Name -match 'Tobii|EyeAssist|Tdx' }) | Select-Object Name,ProcessId,ParentProcessId | Format-Table -AutoSize | Out-String -Width 220"
   echo.
   echo ==== PROCESS STATUS ====
   tasklist /FI "IMAGENAME eq TobiiDynavox.EyeAssist.Engine.exe"
