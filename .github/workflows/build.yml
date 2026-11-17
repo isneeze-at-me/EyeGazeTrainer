@@ -1,0 +1,31 @@
+name: UWP build check
+
+on:
+  push:
+    branches: [main, Test]
+  pull_request:
+    branches: [main, Test]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  uwp-build:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+      - name: Restore UWP dependencies
+        run: nuget restore EyeGazeApiViability.csproj -NonInteractive
+      - name: Build UWP diagnostic (Debug x64)
+        run: msbuild EyeGazeApiViability.csproj /m /p:Configuration=Debug /p:Platform=x64 /p:AppxPackageSigningEnabled=false /p:GenerateAppxPackageOnBuild=false /v:minimal
+
+# CI is a compilation check, not a hardware or auto-exit test.
+# The legacy UWP toolchain may not be installed on every hosted image.
+# Inspect the first workflow run and refine prerequisites if needed.
