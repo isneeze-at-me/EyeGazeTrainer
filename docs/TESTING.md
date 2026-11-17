@@ -1,3 +1,5 @@
+> **CRITICAL FIELD INCIDENT, 2026-11-17 — DO NOT RERUN:** On repeat diagnostic, user observed gaze coordinate PASS, followed by ~1-second freeze, ~1-second black screen and TD Control becoming unresponsive at auto-exit; recovery required reboot. See [issue #9](https://github.com/isneeze-at-me/EyeGazeTrainer/issues/9). Cause unknown. Previous exit reliability remains unverified and current diagnostic is unsafe to repeat pending investigation.
+
 # Testing and evidence ledger
 
 ## Reported evidence — 2026-11-17
