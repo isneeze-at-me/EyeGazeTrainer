@@ -8,18 +8,18 @@
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0" Margin="28,22,28,12" Spacing="10">
-      <TextBlock Text="Eye gaze — startup and shutdown diagnostic" FontSize="30" FontWeight="Bold" Foreground="White"/>
-      <TextBlock Text="LIVE GAZE EXPERIMENTAL. Use with a helper and independent keyboard/mouse access. Prefer the dedicated EXIT button over the window X."
+      <TextBlock Text="EyeGazeTrainer" FontSize="30" FontWeight="Bold" Foreground="White"/>
+      <TextBlock Text="Look at each circle to activate it. Use the large Exit button to return to your computer."
                  TextWrapping="Wrap" FontSize="18" Foreground="#FCA5A5"/>
       <TextBlock x:Name="InstructionText"
-                 Text="Confirm gaze tracking, then use EXIT APP to run staged cleanup and navigate away before closing."
+                 Text="Follow the yellow targets with your eyes."
                  FontSize="23" TextWrapping="Wrap" Foreground="#E2E8F0"/>
-      <Button x:Name="ExitButton" Content="EXIT APP — LOOK FOR 1.5 SECONDS"
+      <Button x:Name="ExitButton" Content="EXIT"
               Click="OnExitRequested" HorizontalAlignment="Stretch"
               HorizontalContentAlignment="Center" MinHeight="96"
               Padding="24,22" FontSize="27" FontWeight="Bold"/>
-      <TextBlock x:Name="LiveStatusText" Text="Starting tracker on app launch (supervised test)" TextWrapping="Wrap" FontSize="17" Foreground="#FBBF24"/>
-      <TextBlock x:Name="ProgressText" Text="Discover the moving circle" FontSize="18" Foreground="#93C5FD"/>
+      <TextBlock x:Name="LiveStatusText" Text="Connecting to eye tracker…" TextWrapping="Wrap" FontSize="17" Foreground="#FBBF24"/>
+      <TextBlock x:Name="ProgressText" Text="Look at the colored circles to begin" FontSize="18" Foreground="#93C5FD"/>
     </StackPanel>
     <Canvas Grid.Row="1" x:Name="TrainingCanvas" Margin="24" Background="#17253D"
             PointerMoved="OnPointerMoved" PointerEntered="OnPointerMoved" SizeChanged="OnCanvasSized">
@@ -27,7 +27,7 @@
                Stroke="#FBBF24" StrokeThickness="8" Fill="#344358" Visibility="Collapsed"/>
     </Canvas>
     <TextBlock Grid.Row="2" Margin="28,12,28,22"
-               Text="Exit is the only control. Gaze at it for 1.5 seconds to release tracking and close the app."
+               Text="To exit, look at EXIT for 1.5 seconds."
                TextWrapping="Wrap" FontSize="18" Foreground="#CBD5E1"/>
     <!-- Overlay spans all content rows, including Exit; never captures clicks. -->
     <Canvas x:Name="CursorOverlay" Grid.RowSpan="3" IsHitTestVisible="False"
