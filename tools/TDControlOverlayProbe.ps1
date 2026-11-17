@@ -60,6 +60,7 @@ function Test-OwnWindow($window) {
 }
 
 $changed = [IntPtr]::Zero
+$alreadySetWindow = [IntPtr]::Zero
 $lastReported = ''
 $deadline = [DateTime]::UtcNow.AddSeconds($DurationSeconds)
 Write-Host "EyeGazeTrainer / TD Control overlay probe"
@@ -86,14 +87,19 @@ try {
             $changed = [IntPtr]::Zero
         }
 
+        if ($alreadySetWindow -ne [IntPtr]::Zero -and $alreadySetWindow -ne $h) {
+            $alreadySetWindow = [IntPtr]::Zero
+        }
+
         if ($isTarget) {
             if ($lastReported -ne 'target') {
                 Write-Host ("Target active: " + $identity.Title + " [" + $identity.Class + "]")
                 $lastReported = 'target'
             }
             $style = [EyeGazeTrainerNativeWindowProbe]::GetWindowLong($h, $GwlExStyle)
-            if ($Apply -and $changed -eq [IntPtr]::Zero) {
+            if ($Apply -and $changed -eq [IntPtr]::Zero -and $alreadySetWindow -ne $h) {
                 if (($style -band $TobiiGazeAware) -ne 0) {
+                    $alreadySetWindow = $h
                     Write-Host 'Bit already set: leaving window style unchanged.'
                 }
                 else {
