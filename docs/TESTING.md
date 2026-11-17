@@ -223,3 +223,24 @@ Research:
 4. Report whether the console printed 'Target active' / 'Applied experimental gaze-aware bit', whether the external circle disappeared, and whether it returned on exit. If the title never matches, no style was changed.
 
 **Result pending.** No claim of actual overlay suppression until independently observed on the target TD Control installation.
+
+
+## Confirmed TD Control handoff and one-command launcher (2026-11-17)
+
+User **confirmed** that after running `TDControlOverlayProbe.ps1 -Apply`, the TD Control circle disappeared while EyeGazeTrainer was foreground; when EyeGazeTrainer exited, **the circle returned and TD Control controls worked normally**. This verifies the experimental Win32 extended-style 0x2 interoperability behavior **on this installation** in one supervised test. Its dual purpose as `WS_EX_NOPARENTNOTIFY`, and draft specification status, still matter.
+
+**Implemented, as a separate opt-in launcher (not yet automatic for Windows Start-menu/Visual Studio launches):**
+- `tools/Launch-EyeGazeTrainer-WithOverlayHandoff.cmd` is the new single-click entry point.
+- Calls the existing proven `tools/TDControlOverlayProbe.ps1` with `-Apply -Launch -DurationSeconds 28800` (up to 8 hours). The updated probe finds the installed UWP `EyeGazeApiViability` package and activates `shell:AppsFolder\<PackageFamilyName>!App` using Explorer, which follows normal app startup; it does not use a second gaze API.
+- Foreground window detection remains strict: `ApplicationFrameWindow` with title `Eye Gaze API Viability`. It applies bit 0x2 to that window only, and removes **only the bit it set** on focus loss or on helper exit; it re-applies if focus returns. If already set, it leaves existing style unchanged.
+- Once it has seen the EyeGazeTrainer window, it exits after the window handle is gone for two seconds. If it never sees the window, it exits after 40 seconds; the absolute maximum run is 8 hours. The helper remains visible during use, and can be stopped by Ctrl+C with normal `finally` restoration.
+- **No UWP app code, startup gaze watcher, green cursor, Exit button, four-stage gaze release, navigation or app exit timing was modified.**
+- This **does not install an always-on background service, global hook, or new restricted `runFullTrust` capability**. It works only when launched through this new command/shortcut. Opening the app directly from Start or Visual Studio bypasses the helper and may show TD Control's trace again.
+
+**How to test:** With a helper's independent input available, pull `Test` and run `tools\Launch-EyeGazeTrainer-WithOverlayHandoff.cmd`. Confirm the target recognized, circle disappeared while app foreground, our green cursor remains, and TD Control returns on normal large Exit. If it fails to launch, do not use a direct X while gaze is active; use the established large Exit path if the app is open. The PowerShell companion remains an external prototype; do not claim built-in automatic suppression or fully production-safe interoperability yet.
+
+**Longer-term true in-app automation:** UWP app containers do not freely mutate desktop window styles. Microsoft supports a packaged **full-trust companion** via a `windows.fullTrustProcess` extension and restricted `runFullTrust` capability, but that entails Windows-only packaging, separate executable, and additional permissions/build validation. Keep this as a later explicit design choice; do not add restricted capabilities to the now-working UWP package without testing.
+
+References:
+- https://github.com/Tolt-Technologies/eye-gaze-aware
+- https://learn.microsoft.com/en-us/uwp/api/windows.applicationmodel.fulltrustprocesslauncher
