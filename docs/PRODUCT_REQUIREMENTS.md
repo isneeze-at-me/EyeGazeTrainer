@@ -46,3 +46,14 @@ The first two levels must not depend on an undisclosed dwell mechanism. Skill-ga
 ## MVP after diagnostic
 
 Build a gaze-only Level 1 that explains itself, responds to eye position without dwell/click, safely handles absent tracking, and records enough non-sensitive evidence for reproducible testing. Full curriculum and analytics are later phases.
+
+## November 17 engineering milestone — Level 1 mouse preview
+
+**Implemented on `Test` as a developer preview, not a gaze lesson validated with the tracker.**
+
+- `LevelOnePreview.xaml` and `LevelOnePreview.xaml.cs` provide an adult-oriented cause-and-effect lesson screen.
+- Moving the **mouse pointer** in the lesson canvas moves a green indicator; entering each of four large targets advances immediately. No click or dwell is required for the targets. A developer-only back button returns to the diagnostics page.
+- The preview is manually entered through a clearly labeled diagnostics button, not the eventual learner-facing gaze-only startup flow. It does not implement prior-skill-only navigation for the real user and is **not** ready for independent ALS use.
+- Deliberately never opens `Windows.Devices.Input.Preview`, starts a watcher, stops TD Control, changes services, collects gaze coordinates, or invokes `CoreApplication.Exit()`.
+- Progress is session-only; a trainer should not claim eye-gaze performance, persistent learning or clinical effectiveness based on this simulation.
+- Original TD Control issue #9 remains blocking for live hardware testing. A no-hardware preview can validate UI interactions but cannot validate gaze handoff or safe shutdown.
