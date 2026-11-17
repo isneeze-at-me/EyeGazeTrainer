@@ -278,3 +278,12 @@ At user request the visible developer UI is retired:
 - `LevelOnePreview` and `MainPage` class names are kept for compatibility. Code trace files and external troubleshooting tools remain available; the request was to remove developer **UI**, not to remove important evidence or alter a proven shutdown.
 
 **Safety:** The gaze-free closing page is still intentionally shown briefly. Removing the intermediate navigation would change a tested startup/exit behavior. Full-trust overlay companion integration is unchanged and must still be verified after deployment. The UI update is not proof of hardware reliability; test with helper/backup input until the combined build is validated.
+
+
+## Faster exit and maximized launch (2026-11-17)
+
+At user's request removed the **3-second diagnostic pause between each of the four eye-tracker cleanup operations**. `LevelOnePreview.BeginCleanup` now uses a `DispatcherTimer` interval of **100 ms**, leaving the first step immediate and the four operations in the same order (unsubscribe GazeMoved, watcher.Stop, detach watcher events, release local references). The final completion tick now occurs roughly **0.4 seconds** after Exit rather than ~12 seconds, excluding actual device or dispatcher delays. The existing gaze-free closing page and its separate **2-second exit delay remain unchanged**, to avoid removing the previously successful window handoff mechanism. Logging remains in place, not on-screen.
+
+The packaged `OverlayCompanion` now also calls `ShowWindow(hwnd, SW_MAXIMIZE)` **once per newly recognized exact EyeGazeTrainer foreground window**, then applies the same approved window-style overlay suppression logic. This produces an ordinary maximized Windows app window with its title bar, not an exclusive or borderless full-screen view. It does not maximize other apps, modify TD Control, or alter gaze APIs. If the companion fails to launch, app maximization is not guaranteed; check companion package and launch traces if needed. No added UI buttons or training levels.
+
+**Verification:** New faster cleanup timing and maximized-window behavior have not yet been validated on PCEye 5 hardware together. Because native gaze resource handoff had previously caused black screens and temporary loss of TD Control, perform first run only with helper/independent input available, and ensure TD Control responds after exit. The 100ms spacing is not evidence of native-device readiness.
