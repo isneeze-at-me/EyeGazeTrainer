@@ -9,11 +9,16 @@
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0" Margin="28,22,28,12" Spacing="10">
       <TextBlock Text="LEVEL 1 — Discover movement" FontSize="30" FontWeight="Bold" Foreground="White"/>
-      <TextBlock Text="HARDWARE-FREE DEVELOPER PREVIEW: Mouse position simulates gaze. The eye tracker is never opened."
+      <TextBlock Text="LIVE GAZE IS EXPERIMENTAL. A previous app exit disabled TD Control. Do not enable without another person and independent computer control."
                  TextWrapping="Wrap" FontSize="18" Foreground="#FCA5A5"/>
       <TextBlock x:Name="InstructionText"
-                 Text="Move the mouse into the blue area. The green circle will follow automatically — no clicking."
+                 Text="This lesson can follow the mouse in preview mode or actual gaze after explicitly enabling live tracking."
                  FontSize="23" TextWrapping="Wrap" Foreground="#E2E8F0"/>
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <Button x:Name="LiveButton" Content="ENABLE LIVE GAZE — SUPERVISED ONLY" Click="OnEnableLive" Padding="16,12" FontSize="17"/>
+        <Button x:Name="StopButton" Content="STOP LIVE GAZE (HELPER)" Click="OnStopLive" Padding="16,12" FontSize="17" IsEnabled="False"/>
+      </StackPanel>
+      <TextBlock x:Name="LiveStatusText" Text="Mouse preview only — tracker untouched" TextWrapping="Wrap" FontSize="17" Foreground="#FBBF24"/>
       <TextBlock x:Name="ProgressText" Text="Discover the moving circle" FontSize="18" Foreground="#93C5FD"/>
     </StackPanel>
     <Canvas Grid.Row="1" x:Name="TrainingCanvas" Margin="24" Background="#17253D"
@@ -24,7 +29,7 @@
     </Canvas>
     <Grid Grid.Row="2" Margin="28,10,28,22">
       <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-      <TextBlock Text="No dwell • No clicks for targets • No automatic exit" FontSize="17"
+      <TextBlock Text="Targets: gaze alone • No dwell • No automatic exit" FontSize="17"
                  Foreground="#CBD5E1" VerticalAlignment="Center" TextWrapping="Wrap"/>
       <Button Grid.Column="1" Content="BACK TO DIAGNOSTICS (developer)"
               Click="OnBack" FontSize="18" Padding="16,12"/>
