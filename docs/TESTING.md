@@ -2,6 +2,24 @@
 
 # Testing and evidence ledger
 
+## Supervised Level 1 live PCEye 5 results — 2026-11-17
+
+**User report, two runs, `Test` branch:** Live gaze tracking worked, and four gaze-only targets could be activated without dwell/click. The four manually initiated staged gaze shutdown checkpoints completed while TD Control remained responsive.
+
+| Run | After staged STOP | App close path | Observed TD Control behavior |
+| --- | --- | --- | --- |
+| **A** | TD Control continued to respond during the staged cleanup | Closed Windows window with **X directly from Level 1 page** | Brief black screen (~2s); TD Control cursor remained visible but its normal circle/overlay disappeared, temporarily unresponsive; **recovered spontaneously after a few seconds**, no reboot |
+| **B** | TD Control continued to respond during staged cleanup | Clicked **Back to Diagnostics**, then closed the application with **X** | No observed black screen or TD Control interruption |
+
+**Important interpretation:** The difference in navigation sequence is a **plausible lead**, not established causation; one success and one transient failure do not show that Back→X is consistently safe. A possible distinction is closing while the page that previously held a `GazeInputSourcePreview` is still active versus navigating off that page first. The staged stop removes event handlers and drops managed references; it is not proof all system resources have been released at a native/framework level. Windows app view deactivation and TD Control overlay focus may also contribute.
+
+**Safety classification:** Improved over the original indefinite loss of gaze, but **NOT a complete pass**. Temporary loss of essential eye-gaze control remains a blocking incident (#9). Keep supervised use only; do not authorize independent/unattended operation or automatic exit. Do not run more experiments without a helper and independent computer input.
+
+**Recommended immediate supervised workaround:** After STOP reports completion, verify TD Control responsiveness, navigate **Back to Diagnostics**, verify responsiveness again, then close with X. This is a *provisional observation-based sequence*, not a guaranteed safe recovery path.
+
+**Next code investigation:** instrument `LevelOnePreview.OnNavigatedFrom` and UWP app window `Suspending`/`EnteredBackground` as separate non-invasive trace points; review whether actual gaze source cleanup is complete before navigation/window close and whether page-scoped handlers survive navigation. Do not assume `CoreApplication.Exit` causes this version's issue; it is not called during these two tests.
+
+
 ## Reported evidence — 2026-11-17
 
 | Test | Environment | Result | Evidence / boundary |
