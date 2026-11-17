@@ -244,3 +244,21 @@ User **confirmed** that after running `TDControlOverlayProbe.ps1 -Apply`, the TD
 References:
 - https://github.com/Tolt-Technologies/eye-gaze-aware
 - https://learn.microsoft.com/en-us/uwp/api/windows.applicationmodel.fulltrustprocesslauncher
+
+
+## In-app TD Control overlay integration (2026-11-17) — Test branch
+
+At user's explicit request the previously confirmed `WS_TOBIIGAZEAWARE` (same numeric bit 0x2 as `WS_EX_NOPARENTNOTIFY`) signal has now been integrated **into the packaged UWP app** rather than requiring the PowerShell launcher.
+
+**Implementation:**
+- Added `OverlayCompanion/OverlayCompanion.csproj` (x64 .NET Framework 4.8 WinExe) and `OverlayCompanion/Program.cs`: a small packaged Win32 companion. It polls the foreground window at 250ms intervals, requires the exact observed UWP title/class (`Eye Gaze API Viability`, `ApplicationFrameWindow`), and sets bit 0x2 only while that window is foreground. It clears the bit if focus leaves (and in its `finally` on ordinary termination) but does not modify pre-existing style bits. It exits when the observed window disappears, or after 40 seconds if the app window is never detected, or at its 8-hour maximum. No TD Control process, settings, registry, shared device services or gaze APIs are accessed.
+- Updated `Package.appxmanifest` to register `desktop:Extension Category="windows.fullTrustProcess" Executable="OverlayCompanion.exe"` and the restricted `runFullTrust` capability.
+- Updated the UWP project to build the companion from source and stage it at the root of the app package.
+- `App.OnLaunched` calls `FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync` **once per UWP process** after the window is activated, catching failures so the gaze app remains available even when desktop companion launch fails. The hardware-free URI diagnostic path does *not* launch this helper.
+- **No changes** to `LevelOnePreview` gaze acquisition, full-page green cursor, 1.5-second Exit, four-stage cleanup, MainPage navigation, or the 2-second exit delay.
+
+**Security and compatibility:** `runFullTrust` is a restricted Windows package capability with greater permissions than a pure UWP app. The companion only uses user32 APIs targeting the app window, but its package-level permissions should be reviewed before distribution. Windows desktop platform and compatible .NET Framework 4.8 installation required. This flag is a draft Tobii/Tolt interoperability convention, independently verified **only on this user's installed TD Control** by the prior PowerShell probe. Do not claim universal support.
+
+**Testing:** Pull `Test`; **Deploy** (not merely Build) to register updated manifest and package the companion; launch EyeGazeTrainer normally from Start or Visual Studio. Confirm TD Control's external trace disappears while the app is foreground, our green cursor remains, and TD Control circle/controls return following the established in-app large Exit. This is a new packaging path with a restricted capability and needs **helper-supervised first deployment and run**, although the underlying window-style toggle has been field-tested. If it does not hide, inspect `gaze-lifecycle-trace.txt` for `Overlay companion launch requested`, `launch accepted`, or an exception; check installed `OverlayCompanion.exe` in the package. Do not close the live-gaze window with X to recover; use the established Exit. Use the existing external `-Apply` probe only for diagnostics, not simultaneously with packaged helper.
+
+**Build and runtime verification pending** at time of commit. Existing one-click external launcher is retained as a fallback, not a prerequisite.
