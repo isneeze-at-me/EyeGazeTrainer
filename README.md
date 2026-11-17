@@ -1,3 +1,5 @@
+> **STOP TESTING — CRITICAL (2026-11-17):** During the timed diagnostic exit, the screen froze, briefly went black, and TD Control stopped responding, requiring a reboot (user report). **Do not run this diagnostic or test with TD Control stopped until issue [#9](https://github.com/isneeze-at-me/EyeGazeTrainer/issues/9) is investigated and a safe recovery is validated.** Gaze-input PASS remains confirmed, but safe shutdown is NOT confirmed.
+
 # EyeGazeTrainer
 
 **Status:** Windows Gaze API feasibility prototype; not a released training application.
