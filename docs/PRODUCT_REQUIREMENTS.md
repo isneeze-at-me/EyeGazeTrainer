@@ -57,3 +57,11 @@ Build a gaze-only Level 1 that explains itself, responds to eye position without
 - Deliberately never opens `Windows.Devices.Input.Preview`, starts a watcher, stops TD Control, changes services, collects gaze coordinates, or invokes `CoreApplication.Exit()`.
 - Progress is session-only; a trainer should not claim eye-gaze performance, persistent learning or clinical effectiveness based on this simulation.
 - Original TD Control issue #9 remains blocking for live hardware testing. A no-hardware preview can validate UI interactions but cannot validate gaze handoff or safe shutdown.
+
+## Experimental opt-in live-gaze Level 1 (2026-11-17)
+
+At user's explicit request, `LevelOnePreview` now has an **ENABLE LIVE GAZE — SUPERVISED ONLY** control, while retaining mouse preview mode. Unlike the dry-run, live mode creates a `GazeDeviceWatcherPreview`, detects a ready device, subscribes to `GazeInputSourcePreview.GetForCurrentView().GazeMoved`, converts application-view gaze coordinates into the lesson canvas, and advances four large targets through gaze position alone. No dwell is required. A helper-operated STOP button invokes 4 visibly separated shutdown operations and saves a local `level1-live-gaze-trace.txt` with checkpoint timestamps but no gaze coordinates; **no automatic app exit**.
+
+**This is an experimental hardware path, not approved unattended operation or a fix to #9.** It can still cause the previous TD Control handoff failure. Compiling cannot verify gaze stream coexistence, watcher teardown or access recovery. Do not test on a computer whose only accessible controls depend on TD Control. Any attempt requires a competent helper with independently working mouse/keyboard and a proven means of restoring access. A reboot may still be needed; no verified non-reboot recovery method exists.
+
+The manually operated STOP control and BACK button are **developer controls** and violate the final learner-facing no-unlearned-click design until replaced with a proven gaze-only first-lesson interaction and independent recovery. Do not treat the prototype as appropriate for independent ALS users. The user requested development of the live mode, not proof that it is safe.
