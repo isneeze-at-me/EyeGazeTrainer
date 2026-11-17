@@ -37,10 +37,24 @@ namespace EyeGazeApiViability
         private bool insideTarget;
         private bool completed;
         private bool exitRequested;
+        private bool autoStartAttempted;
+        private Button gazeControlTarget;
+        private DateTimeOffset gazeControlEnteredAt;
+        private DateTimeOffset lastGazeAt;
+        private bool gazeControlTriggered;
+        private static readonly TimeSpan ControlDwell = TimeSpan.FromMilliseconds(1500);
 
         public LevelOnePreview()
         {
             InitializeComponent();
+            Loaded += OnPageLoaded;
+        }
+
+        private void OnPageLoaded(object sender, RoutedEventArgs e)
+        {
+            if (autoStartAttempted) return;
+            autoStartAttempted = true;
+            OnEnableLive(null, null);
         }
 
         private void OnEnableLive(object sender, RoutedEventArgs e)
