@@ -56,3 +56,26 @@ User test results above are not an independent automated test run. Reproduce bef
 - Links to issue/PR and redacted logs:
 
 Do not upload personal gaze-coordinate traces, screenshots revealing private information or identifying health details.
+
+## Controlled startup and dedicated Exit milestone (2026-11-17)
+
+**Scope freeze:** no new training levels. Focus exclusively on startup, gaze acquisition, resource release, and closing the UWP process without losing TD Control.
+
+New `Test` behavior (implementation, **not yet hardware verified**):
+1. App starts on MainPage; this page does not open gaze APIs. A lifecycle timestamp is appended to `gaze-lifecycle-trace.txt`.
+2. A clearly named button opens the live gaze diagnostic page; gaze acquisition remains opt-in.
+3. Diagnostic has a **dedicated EXIT APP — CONTROLLED SHUTDOWN** button. During live mode, pressing it automatically runs the existing four stages (unsubscribe GazeMoved, stop watcher, detach watcher events, drop references), about three seconds between stages. If cleanup throws, automatic exit is cancelled.
+4. On completed cleanup, the app navigates to MainPage with a special exit parameter. MainPage clears navigation history, waits ~2 seconds, records a final log checkpoint, then calls `Application.Current.Exit()` from the non-gaze page.
+5. MainPage has its own dedicated EXIT APP button. It exits from the non-gaze page without creating a gaze session. The existing STOP (stay open) remains available for diagnostics.
+6. The Windows title-bar **X is outside the UWP page's controlled flow**. The app currently does **not** intercept X or guarantee that OS window-close/suspend skips the old problem. Prefer the dedicated Exit while supervised.
+
+**Non-claims:** No verified TD Control restoration mechanism, no guarantee that page navigation releases native system gaze resources, no guarantee of failure-free exit. The prior direct-X run briefly blanked display and paused TD Control; the Back-then-X run worked once. Both results remain evidence to compare against, not proof that a new exit method is safe.
+
+**Supervised validation needed only after successful build** (person with an independent keyboard/mouse present; do not involve active wheelchair control):
+- Start app and verify TD Control remains responsive before gaze is enabled.
+- Explicitly enable live gaze; record whether TD Control remains responsive and gaze indicator works.
+- Use dedicated EXIT (not Windows X). Record visible cleanup checkpoint/last stage and whether app closes by itself from main dashboard.
+- Observe TD Control after app closes and note any momentary blanking, overlay disappearance, delay to responsiveness, or required reboot. Do not continue if gaze access fails.
+- Review `gaze-lifecycle-trace.txt` and `level1-live-gaze-trace.txt` (no raw gaze coordinates).
+- **Do not** call this an unattended-safe exit until repeated tests show no interference and an independent recovery route exists.
+
