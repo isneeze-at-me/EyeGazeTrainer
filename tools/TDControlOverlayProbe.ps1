@@ -5,7 +5,8 @@
 # Does not open the gaze API, touch TD Control processes, or persist settings.
 param(
     [switch]$Apply,
-    [ValidateRange(10,300)][int]$DurationSeconds = 90
+    [switch]$Launch,
+    [ValidateRange(10,28800)][int]$DurationSeconds = 90
 )
 
 $ErrorActionPreference = 'Stop'
@@ -59,21 +60,72 @@ function Test-OwnWindow($window) {
            $window.Class -ceq 'ApplicationFrameWindow'
 }
 
+# -Launch converts the validated interop probe into a single-command
+# launcher. It must be explicitly paired with -Apply; no gaze APIs are opened
+# here and the UWP app retains its own controlled Exit sequence.
+if ($Launch -and -not $Apply) { throw '-Launch requires -Apply.' }
+if ($Launch) {
+    $packages = @(Get-AppxPackage -Name 'EyeGazeApiViability')
+    if ($packages.Count -ne 1) {
+        throw "Expected one installed EyeGazeApiViability UWP package, found $($packages.Count). No app launched."
+    }
+    $appId = $packages[0].PackageFamilyName + '!App'
+    Write-Host ("Launching installed EyeGazeTrainer package: " + $appId)
+    # Shell AppsFolder activation uses the normal app startup and does not
+    # require elevated permissions or modify package registration.
+    Start-Process -FilePath explorer.exe -ArgumentList ("shell:AppsFolder\\" + $appId)
+}
+
 $changed = [IntPtr]::Zero
 $alreadySetWindow = [IntPtr]::Zero
 $lastReported = ''
 $lastForegroundDescriptor = ''
+$seenApp = $false
+$seenHwnd = [IntPtr]::Zero
+$start = [DateTime]::UtcNow
+$lostSince = [DateTime]::MinValue
 $deadline = [DateTime]::UtcNow.AddSeconds($DurationSeconds)
 Write-Host "EyeGazeTrainer / TD Control overlay probe"
 Write-Host ("Mode: " + $(if ($Apply) { 'APPLY (experimental window-style flag)' } else { 'OBSERVE ONLY (no changes)' }))
 Write-Host "Target: foreground ApplicationFrameWindow titled exactly 'Eye Gaze API Viability'"
 Write-Host "Maximum duration: $DurationSeconds seconds. Press Ctrl+C to stop."
 Write-Host 'This does not hide TD Control directly; it only advertises gaze-awareness to compatible software.'
+if ($Launch) {
+    Write-Host 'Automatic launch mode: overlay flag follows app focus; launcher ends after app window closes.'
+}
 try {
     while ([DateTime]::UtcNow -lt $deadline) {
         $h = [EyeGazeTrainerNativeWindowProbe]::GetForegroundWindow()
         $identity = Get-WindowIdentity $h
         $isTarget = Test-OwnWindow $identity
+
+        if ($Launch) {
+            if ($isTarget) {
+                $seenApp = $true
+                $seenHwnd = $h
+                $lostSince = [DateTime]::MinValue
+            }
+            elseif ($seenApp) {
+                # Ordinary focus changes do not end the helper: the UWP window
+                # is still alive even while another window is foreground.
+                if (-not [EyeGazeTrainerNativeWindowProbe]::IsWindow($seenHwnd)) {
+                    if ($lostSince -eq [DateTime]::MinValue) {
+                        $lostSince = [DateTime]::UtcNow
+                    }
+                    elseif (([DateTime]::UtcNow - $lostSince).TotalSeconds -ge 2) {
+                        Write-Host 'EyeGazeTrainer window closed; ending overlay helper.'
+                        break
+                    }
+                }
+                else {
+                    $lostSince = [DateTime]::MinValue
+                }
+            }
+            elseif (([DateTime]::UtcNow - $start).TotalSeconds -ge 40) {
+                Write-Warning 'The UWP window was not detected within 40 seconds. No change to TD Control.'
+                break
+            }
+        }
 
         # If the target ceases to be foreground, remove ONLY the bit we set.
         if ($changed -ne [IntPtr]::Zero -and ($h -ne $changed -or -not $isTarget)) {
