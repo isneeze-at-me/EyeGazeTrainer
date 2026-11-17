@@ -38,6 +38,13 @@ namespace EyeGazeApiViability
             Unloaded += OnUnloaded;
         }
 
+        private void OpenLevelOnePreview(object sender, RoutedEventArgs e)
+        {
+            // Developer preview only; does not acquire gaze resources.
+            ticker.Stop();
+            Frame.Navigate(typeof(LevelOnePreview));
+        }
+
         private void StartDryRun(object sender, RoutedEventArgs e)
         {
             if (running) return;
