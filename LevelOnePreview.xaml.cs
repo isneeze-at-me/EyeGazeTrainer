@@ -402,7 +402,7 @@ namespace EyeGazeApiViability
                     return;
             }
             Trace("BEGIN " + phaseName);
-            LiveStatusText.Text = "Closing — step " + (phase + 1) + "/4: " + phaseName;
+            LiveStatusText.Text = "Closing EyeGazeTrainer…";
             try
             {
                 switch (phase)
