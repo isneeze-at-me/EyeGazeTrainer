@@ -79,3 +79,22 @@ New `Test` behavior (implementation, **not yet hardware verified**):
 - Review `gaze-lifecycle-trace.txt` and `level1-live-gaze-trace.txt` (no raw gaze coordinates).
 - **Do not** call this an unattended-safe exit until repeated tests show no interference and an independent recovery route exists.
 
+
+
+## Native gaze input / TD Control overlay distinction (2026-11-17)
+
+User reports that after cleanly building the dedicated-exit implementation, the app still **used TD Control to click its UI buttons outside the eye test**, and **TD Control's circle stayed visible**. This is expected with prior code: `GazeMoved` was only used for moving the test indicator / targeting four circles; ordinary XAML button clicks still depended on a pointer-emulating accessibility layer. The separate TD Control overlay is drawn by TD Control and not by this app.
+
+**Experimental Test branch changes:**
+- `App.OnLaunched` navigates directly into `LevelOnePreview`, bypassing the main dashboard button that required a TD Control click.
+- The gaze page automatically requests UWP gaze tracking in its `Loaded` handler, rather than requiring a TD Control click on ENABLE LIVE GAZE.
+- Gaze coordinates directly hit-test the app's Exit and Stop controls; looking at a control for 1500ms invokes its action, without Windows pointer clicks. A gap over 500ms in the gaze event stream resets the hold.
+- The dedicated Exit still runs staged gaze cleanup, navigates to the hardware-free dashboard and then exits, so no dashboard interaction is needed.
+- This is **not** a complete learner-ready control system; the STOP-GAZE-without-exit action leaves a screen without app-native gaze input and can still require helper intervention. Button dwell/stop behavior and simultaneous TD Control click paths are not yet field-validated.
+- **No attempt was made to programmatically hide or terminate TD Control.** Its trace/circle is a distinct external overlay. Tolt's gaze-aware window specification documents a TD Control interoperability convention using a desktop extended window style, but it is not known to be safely applicable to this UWP app; introducing a Win32 helper or setting another app's window properties without validation would add risk.
+
+**Safety:** Auto acquisition means launching the app immediately starts a gaze client; it can reproduce the prior TD Control disruption. Test only while a helper with independent keyboard/mouse control is present. App X or forced closure still bypasses controlled cleanup. This change is not proof of safe TD Control coexistence or a hidden cursor. No further training-level work until startup/shutdown and input ownership are validated.
+
+References:
+- https://learn.microsoft.com/en-us/windows/uwp/ui-input/gaze-interactions
+- https://github.com/Tolt-Technologies/eye-gaze-aware
