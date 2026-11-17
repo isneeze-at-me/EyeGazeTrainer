@@ -31,7 +31,7 @@
       <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
       <TextBlock Text="Targets: gaze alone • No dwell • No automatic exit" FontSize="17"
                  Foreground="#CBD5E1" VerticalAlignment="Center" TextWrapping="Wrap"/>
-      <Button Grid.Column="1" Content="BACK TO DIAGNOSTICS (developer)"
+      <Button x:Name="BackButton" Grid.Column="1" Content="BACK TO DIAGNOSTICS (developer)"
               Click="OnBack" FontSize="18" Padding="16,12"/>
     </Grid>
   </Grid>
