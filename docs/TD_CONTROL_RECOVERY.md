@@ -110,3 +110,11 @@ Get-CimInstance Win32_Process -Filter "ProcessId = 17400" | Format-List Name,Pro
 If no result, the original process may have exited or its PID may have changed; repeat a full read-only process-parent inventory rather than manipulating services. The process command line may contain user-specific paths; review before sharing.
 
 **Causality remains unproven.** Parent-child process relationships establish startup relationships only, not a safe restart order or which component lost gaze. No process/service restart and no live gaze retest until independent recovery is validated.
+
+## Parent process follow-up (user screenshot, 2026-11-17)
+
+- Read-only lookup for PID `17400` returned no active process.
+- Separate read-only lookup confirmed `TobiiDynavox.EyeAssist.Engine.exe` still running with PID `17132` and `ParentProcessId=17400`.
+- Windows preserves the recorded parent PID after the parent exits; this is consistent with an already-exited launcher. It does **not** prove the parent was the launcher or explain the earlier frozen cursor.
+- **Close this investigative branch:** do not repeatedly chase PID 17400, assume its identity, or attempt to restart a no-longer-running process.
+- Continue independent recovery design focused on non-invasive TD Control application-level mechanisms, with actual recovery independently validated before any hardware retry.
