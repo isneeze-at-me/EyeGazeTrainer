@@ -115,3 +115,12 @@ User reports that after initiating the latest dedicated Exit diagnostic the disp
 To gather evidence without changing gaze ownership or shutdown timings, added timestamp-only app lifecycle instrumentation on `Test` in `App.xaml.cs`: constructor, launch, root frame navigation, window activation, visibility changes, UWP window close, suspension and resume. All write to the existing `gaze-lifecycle-trace.txt` in the UWP app LocalFolder. Existing `level1-live-gaze-trace.txt` records watcher cleanup checkpoints. No gaze coordinates are logged. This should help correlate a future observed black screen with application events; it cannot directly log OS compositor or TD Control overlay state.
 
 **No fix claimed.** Avoid repeated live exit experiments unless supervised with independent computer input and recovery available; do not manipulate TD Control processes or Windows services.
+
+
+## Dedicated controlled Exit — successful observed run (2026-11-17)
+
+User reports that on the most recent test, after using Exit the app **briefly displayed the Diagnostics window**, then **exited cleanly**. No black screen or prolonged TD Control interruption was reported in that run.
+
+The brief Diagnostics window is consistent with the current intentional route: staged gaze cleanup -> `Frame.Navigate(typeof(MainPage), "EXIT_AFTER_GAZE_CLEANUP")` -> MainPage's 2-second scheduled `Application.Current.Exit()`. The visible navigation is an expected consequence of this design, not by itself a failure.
+
+**Evidence boundary:** This is a successful observed shutdown, not proof that every shutdown will remain interruption-free. The earlier transient black-screen and TD Control effects remain documented. Preserve the working route while gathering reliability evidence; don't replace navigation and exit timing just to suppress the brief Diagnostics view without isolated validation.
