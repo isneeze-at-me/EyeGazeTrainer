@@ -1,28 +1,71 @@
-# Eye Gaze API Viability — 60-second proof-of-concept
+# EyeGazeTrainer
 
-**Purpose:** Determine if Windows UWP `GazeInputSourcePreview` receives actual gaze coordinates from a connected Tobii PCEye 5. This is NOT mouse tracking.
+**Status:** Windows Gaze API feasibility prototype; not a released training application.
 
-## Build and run (Windows 11 + Visual Studio 2022)
-1. In Visual Studio Installer, add **Universal Windows Platform development** (where available), Windows 10 SDK 19041, and UWP C# tools. UWP components are legacy/optional and may require individual components.
-2. Open `EyeGazeApiViability.csproj` and restore NuGet packages.
-3. Choose **Debug / x64 / Local Machine**, then press F5. If the project fails to load, create a new **Blank App (Universal Windows)** C# UWP project and replace its App.xaml, App.xaml.cs, MainPage.xaml, MainPage.xaml.cs and package manifest with these files, adjusting the project namespace to `EyeGazeApiViability`.
-4. Allow Windows gaze access if Windows prompts. Windows may use a system permission dialog; we cannot safely bypass it.
-5. Watch for `Device found`, live X/Y coordinates, and the dot following your gaze. The app exits automatically after 60 seconds while running.
+EyeGazeTrainer is intended to become a guided, independently operated eye-gaze training program for people living with ALS and other users who cannot use conventional mouse or keyboard input. The overriding principle is **never require an interaction skill before the user has been taught and demonstrated it**.
 
-**Important:** The UWP gaze API does not work in a plain WinForms/WinUI 3 app. Do not close TD Control for the first test. Keep your usual recovery controls available. This test does not close, suspend, restart, or modify TD Control, Ability Drive, camera drivers, or calibration.
+## Current proof of concept
 
-## Interpreting the screen
-- `Device found | CanTrackEyes=True | State=Ready`: Windows recognizes a compatible eye tracker.
-- `LIVE EYE GAZE`: Direct gaze coordinates arrived; gaze cursor sample changes are counted.
-- `PASS`: At least 5 gaze coordinate changes were detected.
-- `Waiting for device`: Windows may not expose this tracker to the UWP API.
-- `Device ... not ready`: Tracker detected but cannot stream valid eye gaze (for instance calibration/setup).
+The repository currently contains a UWP/C# diagnostic named `EyeGazeApiViability` (internal name retained until a dedicated rename change). It uses the Windows `Windows.Devices.Input.Preview` gaze API, detects eye trackers and displays gaze coordinates, a dot, sample counts and a basic PASS indication. It exits after approximately 60 seconds of active UI execution.
 
-## Automatic exit safety limitations
-The test counts 60 seconds from the app page loading and automatically calls `CoreApplication.Exit()` via a dispatcher timer. Because Windows can suspend UWP apps or show a first-run consent dialog, this is **not a guaranteed external kill switch** and may run longer if the app is suspended or its UI dispatcher is blocked. Never rely on this alone as the only recovery mechanism for someone who cannot use a physical mouse or keyboard. Test with a trusted person present on the first run.
+**Observed on November 17, 2026 (user-reported):**
+- Visual Studio Community 2022 17.14.45, Debug/x64: rebuild succeeded.
+- Tobii Dynavox PCEye 5: Windows gaze API detected coordinates and displayed PASS.
+- The initial UWP manifest PhoneIdentity and project recognition/build-deployment issues were repaired.
 
-## Data/privacy
-No coordinates are saved or transmitted; samples are shown only in memory. No network APIs are used.
+**Not yet demonstrated:** independence from TD Control when it is stopped; reliable tracker handoff; operation across other eye trackers; production reliability; independent fail-safe exit; a finished lesson; clinical training effectiveness.
 
-## Development limitations
-These sources were prepared in a Linux environment without the Windows UWP compiler/SDK. They have **not been compiled or hardware-tested**. A Visual Studio build is required to validate the project and the actual tracker compatibility.
+A reported PASS means samples changed, **not** that TD Control can safely be closed, that calibration is adequate, or that a production app is ready.
+
+## Build the diagnostic
+
+1. Use Windows 11 and Visual Studio 2022 with **Universal Windows Platform tools** and **Windows 10 SDK 10.0.19041.0**.
+2. Open `EyeGazeApiViability.csproj`.
+3. Configure **Debug**, **x64**, **Local Machine** with **Deploy** enabled in Configuration Manager.
+4. Restore packages and rebuild. Current NuGet dependency: `Microsoft.NETCore.UniversalWindowsPlatform` 6.2.14.
+5. For an initial test, keep TD Control running and have someone able to restore communication if control is lost; then start the application.
+6. If prompted, grant Windows gaze permission. Look around and observe device status, gaze coordinates and PASS/FAIL.
+
+**Safety:** the 60-second timeout uses an in-process UI dispatcher timer, **not** an independent watchdog. A hang, suspended UWP app or blocking permission dialog may prevent timely exit. Do not use it as the sole recovery method. Do not terminate TD Control or Ability Drive for this test.
+
+## Project goals and design invariants
+
+- A user should be able to start and finish training without a helper, physical keyboard/mouse or speech input during ordinary operation, after supported gaze tracking and necessary system permissions are already configured.
+- First launch and introductory lessons must not use dwell, clicking, menus or precise target selection.
+- Skills unlock progressively: gaze awareness -> target switching -> gaze holding -> dwell -> look-away rearming -> navigation -> precision -> computer controls.
+- Pause/rest/recovery/navigation/settings must never demand skills not yet learned.
+- Never silently advance when gaze tracking disappears. Support fatigue and variable accuracy without punishing the user.
+- Keep exercises adult-oriented, clear, legible, and low effort. Do not interfere with communication or wheelchair-control software.
+- Prefer on-device processing; no collection, transmission or storage of gaze coordinates in the current diagnostic.
+
+## Repository map
+
+| Path | Role |
+| --- | --- |
+| `EyeGazeApiViability.csproj` | Legacy UWP C# application project |
+| `App.xaml(.cs)` | UWP startup |
+| `MainPage.xaml(.cs)` | Diagnostic interface, gaze watcher and timer |
+| `Package.appxmanifest` | App identity and gaze capability |
+| `docs/PRODUCT_REQUIREMENTS.md` | Intended behavior and acceptance criteria |
+| `docs/ARCHITECTURE.md` | Implementation facts, constraints and unknowns |
+| `docs/TESTING.md` | Repeatable checks and confirmed evidence |
+| `docs/DECISIONS.md` | Architecture decision log |
+| `docs/HANDOFF.md` | Handoff and roadmap |
+| `AGENTS.md` | Guidance for AI-assisted coding and documentation |
+| `CONTRIBUTING.md` | Branch, commit and PR conventions |
+
+## Branches and contribution
+
+- `main`: stable baseline. Prefer reviewed PRs and successful builds for merges.
+- `Test`: ongoing development/integration. Start features here or in short-lived feature branches off `Test`.
+- Do not commit generated `bin/`, `obj/`, `.vs/`, logs or personal gaze-test data.
+- Use **Conventional Commits** (e.g. `fix(uwp): register app identity for deployment`). State reason and tests in the commit body when useful.
+- Update documentation and evidence in the same PR as code changes. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Documentation generation
+
+The `docs/` files and `AGENTS.md` intentionally separate **implemented**, **verified**, **planned** and **unknown** information. An AI may generate future developer/user documentation from them, but must not turn goals into claims of implemented behavior. Cite relevant code paths and dated testing evidence; confirm claims against source before publishing.
+
+## Further information
+
+Read [handoff](docs/HANDOFF.md), [architecture](docs/ARCHITECTURE.md), [requirements](docs/PRODUCT_REQUIREMENTS.md), and [testing](docs/TESTING.md). No safety, efficacy or compatibility guarantees are made at this stage.
