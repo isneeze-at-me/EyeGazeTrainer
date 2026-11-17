@@ -5,7 +5,11 @@
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <StackPanel Margin="24,18,24,10" Spacing="8">
       <TextBlock Text="WINDOWS GAZE API — 60-SECOND TEST" FontSize="25" FontWeight="Bold" Foreground="White"/>
-      <TextBlock x:Name="CountdownText" Text="Automatic exit in 60 seconds" FontSize="23" Foreground="#FBBF24"/>
+      <TextBlock Text="SAFETY HOLD: Do not run without supervised recovery. Prior test left TD Control unresponsive." TextWrapping="Wrap" FontSize="17" Foreground="#FCA5A5"/>
+      <Button x:Name="ArmButton" Content="ARM 60-SECOND DIAGNOSTIC (supervised only)" Click="ArmDiagnostic" FontSize="18" HorizontalAlignment="Left" Padding="18,12"/>
+      <TextBlock x:Name="CountdownText" Text="Not armed — gaze watcher OFF" FontSize="23" Foreground="#FBBF24"/>
+      <TextBlock x:Name="StageText" Text="Stage: IDLE — no gaze APIs opened" FontSize="20" Foreground="#86EFAC" TextWrapping="Wrap"/>
+      <TextBlock x:Name="TraceText" Text="Log: not started" FontSize="16" Foreground="#CBD5E1" TextWrapping="Wrap"/>
       <TextBlock x:Name="DeviceText" Text="Waiting for Windows eye-tracking device…" FontSize="20" Foreground="#E5E7EB" TextWrapping="Wrap"/>
       <TextBlock x:Name="DataText" Text="No gaze coordinates received" FontSize="22" Foreground="#93C5FD"/>
       <TextBlock x:Name="CountText" Text="Valid samples: 0 | Coordinate changes: 0" FontSize="18" Foreground="#CBD5E1"/>
@@ -16,7 +20,7 @@
     </Canvas>
     <StackPanel Grid.Row="2" Margin="24,10,24,18" Spacing="5">
       <TextBlock x:Name="ResultText" Text="Result: pending" FontSize="20" FontWeight="SemiBold" Foreground="#F8FAFC"/>
-      <TextBlock Text="This app does NOT close TD Control, change drivers, or take over the cursor. It closes automatically." FontSize="16" Foreground="#CBD5E1" TextWrapping="Wrap"/>
+      <TextBlock Text="Diagnostic must be explicitly armed. It does NOT close or restart TD Control. Stage checkpoints are logged locally. This is NOT a safe unattended watchdog." FontSize="16" Foreground="#CBD5E1" TextWrapping="Wrap"/>
     </StackPanel>
   </Grid>
 </Page>
