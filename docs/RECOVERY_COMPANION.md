@@ -69,3 +69,30 @@ User uploaded `TDControl-Snapshot-20261117-115407.txt`. It confirms the followin
 The captured process/service statuses do not prove gaze responsiveness, but this user's separate normal-operation reports establish that TD Control was responding during preceding read-only tests. Do not claim that the earlier fault is fixed or that recovery is validated.
 
 Next: optionally recapture the read-only baseline using the corrected script, without activating the UWP live gaze diagnostic.
+
+## Complete normal-operation baseline (2026-11-17 11:58:53)
+
+User uploaded `TDControl-Snapshot-20261117-115853.txt` after pulling the quoting fix. All three sections completed and the process-tree command **no longer produced an error**. Observed processes (snapshot PIDs, not stable identifiers):
+
+| Process | PID | Parent PID |
+|---|---:|---:|
+| `Tdx.ComputerControl.Updater.exe` | 5156 | 1268 |
+| `Tdx.Switcher.Updater.exe` | 5220 | 1268 |
+| `Tobii.Service.exe` | 5256 | 1268 |
+| `TobiiVirtualDevice.exe` | 5272 | 1268 |
+| `Tobii.EyeX.Interaction.exe` | 7788 | 5256 |
+| `Tobii.EyeX.Engine.exe` | 7796 | 5256 |
+| **`Tdx.ComputerControl.exe`** | **5640** | **3228** |
+| `TobiiDynavox.EyeAssist.Engine.exe` | 17132 | 17400 |
+| `TobiiDynavox.EyeAssist.RegionInteraction.Startup.exe` | 17904 | 17132 |
+| `TobiiDynavox.EyeAssist.Smorgasbord.exe` | 18064 | 17132 |
+| `TobiiDynavox.EyeTrackingSettings.exe` | 18144 | 17132 |
+| `TobiiDynavox.EyeAssist.TrayIcon.exe` | 18168 | 17132 |
+
+Monitored services `Tobii Service`, `TobiiGeneric`, `TobiiIS5LARGEPCEYE5`, `Tdx.ComputerControl.Updater`, `Tdx.Switcher.Updater`: all RUNNING with service and Windows exit codes 0.
+
+**New finding:** `Tdx.ComputerControl.exe` is present as a separate process from `TobiiDynavox.EyeAssist.Engine.exe`, which makes distinguishing UI/app vs gaze engine valuable for future recovery research. Parent PID 3228 has not been identified; **do not chase changing PIDs without a clear diagnostic reason**.
+
+**Not established:** Process presence, service RUNNING status, and exit codes **do not establish gaze-stream health** or prove which component froze. No user report of an actual frozen state has been captured by this snapshot. No automated or manual restoration action has been validated.
+
+**Status:** Read-only snapshot baseline COMPLETE; original TD Control shutdown incident #9 OPEN. The next engineering work should investigate documented and non-invasive application-level state/recovery rather than repeatedly collecting identical normal-operation snapshots. No live gaze test, service restart, forced process exit, or automatic relaunch.
