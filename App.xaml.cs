@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Storage;
 using Windows.UI.Xaml;
@@ -10,6 +11,7 @@ namespace EyeGazeApiViability
     sealed partial class App : Application
     {
         private bool windowEventsRegistered;
+        private bool overlayHelperLaunchAttempted;
 
         public App()
         {
@@ -45,6 +47,28 @@ namespace EyeGazeApiViability
 
             Window.Current.Activate();
             TraceLifecycle("Window.Activate completed");
+            TryStartOverlayCompanion();
+        }
+
+        // The helper operates on this app's own foreground window, not the
+        // gaze APIs or TD Control. Never delay or fail gaze startup if absent.
+        private async void TryStartOverlayCompanion()
+        {
+            if (overlayHelperLaunchAttempted) return;
+            overlayHelperLaunchAttempted = true;
+            try
+            {
+                TraceLifecycle("Overlay companion launch requested");
+                await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
+                TraceLifecycle("Overlay companion launch accepted");
+            }
+            catch (Exception ex)
+            {
+                // Unavailable full-trust support means TD Control's circle stays
+                // visible. All UWP gaze and controlled-exit behavior is intact.
+                TraceLifecycle("Overlay companion unavailable: " + ex.GetType().Name +
+                               " HResult=" + ex.HResult.ToString("X8"));
+            }
         }
 
         protected override void OnActivated(IActivatedEventArgs args)
