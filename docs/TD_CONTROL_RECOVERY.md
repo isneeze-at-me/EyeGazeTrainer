@@ -89,3 +89,24 @@ Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'Tobii|EyeAssist' 
 ```
 
 These only query Windows management information. Paths can contain user-specific data; review before sharing. This identifies which service PID belongs to which process and whether TD Control's UI is hosted separately. It still does not establish a safe recovery mechanism. No hardware tests until independent control and recovery are validated.
+
+## Confirmed process-parent relationships (user screenshot, 2026-11-17)
+
+From read-only `Get-CimInstance Win32_Service` and `Win32_Process` output:
+
+- `Tobii Service` is RUNNING, auto-start, PID `5256` (`Tobii.Service.exe`). `Tobii.EyeX.Engine.exe` (PID 7796) and `Tobii.EyeX.Interaction.exe` (PID 7788) both show parent PID 5256.
+- `TobiiGeneric` is RUNNING, auto-start, PID `5272` (`TobiiVirtualDevice.exe`).
+- `TobiiIS5LARGEPCEYE5` is RUNNING, auto-start, PID `5280`, but its process name was not included in the filtered process listing.
+- `Tdx.ComputerControl.Updater` (PID 5156) and `Tdx.Switcher.Updater` (PID 5220) are RUNNING, auto-start **updater services**, not proven gaze services.
+- `TobiiDynavox.EyeAssist.Engine.exe` is PID 17132, **parent PID 17400 (not yet identified)**. Its children include `EyeAssist.RegionInteraction.Startup` (PID 17904), `EyeAssist.Smorgasbord` (PID 18064), `EyeTrackingSettings` (PID 18144), and `EyeAssist.TrayIcon` (PID 18168).
+- Some executable paths are blank/truncated in the output. Do not infer them or assume stable PIDs.
+
+### Next safe read-only command (no gaze APIs / changes)
+
+```powershell
+Get-CimInstance Win32_Process -Filter "ProcessId = 17400" | Format-List Name,ProcessId,ParentProcessId,ExecutablePath,CommandLine
+```
+
+If no result, the original process may have exited or its PID may have changed; repeat a full read-only process-parent inventory rather than manipulating services. The process command line may contain user-specific paths; review before sharing.
+
+**Causality remains unproven.** Parent-child process relationships establish startup relationships only, not a safe restart order or which component lost gaze. No process/service restart and no live gaze retest until independent recovery is validated.
