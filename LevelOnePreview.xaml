@@ -15,11 +15,11 @@
                  Text="Confirm gaze tracking, then use EXIT APP to run staged cleanup and navigate away before closing."
                  FontSize="23" TextWrapping="Wrap" Foreground="#E2E8F0"/>
       <StackPanel Orientation="Horizontal" Spacing="12">
-        <Button x:Name="LiveButton" Content="ENABLE LIVE GAZE — SUPERVISED ONLY" Click="OnEnableLive" Padding="16,12" FontSize="17"/>
-        <Button x:Name="StopButton" Content="STOP GAZE (STAY OPEN)" Click="OnStopLive" Padding="16,12" FontSize="17" IsEnabled="False"/>
-        <Button x:Name="ExitButton" Content="EXIT APP — CONTROLLED SHUTDOWN" Click="OnExitRequested" Padding="16,12" FontSize="17"/>
+        <Button x:Name="LiveButton" Content="RESTART LIVE GAZE (HELPER)" Click="OnEnableLive" Padding="16,12" FontSize="17"/>
+        <Button x:Name="StopButton" Content="STOP GAZE — 1.5s LOOK" Click="OnStopLive" Padding="16,12" FontSize="17" IsEnabled="False"/>
+        <Button x:Name="ExitButton" Content="EXIT APP — 1.5s LOOK" Click="OnExitRequested" Padding="16,12" FontSize="17"/>
       </StackPanel>
-      <TextBlock x:Name="LiveStatusText" Text="Mouse preview only — tracker untouched" TextWrapping="Wrap" FontSize="17" Foreground="#FBBF24"/>
+      <TextBlock x:Name="LiveStatusText" Text="Starting tracker on app launch (supervised test)" TextWrapping="Wrap" FontSize="17" Foreground="#FBBF24"/>
       <TextBlock x:Name="ProgressText" Text="Discover the moving circle" FontSize="18" Foreground="#93C5FD"/>
     </StackPanel>
     <Canvas Grid.Row="1" x:Name="TrainingCanvas" Margin="24" Background="#17253D"
@@ -30,7 +30,7 @@
     </Canvas>
     <Grid Grid.Row="2" Margin="28,10,28,22">
       <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-      <TextBlock Text="Targets: gaze alone • No dwell • No automatic exit" FontSize="17"
+      <TextBlock Text="Gaze-only Stop and Exit: look for 1.5 seconds • No TD Control click needed" FontSize="17"
                  Foreground="#CBD5E1" VerticalAlignment="Center" TextWrapping="Wrap"/>
       <Button x:Name="BackButton" Grid.Column="1" Content="BACK TO DIAGNOSTICS (developer)"
               Click="OnBack" FontSize="18" Padding="16,12"/>
