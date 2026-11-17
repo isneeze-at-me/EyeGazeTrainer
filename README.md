@@ -1,3 +1,5 @@
+> **Current Test-branch safety mode:** The live diagnostic has been replaced by a **NO-HARDWARE dry run** pending investigation of [issue #9](https://github.com/isneeze-at-me/EyeGazeTrainer/issues/9). The button now simulates shutdown checkpoints and saves a trace; it does **not** open gaze APIs, stop TD Control, or automatically exit. This does not validate handoff or recovery. The older hardware diagnostic remains in historical commits / main and must not be executed.
+
 > **STOP TESTING — CRITICAL (2026-11-17):** During the timed diagnostic exit, the screen froze, briefly went black, and TD Control stopped responding, requiring a reboot (user report). **Do not run this diagnostic or test with TD Control stopped until issue [#9](https://github.com/isneeze-at-me/EyeGazeTrainer/issues/9) is investigated and a safe recovery is validated.** Gaze-input PASS remains confirmed, but safe shutdown is NOT confirmed.
 
 # EyeGazeTrainer
