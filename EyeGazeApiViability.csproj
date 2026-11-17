@@ -33,9 +33,11 @@
   <ItemGroup>
     <Compile Include="App.xaml.cs"><DependentUpon>App.xaml</DependentUpon></Compile>
     <Compile Include="MainPage.xaml.cs"><DependentUpon>MainPage.xaml</DependentUpon></Compile>
+    <Compile Include="LevelOnePreview.xaml.cs"><DependentUpon>LevelOnePreview.xaml</DependentUpon></Compile>
     <AppxManifest Include="Package.appxmanifest" />
     <ApplicationDefinition Include="App.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></ApplicationDefinition>
     <Page Include="MainPage.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></Page>
+    <Page Include="LevelOnePreview.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></Page>
     <Content Include="Assets\*.png" />
   </ItemGroup>
   <ItemGroup>
