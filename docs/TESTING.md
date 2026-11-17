@@ -197,3 +197,29 @@ User confirmed protocol activation now works after deployment/registration: **ha
 **Interpretation:** Generic UWP exit is capable of completing without the visual interruption, and the native gaze startup/cleanup/exit route can also complete cleanly. Because prior user tests showed intermittent black screen and TD Control brief freezes, the contrast cannot prove root cause or establish how reliably the full path works. Do not infer that protocol registration fixed gaze shutdown.
 
 Preserve the working full-window cursor, gaze-only 1.5-second Exit, four-stage watcher cleanup, navigation to the non-gaze MainPage, and two-second delayed app exit until there is evidence that changing any of them improves reliability. Do not close issue #9; avoid unattended use until verified recovery/robust repeated operation. No additional live test is required immediately.
+
+
+## Optional TD Control trace suppression interoperability probe (2026-11-17)
+
+User reports that the four-step gaze shutdown is now **consistently working** and requests that TD Control's gaze circle/trace be hidden **only while EyeGazeTrainer is the active window**.
+
+Research:
+- Tolt Technologies' [draft Gaze Aware Specification](https://github.com/Tolt-Technologies/eye-gaze-aware) describes Win32 `SetProp(hwnd, "eyegaze:aware", ...)` and says TD Control/Communicator 5 additionally recognize the foreground window's extended-style bit **0x2**, `WS_TOBIIGAZEAWARE`. It cautions against assuming the bit is reserved for gaze awareness.
+- Windows documentation defines that same **0x2** bit as `WS_EX_NOPARENTNOTIFY`, so repurposing it may affect window behavior. The published spec is a **draft** and gives no guaranteed TD Control version support or UWP implementation path.
+- Tobii Dynavox also provides a user-operated **Hide Trace** action; it is reversible but not documented as an external app API or per-window setting.
+
+**Experimental implementation on Test:** `tools/TDControlOverlayProbe.ps1` is a separate optional PowerShell diagnostic, **not invoked by EyeGazeTrainer**.
+- By default it only observes the active window (no changes).
+- `-Apply` is an **explicit opt-in** experiment: for up to 90 seconds it looks for the foreground `ApplicationFrameWindow` with title **exactly** `Eye Gaze API Viability`, sets **only** the 0x2 bit in that window's `GWL_EXSTYLE` if not already set, and removes the bit if that window loses focus or the probe ends.
+- If the bit was already set, it is left unchanged. The tool does not manipulate other application windows, TD Control processes or services, gaze camera APIs, user registry settings or TD Control preferences.
+- No app lifecycle code, startup/exit timing, gaze cursor, or Exit button is changed. The companion is **not part of the UWP build**.
+- **Limitations:** The host window title/class assumption may differ with Windows versions. It may not hide TD Control's circle at all; draft claims are not verified. While the bit is applied it alters a genuine Win32 extended style and may produce unintended window behavior. PowerShell crash or forced termination can interrupt its normal restore logic; closing the UWP window destroys its style state. Do not infer its presence guarantees TD Control restoration.
+- This tests an opt-in interoperability signal rather than sending simulated clicks, stopping TD Control, changing its settings, or layering an opaque rectangle over the desktop. We do **not** recommend automatic activation until a supervised test shows predictable behavior and restoration.
+
+**Supervised test only, helper with independent input present:**
+1. Pull `Test`, confirm the gaze app is closed. Run `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\TDControlOverlayProbe.ps1` to observe. No changes.
+2. If you deliberately opt into the style experiment, run `powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\TDControlOverlayProbe.ps1 -Apply -DurationSeconds 90` before opening EyeGazeTrainer. When the foreground window matches, the probe prints an applied confirmation.
+3. Observe only whether TD Control's circle hides **while** the app has focus. Continue using EyeGazeTrainer's large gaze Exit button to leave normally; verify TD Control's circle and its normal interaction return. If any interruption occurs, stop and use helper's alternative input to recover.
+4. Report whether the console printed 'Target active' / 'Applied experimental gaze-aware bit', whether the external circle disappeared, and whether it returned on exit. If the title never matches, no style was changed.
+
+**Result pending.** No claim of actual overlay suppression until independently observed on the target TD Control installation.
