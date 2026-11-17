@@ -104,3 +104,14 @@ References:
 At user request the active gaze screen now has **one visible action button**: a large, full-width, minimum 96px-high **EXIT APP — LOOK FOR 1.5 SECONDS** control. Removed the Stop Gaze, Restart Gaze and Back to Diagnostics buttons from this screen and corresponding unused handlers. Direct UWP gaze-coordinate hit testing activates Exit after a 1500ms continuous look; mouse/touch click remains a helper fallback. Opening the app still auto-starts the gaze source. Exit continues the existing staged unsubscribe/watcher cleanup, navigation to a non-gaze page, and delayed application exit.
 
 **Unverified:** this UI change alone does not fix or hide the TD Control circle/trace and does not prove safe gaze handoff. Running with PCEye 5 remains supervised only; prior user runs showed a brief loss of TD Control with direct X and a successful Back→X sequence. The dedicated Exit must be explicitly validated separately. No training levels added.
+
+
+## Brief black window and title-bar flash during dedicated Exit (2026-11-17)
+
+User reports that after initiating the latest dedicated Exit diagnostic the display went black for a couple of seconds. During that interval a **small white Windows title bar in the upper-left corner** showed only Minimize and X buttons; when the black screen cleared, the desktop and TD Control returned **immediately**. They did not report a reboot or persistent TD Control outage in this run.
+
+**Status: abnormal transition, unresolved.** No evidence identifies whether the transient black area is the UWP window, TD Control's overlay, Windows compositor, or another window. The small title bar is a visual clue but does not by itself identify a process or prove focus handoff.
+
+To gather evidence without changing gaze ownership or shutdown timings, added timestamp-only app lifecycle instrumentation on `Test` in `App.xaml.cs`: constructor, launch, root frame navigation, window activation, visibility changes, UWP window close, suspension and resume. All write to the existing `gaze-lifecycle-trace.txt` in the UWP app LocalFolder. Existing `level1-live-gaze-trace.txt` records watcher cleanup checkpoints. No gaze coordinates are logged. This should help correlate a future observed black screen with application events; it cannot directly log OS compositor or TD Control overlay state.
+
+**No fix claimed.** Avoid repeated live exit experiments unless supervised with independent computer input and recovery available; do not manipulate TD Control processes or Windows services.
