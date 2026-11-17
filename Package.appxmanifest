@@ -32,7 +32,7 @@
     </Application>
   </Applications>
   <Capabilities>
-    <DeviceCapability Name="gazeInput" />
     <rescap:Capability Name="runFullTrust" />
+    <DeviceCapability Name="gazeInput" />
   </Capabilities>
 </Package>
