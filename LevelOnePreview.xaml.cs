@@ -362,7 +362,10 @@ namespace EyeGazeApiViability
             LiveStatusText.Text = "Closing EyeGazeTrainer…";
             cleanupStage = 0;
             cleanupTimer = new DispatcherTimer();
-            cleanupTimer.Interval = TimeSpan.FromSeconds(3);
+            // Preserve the release order without the former 3-second
+            // diagnostic pause between stages. Allow the UI dispatcher one
+            // brief turn between steps rather than blocking the UI thread.
+            cleanupTimer.Interval = TimeSpan.FromMilliseconds(100);
             cleanupTimer.Tick += OnCleanupTick;
             CleanupNextStage(); // first stage immediately
             cleanupTimer.Start();
