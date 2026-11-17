@@ -76,7 +76,7 @@ namespace EyeGazeApiViability
             }
 
             live = true;
-            LiveStatusText.Text = "LIVE GAZE: requesting tracker. Helper must retain separate control.";
+            LiveStatusText.Text = "Connecting to eye tracker…";
             Trace("BEGIN watcher start");
             try
             {
@@ -116,7 +116,7 @@ namespace EyeGazeApiViability
             _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
                 if (!live || stopping) return;
-                LiveStatusText.Text = "Gaze device removed or unavailable. Stop test with helper.";
+                LiveStatusText.Text = "Eye tracker disconnected. Please ask for assistance.";
                 Trace("Gaze device removed");
             });
         }
@@ -138,7 +138,7 @@ namespace EyeGazeApiViability
                 gazeSource.GazeMoved += OnGazeMoved;
                 gazeSubscribed = true;
                 Trace("END gaze source subscription");
-                LiveStatusText.Text = "LIVE GAZE ACTIVE: look at the targets. No dwell or click.";
+                LiveStatusText.Text = "Eye tracking ready. Look at the yellow circles.";
                 ResetLesson();
             }
             catch (Exception ex)
@@ -199,7 +199,7 @@ namespace EyeGazeApiViability
             if (gazeControlTriggered) return;
             double progress = (now - gazeControlEnteredAt).TotalMilliseconds /
                               ControlDwell.TotalMilliseconds;
-            LiveStatusText.Text = "EXIT APP — gaze hold " +
+            LiveStatusText.Text = "Exiting — " +
                                   Math.Min(100, (int)(progress * 100)) + "%";
             if (progress < 1.0) return;
             gazeControlTriggered = true;
@@ -293,8 +293,8 @@ namespace EyeGazeApiViability
                     TargetRing.Visibility = Visibility.Collapsed;
                     InstructionText.Text = "All four targets activated without clicking.";
                     ProgressText.Text = live
-                        ? "LEVEL 1 LIVE GAZE COMPLETE — ask helper to stop tracking"
-                        : "LEVEL 1 MOUSE PREVIEW COMPLETE";
+                        ? "Great job! You found all four circles."
+                        : "Great job! You found all four circles.";
                     Trace("Lesson completed; source=" + (live ? "live gaze" : "mouse"));
                     return;
                 }
@@ -359,7 +359,7 @@ namespace EyeGazeApiViability
             if (!live || stopping) return;
             stopping = true;
             ExitButton.IsEnabled = false;
-            LiveStatusText.Text = "STOPPING: staged resource cleanup; do not close the app.";
+            LiveStatusText.Text = "Closing EyeGazeTrainer…";
             cleanupStage = 0;
             cleanupTimer = new DispatcherTimer();
             cleanupTimer.Interval = TimeSpan.FromSeconds(3);
@@ -392,7 +392,7 @@ namespace EyeGazeApiViability
                     watcherStarted = false;
                     gazeSubscribed = false;
                     LiveStatusText.Text =
-                        "TRACKER RELEASE REQUESTED. Verify TD Control still responds BEFORE exiting.";
+                        "Returning to your computer…";
                     Trace("FINISHED staged cleanup; TD Control status not verified");
                     if (exitRequested)
                     {
@@ -402,7 +402,7 @@ namespace EyeGazeApiViability
                     return;
             }
             Trace("BEGIN " + phaseName);
-            LiveStatusText.Text = "CLEANUP " + (phase + 1) + "/4: " + phaseName;
+            LiveStatusText.Text = "Closing — step " + (phase + 1) + "/4: " + phaseName;
             try
             {
                 switch (phase)
