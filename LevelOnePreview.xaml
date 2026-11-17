@@ -16,7 +16,8 @@
                  FontSize="23" TextWrapping="Wrap" Foreground="#E2E8F0"/>
       <StackPanel Orientation="Horizontal" Spacing="12">
         <Button x:Name="LiveButton" Content="ENABLE LIVE GAZE — SUPERVISED ONLY" Click="OnEnableLive" Padding="16,12" FontSize="17"/>
-        <Button x:Name="StopButton" Content="STOP GAZE (STAY OPEN)" Click="OnStopLive" Padding="16,12" FontSize="17" IsEnabled="False"/>\n        <Button x:Name="ExitButton" Content="EXIT APP — CONTROLLED SHUTDOWN" Click="OnExitRequested" Padding="16,12" FontSize="17"/>
+        <Button x:Name="StopButton" Content="STOP GAZE (STAY OPEN)" Click="OnStopLive" Padding="16,12" FontSize="17" IsEnabled="False"/>
+        <Button x:Name="ExitButton" Content="EXIT APP — CONTROLLED SHUTDOWN" Click="OnExitRequested" Padding="16,12" FontSize="17"/>
       </StackPanel>
       <TextBlock x:Name="LiveStatusText" Text="Mouse preview only — tracker untouched" TextWrapping="Wrap" FontSize="17" Foreground="#FBBF24"/>
       <TextBlock x:Name="ProgressText" Text="Discover the moving circle" FontSize="18" Foreground="#93C5FD"/>
