@@ -139,3 +139,19 @@ Sources:
 - https://github.com/Tolt-Technologies/eye-gaze-aware
 
 **Verification pending:** GitHub Windows CI and, only with helper/alternate input, a supervised test that the green dot moves over Exit and the unchanged staged Exit preserves TD Control functionality.
+
+
+## Black-screen / brief freeze recurs despite clean cursor behavior (2026-11-17)
+
+User confirms the updated green gaze indicator works correctly across the app, including outside the training canvas. **However**, after Exit the black screen and a short freeze **recurred**, followed by recovery. A prior supervised trial showed clean Exit with momentary Diagnostics-page display, but the behavior is **intermittent**. Keep issue #9 open. The cursor-overlay change cannot be assumed responsible; no logs yet tie it to the window transition.
+
+### Immediate investigation — inspect existing logs, no new live test
+
+Added read-only `tools/Export-GazeExitLogs.cmd` on `Test`. When run from the repository on the same Windows account, it copies existing UWP LocalState trace files (if present) to `%USERPROFILE%\Documents\EyeGazeTrainerDiagnostics\LastExit`:
+
+- `gaze-lifecycle-trace.txt`: launch, visibility, navigation/main-page exit timing, app window close and suspension entries when emitted.
+- `level1-live-gaze-trace.txt`: gaze watcher creation/subscription/cleanup stages and page navigation checkpoints. The live-gaze trace is overwritten each time the app starts, so it should reflect the latest session when available.
+
+The export does **not** start EyeGazeTrainer, access gaze APIs, stop/restart services or close processes. Share both logs for event-order investigation (review exception details for personal paths first). Their timestamps cannot by themselves identify the TD Control overlay process or the Windows compositor, but can distinguish whether the black screen appears while the app is still active, between page navigation and process exit, or after the last in-app trace.
+
+Do **not** change the working staged cleanup sequence or force further eye-gaze testing until these current logs are reviewed. No claim of clean exit reliability is warranted.
