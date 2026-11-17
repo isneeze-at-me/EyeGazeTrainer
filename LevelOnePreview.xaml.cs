@@ -165,7 +165,61 @@ namespace EyeGazeApiViability
             Point canvasOrigin = TrainingCanvas.TransformToVisual(this)
                                   .TransformPoint(new Point(0, 0));
             ProcessPosition(new Point(p.X - canvasOrigin.X, p.Y - canvasOrigin.Y));
+            ProcessGazeControl(p);
             e.Handled = true;
+        }
+
+
+        // Direct gaze-position hit test: no Windows mouse or TD Control click.
+        private void ProcessGazeControl(Point viewPoint)
+        {
+            if (!live || stopping || exitRequested) return;
+            var now = DateTimeOffset.UtcNow;
+            // Do not allow an event gap to count as uninterrupted dwell.
+            if (lastGazeAt != default(DateTimeOffset) &&
+                now - lastGazeAt > TimeSpan.FromMilliseconds(500))
+            {
+                gazeControlTarget = null;
+                gazeControlTriggered = false;
+            }
+            lastGazeAt = now;
+            Button target = null;
+            if (InsideButton(ExitButton, viewPoint)) target = ExitButton;
+            else if (InsideButton(StopButton, viewPoint)) target = StopButton;
+            if (target == null)
+            {
+                gazeControlTarget = null;
+                gazeControlTriggered = false;
+                return;
+            }
+            if (gazeControlTarget != target)
+            {
+                gazeControlTarget = target;
+                gazeControlEnteredAt = now;
+                gazeControlTriggered = false;
+            }
+            if (gazeControlTriggered) return;
+            double progress = (now - gazeControlEnteredAt).TotalMilliseconds /
+                              ControlDwell.TotalMilliseconds;
+            LiveStatusText.Text = (target == ExitButton ? "EXIT APP" : "STOP GAZE") +
+                                  " — gaze hold " + Math.Min(100, (int)(progress * 100)) + "%";
+            if (progress < 1.0) return;
+            gazeControlTriggered = true;
+            gazeControlTarget = null;
+            Trace("Native gaze control activated: " +
+                  (target == ExitButton ? "EXIT" : "STOP"));
+            if (target == ExitButton) OnExitRequested(null, null);
+            else OnStopLive(null, null);
+        }
+
+        private bool InsideButton(Button button, Point gaze)
+        {
+            if (button == null || !button.IsEnabled ||
+                button.Visibility != Visibility.Visible ||
+                button.ActualWidth <= 0 || button.ActualHeight <= 0) return false;
+            Point origin = button.TransformToVisual(this).TransformPoint(new Point(0, 0));
+            return gaze.X >= origin.X && gaze.X <= origin.X + button.ActualWidth &&
+                   gaze.Y >= origin.Y && gaze.Y <= origin.Y + button.ActualHeight;
         }
 
         private void OnCanvasSized(object sender, SizeChangedEventArgs e)
