@@ -6,6 +6,7 @@
     <StackPanel Margin="24,18,24,10" Spacing="8">
       <TextBlock Text="EyeGazeTrainer — SAFE DRY RUN" FontSize="25" FontWeight="Bold" Foreground="White"/>
       <TextBlock Text="HARDWARE TEST LOCKED: prior shutdown left TD Control unresponsive. This mode NEVER opens gaze APIs." TextWrapping="Wrap" FontSize="17" Foreground="#FCA5A5"/>
+      <Button Content="OPEN LEVEL 1 MOUSE PREVIEW (NO GAZE HARDWARE)" Click="OpenLevelOnePreview" FontSize="18" HorizontalAlignment="Left" Padding="18,12"/>
       <Button x:Name="ArmButton" Content="START DRY RUN (NO EYE TRACKER)" Click="StartDryRun" FontSize="18" HorizontalAlignment="Left" Padding="18,12"/>
       <TextBlock x:Name="CountdownText" Text="Idle — eye tracker untouched" FontSize="23" Foreground="#FBBF24"/>
       <TextBlock x:Name="StageText" Text="Stage: IDLE — no gaze APIs opened" FontSize="20" Foreground="#86EFAC" TextWrapping="Wrap"/>
