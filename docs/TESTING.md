@@ -267,3 +267,14 @@ At user's explicit request the previously confirmed `WS_TOBIIGAZEAWARE` (same nu
 ### Build validation update (2026-11-17)
 
 Automated Windows CI successfully compiled both UWP and `OverlayCompanion` with the Windows Desktop Extension SDK reference, validated the full-trust package manifest and created an unsigned x64 Debug `.msix`. The follow-on CI step opened that `.msix` and verified it contains **`OverlayCompanion.exe`** and **`AppxManifest.xml`**. An `APPX0006` warning notes Microsoft recommends a Windows Application Packaging Project when shipping restricted `runFullTrust` capability packages; this is not a deployment or runtime success guarantee. On-device installation, activation of `FullTrustProcessLauncher`, foreground style changes, and post-exit TD Control recovery of this newly integrated build remain **unverified** until helper-supervised live testing.
+
+
+## User-facing UI transition: remove exit diagnostics dashboard (2026-11-17)
+
+At user request the visible developer UI is retired:
+- `MainPage.xaml` is now a minimal gaze-free **Closing EyeGazeTrainer / Returning to your computer** page. The old multi-button diagnostic dashboard, dry-run control, device status, staged trace display and hardware-disabled messaging have been removed from the UI.
+- `MainPage.xaml.cs` drops the dry-run simulator and dashboard handlers, but **preserves** the working `EXIT_AFTER_GAZE_CLEANUP` and hardware-free `EXIT_NO_GAZE_DIAGNOSTIC` routes, clears navigation history and retains the **same 2-second delay before `Application.Current.Exit()`** on the gaze-free page. Technical lifecycle logging remains internal.
+- The training page's header, introductory text, Exit label and status messages now use concise user-facing language. The large gaze-triggered Exit button (1.5s hold), full-window green cursor, four targets, direct gaze processing, and existing four-stage resource cleanup remain in place.
+- `LevelOnePreview` and `MainPage` class names are kept for compatibility. Code trace files and external troubleshooting tools remain available; the request was to remove developer **UI**, not to remove important evidence or alter a proven shutdown.
+
+**Safety:** The gaze-free closing page is still intentionally shown briefly. Removing the intermediate navigation would change a tested startup/exit behavior. Full-trust overlay companion integration is unchanged and must still be verified after deployment. The UI update is not proof of hardware reliability; test with helper/backup input until the combined build is validated.
