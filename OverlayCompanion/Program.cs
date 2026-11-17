@@ -13,9 +13,12 @@ namespace EyeGazeTrainer.OverlayCompanion
         // Draft Tolt/Tobii gaze-aware convention. Also WS_EX_NOPARENTNOTIFY.
         private const int GazeAwareBit = 0x2;
         private const int MaxSeconds = 8 * 60 * 60;
+        private const int SwMaximize = 3;
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
         [DllImport("user32.dll")]
         private static extern bool IsWindow(IntPtr hWnd);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
@@ -32,6 +35,7 @@ namespace EyeGazeTrainer.OverlayCompanion
         {
             IntPtr changed = IntPtr.Zero;
             IntPtr seen = IntPtr.Zero;
+            IntPtr maximized = IntPtr.Zero;
             DateTime started = DateTime.UtcNow;
             DateTime missingSince = DateTime.MinValue;
             try
@@ -48,6 +52,14 @@ namespace EyeGazeTrainer.OverlayCompanion
 
                     if (target)
                     {
+                        // Apply only once per observed app window. This is a
+                        // normal maximized desktop window, NOT full-screen mode.
+                        // The same exact-window allowlist protects other apps.
+                        if (foreground != maximized)
+                        {
+                            ShowWindow(foreground, SwMaximize);
+                            maximized = foreground;
+                        }
                         seen = foreground;
                         missingSince = DateTime.MinValue;
                         if (changed == IntPtr.Zero)
