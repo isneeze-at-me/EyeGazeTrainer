@@ -1,3 +1,5 @@
+> **Update:** The live staged shutdown implementation on `Test` was withdrawn from the active application because it still exposed a high-risk test path. Current `Test` is a NO-HARDWARE dry run: all steps are simulated, and no gaze API is opened. This validates only stage UI and local trace logging. The historical staged code may be inspected in git history, but must not be used as a hardware test plan until independent recovery is implemented.
+
 # Gaze shutdown research and staged diagnostic — 2026-11-17
 
 **Status:** engineering investigation; **NO permission for unattended testing**. Blocker: [issue #9](https://github.com/isneeze-at-me/EyeGazeTrainer/issues/9).
