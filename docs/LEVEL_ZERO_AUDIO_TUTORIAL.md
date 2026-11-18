@@ -1,6 +1,6 @@
 # Level 0 — Audio-Guided Eye Cursor (Adult First-Run Experience)
 
-**Status (2026-11-18):** Initial implementation is committed on the `Test` branch: the first-run Level 0 screen, eyeball-shaped gaze cursor, local Windows spoken instructions with activity-based feedback, slow geometric pursuit target, and a single large button using the shared 1.5-second dwell to open the existing home screen. Existing Level 1 and eye-tracker shutdown lifecycle were not changed. **Windows build and live PCEye 5/TD Control coexistence have not been validated.** Independent non-dwell recovery, replay UX, and persistent six-metric Level 0 reporting remain unfinished; do not represent this as a complete accessible release.
+**Status (2026-11-18):** Initial implementation is committed on the `Test` branch: the first-run Level 0 screen, eyeball-shaped gaze cursor, local Windows spoken instructions with activity-based feedback, slow geometric pursuit target, and a single large button using the shared 1.5-second dwell to open the existing home screen. Existing Level 1 and eye-tracker shutdown lifecycle were not changed. **Windows build and live PCEye 5/TD Control coexistence have not been validated.** A spoken non-dwell gaze gesture, replay option, and aggregate six-metric Level 0 reporting have since been added. They still require practical accessibility validation; do not represent this as a complete accessible release.
 
 ## Core experience
 
@@ -79,4 +79,16 @@
 - [ ] Local reports store aggregate data, with NA for insufficient observations.
 - [ ] Gaze-only safety/back/recovery and TD Control handoff are supervised and verified.
 
-**Implementation progress:** [x] first-run routing for a new learner (existing learners with training records skip); [x] local speech service; [x] eye-shaped cursor; [x] free-movement and corner feedback; [x] animated slow target and sampled proximity; [x] large final dwell button; [x] completion flag and entry to home; [ ] independent no-dwell escape/recovery that novice users can reliably perform; [ ] replay from menu; [ ] persist Level 0 summary metrics and populate reporting cards; [ ] supervised Windows compile/layout/device tests. Level 0 is **development-preview only** until those remaining items are addressed.
+**Implementation progress:** [x] first-run routing for a new learner (existing learners with training records skip); [x] local speech service; [x] eye-shaped cursor; [x] free-movement and corner feedback; [x] animated slow target and sampled proximity; [x] large final dwell button; [x] completion flag and entry to home; [x] first implementation of a gaze-only non-dwell escape (top-left, bottom-left, repeat; spoken coaching); [x] gaze-dwell REPLAY INTRODUCTION button in Levels; [x] persist six aggregate Level 0 summary measurements and populate Skills / TXT export; [ ] user test and refine no-dwell escape reliability, instruction pacing and metric thresholds; [ ] supervised Windows compile/layout/device tests. Level 0 is **development-preview only** until those remaining items are addressed.
+
+### Current implementation notes
+
+- First-run Level 0 starts automatically only when no previous Level 1 acquisition/completion/run records are present and the completion flag is absent. It does not override an existing user's stored training progress.
+- Stage A automatically speaks when the **first valid gaze sample** is observed; stable coarse corner visits require repeated valid points. The target-following stage uses a slow sinusoidal arc, sampled at intervals to prevent frame-rate inflation of follow counts.
+- Optional **movement-only escape:** after about 22 seconds the user is told how to sweep between the upper-left and lower-left corners twice to return to home without activating a dwell button. This is provisional: the two-sweep gesture can be difficult for a new learner or accidentally match exploration, and must be refined through supervised evaluation.
+- Stage C displays one large home icon and uses the same shared dwell wheel as the rest of the app. After selection the tutorial marks completion and opens the existing home screen.
+- Aggregate first-run measurements for initial response, 9-region coverage, four corners, horizontal/vertical range, pursuit sample-proximity, and final button selection are saved locally only on completion. These fields appear in Diagnostics > Skills > Level 0 and the existing TXT therapist report when recorded.
+- Returning users can choose **REPLAY INTRODUCTION** on the Levels menu; the existing Level 1 training and its bonus round remain unchanged.
+- Gaze watcher creation, ownership, TD Control coexistence, and staged shutdown were not modified.
+
+**Safety and build disclaimer:** Static code/XAML integration checks do not establish an executable build, usability, or tracker compatibility. Do not use Level 0 as unattended independent access until on-device safety, audio availability and non-dwell recovery have passed.
