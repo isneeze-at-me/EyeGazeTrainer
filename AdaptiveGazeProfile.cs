@@ -5,9 +5,9 @@ namespace EyeGazeApiViability
 {
     /// <summary>
     /// Persistent approximation of gaze precision based on the raw, unassisted
-    /// location at each successful training-target acquisition. This is NOT a
+    /// location during successful training-target acquisition. This is NOT a
     /// clinical accuracy measure and does not track or save gaze coordinates.
-    /// Smoothing and enlarged hitboxes never inflate the measured distance.
+    /// Precision, speed, and stability are combined independently of visual smoothing.
     /// </summary>
     internal sealed class AdaptiveGazeProfile
     {
@@ -16,17 +16,26 @@ namespace EyeGazeApiViability
         public const int BeginnerSmoothingLevel =
             MasterCursorSmoothingFilter.InitialSmoothingLevel;
 
-        private const string ScoreKey = "AdaptiveGaze.AccuracyScoreV1";
-        private const string SamplesKey = "AdaptiveGaze.AcquisitionsV1";
+        private const string ScoreKey = "AdaptiveGaze.AccuracyScoreV2";
+        private const string PrecisionKey = "AdaptiveGaze.PrecisionV2";
+        private const string SpeedKey = "AdaptiveGaze.SpeedV2";
+        private const string StabilityKey = "AdaptiveGaze.StabilityV2";
+        private const string SamplesKey = "AdaptiveGaze.AcquisitionsV2";
         private const int GraceSamples = 8;
         private const int FullAdaptationSamples = 56;
 
         private double accuracyScore;
         private int acquisitions;
+        private double precisionScore;
+        private double speedScore;
+        private double stabilityScore;
         private readonly Windows.Foundation.Collections.IPropertySet settings;
 
         public double AccuracyScore { get { return accuracyScore; } }
         public int Acquisitions { get { return acquisitions; } }
+        public double PrecisionScore { get { return precisionScore; } }
+        public double SpeedScore { get { return speedScore; } }
+        public double StabilityScore { get { return stabilityScore; } }
 
         // Initially retain all assistance. A confidence ramp prevents a few
         // lucky hits from abruptly making early training harder.
@@ -74,11 +83,20 @@ namespace EyeGazeApiViability
                 {
                     double score = Convert.ToDouble(savedScore);
                     int count = Convert.ToInt32(savedSamples);
-                    if (!double.IsNaN(score) && !double.IsInfinity(score) &&
-                        score >= 0 && score <= 100 && count >= 0)
+                    object p, s, t;
+                    if (Valid(score) && count >= 0 &&
+                        settings.TryGetValue(PrecisionKey, out p) &&
+                        settings.TryGetValue(SpeedKey, out s) &&
+                        settings.TryGetValue(StabilityKey, out t) &&
+                        Valid(Convert.ToDouble(p)) &&
+                        Valid(Convert.ToDouble(s)) &&
+                        Valid(Convert.ToDouble(t)))
                     {
                         accuracyScore = score;
                         acquisitions = count;
+                        precisionScore = Convert.ToDouble(p);
+                        speedScore = Convert.ToDouble(s);
+                        stabilityScore = Convert.ToDouble(t);
                     }
                 }
             }
@@ -87,27 +105,28 @@ namespace EyeGazeApiViability
                 // Missing/corrupt local settings must not block eye-gaze use.
                 accuracyScore = 0;
                 acquisitions = 0;
+                precisionScore = speedScore = stabilityScore = 0;
             }
         }
 
         /// <summary>
-        /// Record one target activation using its RAW distance from the
-        /// visible center. Scores 100 at <=25% of visible radius and tends
-        /// to zero by 110% of radius. Never records mere hover frames.
+        /// Update each skill metric once per completed training-target hold.
+        /// Never save raw gaze coordinates or frame-by-frame measurements.
+        /// V2 keys deliberately do not inherit old first-border-entry scores.
         /// </summary>
-        public void RecordTargetAcquisition(double rawDistance, double visibleRadius)
+        public void RecordTargetPerformance(TargetPerformance result)
         {
-            if (double.IsNaN(rawDistance) || double.IsInfinity(rawDistance) ||
-                rawDistance < 0 || visibleRadius <= 0)
-                return;
-
-            double normalized = rawDistance / visibleRadius;
-            double precision = 100.0 *
-                (1.0 - Math.Max(0, Math.Min(1, (normalized - 0.25) / 0.85)));
-
-            // Smooth skill estimates over multiple successful targets.
-            accuracyScore = acquisitions == 0 ? precision :
-                (accuracyScore * 0.90 + precision * 0.10);
+            if (result == null) return;
+            bool first = acquisitions == 0;
+            precisionScore = first ? result.Precision :
+                precisionScore * 0.90 + result.Precision * 0.10;
+            speedScore = first ? result.Speed :
+                speedScore * 0.90 + result.Speed * 0.10;
+            stabilityScore = first ? result.Stability :
+                stabilityScore * 0.90 + result.Stability * 0.10;
+            accuracyScore = precisionScore * 0.40 +
+                            speedScore * 0.30 +
+                            stabilityScore * 0.30;
             if (acquisitions < int.MaxValue) acquisitions++;
 
             try
@@ -115,13 +134,22 @@ namespace EyeGazeApiViability
                 if (settings != null)
                 {
                     settings[ScoreKey] = accuracyScore;
+                    settings[PrecisionKey] = precisionScore;
+                    settings[SpeedKey] = speedScore;
+                    settings[StabilityKey] = stabilityScore;
                     settings[SamplesKey] = acquisitions;
                 }
             }
             catch (Exception)
             {
-                // Storage problems must never block target feedback or Exit.
+                // Storage failure must never block training or the Exit button.
             }
+        }
+
+        private static bool Valid(double score)
+        {
+            return !double.IsNaN(score) && !double.IsInfinity(score) &&
+                   score >= 0 && score <= 100;
         }
     }
 }
