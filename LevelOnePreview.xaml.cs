@@ -206,7 +206,7 @@ namespace EyeGazeApiViability
                 LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton };
             levelsButtons = new[] { LevelOneButton, LevelTwoButton,
                 LevelThreeButton, LevelFourButton, LevelFiveButton,
-                LevelSixButton, LevelsBackButton };
+                LevelSixButton, LevelZeroReplayButton, LevelsBackButton };
             lessonButtons = new[] { LessonBackButton };
             levelZeroContinueButtons = new[] { LevelZeroContinueButton };
             bonusButtons = new[] { BonusBackButton, BonusTrueButton, BonusFalseButton };
@@ -476,6 +476,8 @@ namespace EyeGazeApiViability
                 OnBackToLevels(null, null);
             else if (target == BonusTrueButton || target == BonusFalseButton)
                 SubmitBonusAnswer(target == BonusTrueButton, true);
+            else if (target == LevelZeroReplayButton)
+                OnLevelZeroReplay(null, null);
             else if (target == LevelOneButton)
                 OnLevelOne(null, null);
             else if (target == LevelTwoButton || target == LevelThreeButton ||
