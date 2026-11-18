@@ -66,35 +66,43 @@
                    TextWrapping="Wrap" FontSize="16"
                    Foreground="#FBBF24"/>
       </StackPanel>
-      <!-- Five large gaze-accessible main-menu actions. -->
-      <Grid Grid.Row="1" RowSpacing="12">
+      <!-- Four training and utility actions in a 2x2 grid,
+           with a separate full-width Exit action beneath. -->
+      <Grid Grid.Row="1" RowSpacing="18">
         <Grid.RowDefinitions>
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
-          <RowDefinition Height="*"/>
-          <RowDefinition Height="*"/>
-          <RowDefinition Height="*"/>
+          <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
         <Button Style="{StaticResource PrimaryGazeButton}" x:Name="LevelsMenuButton"
-                Grid.Row="0" Content="EYE GAZE TRAINER" Click="OnOpenLevels"
+                Grid.Row="0" Grid.Column="0" Content="EYE GAZE TRAINER" Click="OnOpenLevels"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
+                MinHeight="110" Margin="0,0,9,0"/>
         <Button Style="{StaticResource SecondaryGazeButton}" x:Name="TdControlMenuButton"
-                Grid.Row="1" Content="TD CONTROL TRAINER" Click="OnTdControlTrainer"
+                Grid.Row="0" Grid.Column="1" Content="TD CONTROL TRAINER" Click="OnTdControlTrainer"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
+                MinHeight="110" Margin="9,0,0,0"/>
         <Button Style="{StaticResource PrimaryGazeButton}" x:Name="DiagnosticsMenuButton"
-                Grid.Row="2" Content="DIAGNOSTICS" Click="OnOpenDiagnostics"
+                Grid.Row="1" Grid.Column="0" Content="DIAGNOSTICS" Click="OnOpenDiagnostics"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
+                MinHeight="110" Margin="0,0,9,0"/>
         <Button Style="{StaticResource SecondaryGazeButton}" x:Name="SettingsMenuButton"
-                Grid.Row="3" Content="SETTINGS" Click="OnDisplaySettingsRequested"
+                Grid.Row="1" Grid.Column="1" Content="SETTINGS" Click="OnDisplaySettingsRequested"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
+                MinHeight="110" Margin="9,0,0,0"/>
         <Button Style="{StaticResource DangerGazeButton}" x:Name="ExitButton"
-                Grid.Row="4" Content="EXIT" Click="OnExitRequested"
+                Grid.Row="2" Grid.ColumnSpan="2" Content="EXIT" Click="OnExitRequested"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
+                MinHeight="100"/>
       </Grid>
       <TextBlock x:Name="HomeNoticeText" Grid.Row="2" FontSize="18"
                  TextAlignment="Center" Foreground="#FBBF24"
