@@ -39,6 +39,7 @@ namespace EyeGazeApiViability
         private bool exitRequested;
         private bool autoStartAttempted;
         private Button gazeControlTarget;
+        private SharedButtonDwellWheel buttonDwellWheel;
         private DateTimeOffset gazeControlEnteredAt;
         private DateTimeOffset lastGazeAt;
         private bool gazeControlTriggered;
@@ -47,6 +48,7 @@ namespace EyeGazeApiViability
         public LevelOnePreview()
         {
             InitializeComponent();
+            buttonDwellWheel = new SharedButtonDwellWheel(CursorOverlay);
             Loaded += OnPageLoaded;
         }
 
@@ -181,6 +183,7 @@ namespace EyeGazeApiViability
             {
                 gazeControlTarget = null;
                 gazeControlTriggered = false;
+                buttonDwellWheel.Hide();
             }
             lastGazeAt = now;
             Button target = InsideButton(ExitButton, viewPoint) ? ExitButton : null;
@@ -188,6 +191,7 @@ namespace EyeGazeApiViability
             {
                 gazeControlTarget = null;
                 gazeControlTriggered = false;
+                buttonDwellWheel.Hide();
                 return;
             }
             if (gazeControlTarget != target)
@@ -199,11 +203,11 @@ namespace EyeGazeApiViability
             if (gazeControlTriggered) return;
             double progress = (now - gazeControlEnteredAt).TotalMilliseconds /
                               ControlDwell.TotalMilliseconds;
-            LiveStatusText.Text = "Exiting — " +
-                                  Math.Min(100, (int)(progress * 100)) + "%";
+            buttonDwellWheel.Present(target, progress);
             if (progress < 1.0) return;
             gazeControlTriggered = true;
             gazeControlTarget = null;
+            buttonDwellWheel.Hide();
             Trace("Native gaze control activated: EXIT");
             OnExitRequested(null, null);
         }
@@ -348,6 +352,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            buttonDwellWheel.Hide();
             ExitButton.IsEnabled = false;
             Trace("EXIT requested; source active=" + live);
             if (live) BeginCleanup();
