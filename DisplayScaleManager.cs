@@ -41,8 +41,8 @@ namespace EyeGazeApiViability
             // Approximate a per-display key using pixel dimensions, DPI and scale.
             // Two identical displays can share this setting.
             displayKey = SettingPrefix +
-                Math.Round(display.ScreenWidthInRawPixels) + "x" +
-                Math.Round(display.ScreenHeightInRawPixels) + "_" +
+                display.ScreenWidthInRawPixels + "x" +
+                display.ScreenHeightInRawPixels + "_" +
                 Math.Round(rawDpi) + "_" + Math.Round(pixelsPerView * 100);
             try
             {
