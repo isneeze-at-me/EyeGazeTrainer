@@ -30,6 +30,11 @@ namespace EyeGazeApiViability
         private DateTimeOffset levelZeroCornerEntered;
         private int levelZeroCornerCandidateSamples;
         private DateTimeOffset levelZeroLastPursuitSample;
+        private DateTimeOffset levelZeroEscapeStarted;
+        private DateTimeOffset levelZeroLastEscapePosition;
+        private int levelZeroEscapeStep;
+        private int levelZeroEscapeLastRegion = -1;
+        private bool levelZeroEscapePrompted;
         private string levelZeroPendingInstruction;
         private int levelZeroPursuitSamples, levelZeroCloseSamples;
         private int levelZeroDwellAttempts;
@@ -69,6 +74,9 @@ namespace EyeGazeApiViability
             levelZeroCornerCandidateSamples = 0;
             levelZeroLastPursuitSample = DateTimeOffset.MinValue;
             levelZeroPendingInstruction = null;
+            levelZeroEscapeStep = 0;
+            levelZeroEscapeLastRegion = -1;
+            levelZeroEscapePrompted = false;
             levelZeroCornerMask = 0;
             levelZeroMinX = levelZeroMinY = double.MaxValue;
             levelZeroMaxX = levelZeroMaxY = 0;
@@ -152,6 +160,12 @@ namespace EyeGazeApiViability
         private void OnLevelZeroTick(object sender, object args)
         {
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested) return;
+            if (!levelZeroEscapePrompted &&
+                (DateTimeOffset.UtcNow - levelZeroStarted).TotalSeconds > 22)
+            {
+                levelZeroEscapePrompted = true;
+                SpeakLevelZero("To return to the main screen without a button, look at the upper left, then lower left, then repeat.", true);
+            }
             if (levelZeroStage != LevelZeroStage.Pursue) return;
             DateTimeOffset now = DateTimeOffset.UtcNow;
             double elapsed = (now - levelZeroStageStarted).TotalSeconds;
@@ -184,6 +198,8 @@ namespace EyeGazeApiViability
                 return;
             DateTimeOffset now = DateTimeOffset.UtcNow;
             levelZeroLastValid = now;
+            ProcessLevelZeroEscape(raw, w, h, now);
+            if (currentScreen != AppScreen.LevelZero) return;
             if (!levelZeroHadGaze)
                 levelZeroTimeToFirstGaze = (now - levelZeroStarted).TotalSeconds;
             levelZeroHadGaze = true;
@@ -266,6 +282,43 @@ namespace EyeGazeApiViability
                         SpeakLevelZero("You're following it well.");
                     }
                 }
+            }
+        }
+
+        // This movement-only escape requires no learned button or dwell.
+        // Two full top-left to bottom-left sweeps limit accidental activation.
+        private void ProcessLevelZeroEscape(Point p, double w, double h,
+                                            DateTimeOffset now)
+        {
+            int region = p.X <= w * .22 && p.Y <= h * .24 ? 0 :
+                         p.X <= w * .22 && p.Y >= h * .76 ? 1 : -1;
+            if (region == -1)
+            {
+                levelZeroEscapeLastRegion = -1;
+                return;
+            }
+            if (region == levelZeroEscapeLastRegion) return;
+            levelZeroEscapeLastRegion = region;
+
+            if (levelZeroEscapeStep > 0 &&
+                (now - levelZeroEscapeStarted).TotalSeconds > 12)
+                levelZeroEscapeStep = 0;
+
+            if (region != levelZeroEscapeStep % 2)
+            {
+                levelZeroEscapeStep = 0;
+                return;
+            }
+            if (levelZeroEscapeStep == 0) levelZeroEscapeStarted = now;
+            if (levelZeroEscapeStep > 0 &&
+                (now - levelZeroLastEscapePosition).TotalMilliseconds < 400)
+                return;
+            levelZeroLastEscapePosition = now;
+            levelZeroEscapeStep++;
+            if (levelZeroEscapeStep >= 4)
+            {
+                StopLevelZero();
+                ShowScreen(AppScreen.Menu);
             }
         }
 
