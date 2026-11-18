@@ -292,6 +292,12 @@ namespace EyeGazeApiViability
             SpeakLevelZero("Look at the large button to open the main screen. Keep looking until the circle fills.", true);
         }
 
+        private void OnLevelZeroReplay(object sender, RoutedEventArgs e)
+        {
+            if (stopping || exitRequested || currentScreen != AppScreen.Levels) return;
+            StartLevelZero();
+        }
+
         private void OnLevelZeroContinue(object sender, RoutedEventArgs e)
         {
             if (currentScreen != AppScreen.LevelZero ||
