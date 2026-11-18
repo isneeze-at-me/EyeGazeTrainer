@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using System.Globalization;
 using Windows.Foundation;
 using Windows.Media.SpeechSynthesis;
 using Windows.Storage;
@@ -20,6 +21,7 @@ namespace EyeGazeApiViability
         private DateTimeOffset levelZeroLastPrompt;
         private DateTimeOffset levelZeroLastValid;
         private double levelZeroSeconds;
+        private double levelZeroTimeToFirstGaze = -1;
         private double levelZeroMinX = double.MaxValue, levelZeroMaxX;
         private double levelZeroMinY = double.MaxValue, levelZeroMaxY;
         private int levelZeroRegionMask;
@@ -62,6 +64,7 @@ namespace EyeGazeApiViability
             levelZeroStageStarted = levelZeroStarted;
             levelZeroLastPrompt = DateTimeOffset.MinValue;
             levelZeroSeconds = 0;
+            levelZeroTimeToFirstGaze = -1;
             levelZeroRegionMask = 0;
             levelZeroCornerCandidateSamples = 0;
             levelZeroLastPursuitSample = DateTimeOffset.MinValue;
@@ -181,6 +184,8 @@ namespace EyeGazeApiViability
                 return;
             DateTimeOffset now = DateTimeOffset.UtcNow;
             levelZeroLastValid = now;
+            if (!levelZeroHadGaze)
+                levelZeroTimeToFirstGaze = (now - levelZeroStarted).TotalSeconds;
             levelZeroHadGaze = true;
 
             if (!levelZeroGuidanceStarted)
@@ -298,6 +303,21 @@ namespace EyeGazeApiViability
             StartLevelZero();
         }
 
+        private static string LevelZeroMetricValue(int index)
+        {
+            string[] keys = { "FirstGaze", "Coverage", "Corners", "Range",
+                              "Pursuit", "Selection" };
+            if (index < 0 || index >= keys.Length) return "NA";
+            try
+            {
+                object value;
+                return ApplicationData.Current.LocalSettings.Values.TryGetValue(
+                    "EyeGazeTrainer.LevelZero.MetricV1." + keys[index], out value)
+                    ? Convert.ToString(value) : "NA";
+            }
+            catch (Exception) { return "NA"; }
+        }
+
         private void OnLevelZeroContinue(object sender, RoutedEventArgs e)
         {
             if (currentScreen != AppScreen.LevelZero ||
@@ -305,8 +325,38 @@ namespace EyeGazeApiViability
             FinishLevelZero();
         }
 
+        // Save only six aggregate skill observations; never raw positions.
+        private void SaveLevelZeroMeasurements()
+        {
+            try
+            {
+                var v = ApplicationData.Current.LocalSettings.Values;
+                const string p = "EyeGazeTrainer.LevelZero.MetricV1.";
+                if (levelZeroTimeToFirstGaze >= 0)
+                    v[p + "FirstGaze"] = levelZeroTimeToFirstGaze.ToString("0.0",
+                        CultureInfo.InvariantCulture) + " sec";
+                v[p + "Coverage"] = (CountBits(levelZeroRegionMask) / 9.0 * 100)
+                    .ToString("0", CultureInfo.InvariantCulture) + "% (9 regions)";
+                v[p + "Corners"] = CountBits(levelZeroCornerMask).ToString() + " / 4";
+                if (levelZeroMinX < double.MaxValue && RootLayout.ActualWidth > 0 &&
+                    RootLayout.ActualHeight > 0)
+                    v[p + "Range"] =
+                        (100 * (levelZeroMaxX - levelZeroMinX) / RootLayout.ActualWidth)
+                        .ToString("0", CultureInfo.InvariantCulture) + "% horizontal, " +
+                        (100 * (levelZeroMaxY - levelZeroMinY) / RootLayout.ActualHeight)
+                        .ToString("0", CultureInfo.InvariantCulture) + "% vertical";
+                if (levelZeroPursuitSamples > 0)
+                    v[p + "Pursuit"] = (100.0 * levelZeroCloseSamples /
+                        levelZeroPursuitSamples).ToString("0",
+                        CultureInfo.InvariantCulture) + "% of valid sampled positions";
+                v[p + "Selection"] = "Completed (" + levelZeroDwellAttempts + " attempts)";
+            }
+            catch (Exception) { /* Measurements never block learner navigation. */ }
+        }
+
         private void FinishLevelZero()
         {
+            SaveLevelZeroMeasurements();
             try { ApplicationData.Current.LocalSettings.Values[LevelZeroDoneKey] = true; }
             catch (Exception) { /* A storage error never prevents access to home. */ }
             StopLevelZero();
