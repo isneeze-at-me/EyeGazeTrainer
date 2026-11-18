@@ -271,7 +271,7 @@ namespace EyeGazeApiViability
             gazeControlTriggered = true;
             buttonDwellWheel.Hide();
             // No new control activates until gaze leaves this hit region.
-            if (target == ExitButton || target == SettingsExitButton)
+            if (target == ExitButton)
                 OnExitRequested(null, null);
             else if (target == LevelsMenuButton)
                 OnOpenLevels(null, null);
@@ -293,7 +293,7 @@ namespace EyeGazeApiViability
                 OnReferenceLonger(null, null);
             else if (target == SaveDisplayButton)
                 OnSaveDisplay(null, null);
-            else if (target == CancelDisplayButton)
+            else if (target == CancelDisplayButton || target == SettingsExitButton)
                 OnCancelDisplay(null, null);
         }
 
@@ -322,7 +322,7 @@ namespace EyeGazeApiViability
                 // For the safety-critical Exit button, accept the same
                 // adaptive hit region under raw gaze as well. This prevents
                 // smoothing from delaying access when attention shifts to Exit.
-                if ((button == ExitButton || button == SettingsExitButton) &&
+                if (button == ExitButton &&
                     InsideButton(button, rawPoint))
                     return button;
             }
