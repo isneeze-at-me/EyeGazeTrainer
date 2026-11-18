@@ -10,6 +10,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
+using Windows.UI.Xaml.Media;
+using Windows.UI;
 
 namespace EyeGazeApiViability
 {
@@ -31,10 +33,13 @@ namespace EyeGazeApiViability
         private const int TargetsPerLevel = 10;
         private readonly Random placementRandom = new Random();
         private readonly TrainingProgress trainingProgress = new TrainingProgress();
+        private readonly SpatialAccuracyMap spatialAccuracy = new SpatialAccuracyMap();
+        private readonly TextBlock[,] accuracyCells = new TextBlock[7, 7];
+        private Button[] diagnosticsButtons;
         private Point targetPosition;
         private Point previousTargetPosition;
         private bool hasPreviousTargetPosition;
-        private enum AppScreen { Menu, Levels, Lesson, Bonus, Settings }
+        private enum AppScreen { Menu, Levels, Lesson, Bonus, Settings, Diagnostics }
         private AppScreen currentScreen = AppScreen.Menu;
 
         private GazeDeviceWatcherPreview watcher;
@@ -95,7 +100,10 @@ namespace EyeGazeApiViability
             // Training targets and gaze buttons share the exact same radial
             // wheel implementation, while retaining independent progress.
             targetDwellWheel = new SharedButtonDwellWheel(CursorOverlay);
-            menuButtons = new[] { LevelsMenuButton, SettingsMenuButton, ExitButton };
+            menuButtons = new[] { LevelsMenuButton, TdControlMenuButton,
+                                  DiagnosticsMenuButton, SettingsMenuButton, ExitButton };
+            diagnosticsButtons = new[] { DiagnosticsBackButton };
+            BuildAccuracyGrid();
             allLevelButtons = new[] { LevelOneButton, LevelTwoButton,
                 LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton };
             levelsButtons = new[] { LevelOneButton, LevelTwoButton,
@@ -334,6 +342,12 @@ namespace EyeGazeApiViability
                 OnExitRequested(null, null);
             else if (target == LevelsMenuButton)
                 OnOpenLevels(null, null);
+            else if (target == TdControlMenuButton)
+                OnTdControlTrainer(null, null);
+            else if (target == DiagnosticsMenuButton)
+                OnOpenDiagnostics(null, null);
+            else if (target == DiagnosticsBackButton)
+                OnBackToMenu(null, null);
             else if (target == SettingsMenuButton)
                 OnDisplaySettingsRequested(null, null);
             else if (target == LevelsBackButton)
@@ -372,6 +386,7 @@ namespace EyeGazeApiViability
                     return bonusIntroActive ? noGazeButtons :
                            triviaAwaitingAnswer ? bonusButtons : bonusBackOnlyButtons;
                 case AppScreen.Settings: return displayButtons;
+                case AppScreen.Diagnostics: return diagnosticsButtons;
                 default: return menuButtons;
             }
         }
@@ -436,6 +451,8 @@ namespace EyeGazeApiViability
             LessonPanel.Visibility = screen == AppScreen.Lesson ? Visibility.Visible : Visibility.Collapsed;
             BonusPanel.Visibility = screen == AppScreen.Bonus ? Visibility.Visible : Visibility.Collapsed;
             DisplaySettingsPanel.Visibility = screen == AppScreen.Settings ? Visibility.Visible : Visibility.Collapsed;
+            DiagnosticsPanel.Visibility = screen == AppScreen.Diagnostics ? Visibility.Visible : Visibility.Collapsed;
+            if (screen == AppScreen.Diagnostics) RefreshAccuracyGrid();
             targetMeasurement.CancelHold();
             buttonDwellWheel.Hide();
             HideTargetDwellVisual();
@@ -447,6 +464,60 @@ namespace EyeGazeApiViability
             if (screen != AppScreen.Lesson) UpdateAccuracyDisplay();
         }
 
+        // A small, fixed 7x7 grid is rendered into a vector tablet silhouette.
+        // Cells are display-only; no new gaze interactions are required.
+        private void BuildAccuracyGrid()
+        {
+            for (int i = 0; i < SpatialAccuracyMap.Rows; i++)
+                AccuracyHeatmapGrid.RowDefinitions.Add(new RowDefinition
+                { Height = new GridLength(1, GridUnitType.Star) });
+            for (int i = 0; i < SpatialAccuracyMap.Columns; i++)
+                AccuracyHeatmapGrid.ColumnDefinitions.Add(new ColumnDefinition
+                { Width = new GridLength(1, GridUnitType.Star) });
+
+            for (int row = 0; row < SpatialAccuracyMap.Rows; row++)
+            {
+                for (int col = 0; col < SpatialAccuracyMap.Columns; col++)
+                {
+                    var cell = new Border
+                    {
+                        Margin = new Thickness(2),
+                        BorderBrush = new SolidColorBrush(Color.FromArgb(255, 52, 82, 117)),
+                        BorderThickness = new Thickness(1),
+                        Background = new SolidColorBrush(Color.FromArgb(255, 17, 35, 58)),
+                        CornerRadius = new CornerRadius(2)
+                    };
+                    var label = new TextBlock
+                    {
+                        FontSize = 19,
+                        FontWeight = Windows.UI.Text.FontWeights.SemiBold,
+                        Foreground = new SolidColorBrush(Colors.White),
+                        TextAlignment = TextAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        HorizontalAlignment = HorizontalAlignment.Center
+                    };
+                    cell.Child = label;
+                    Grid.SetRow(cell, row);
+                    Grid.SetColumn(cell, col);
+                    AccuracyHeatmapGrid.Children.Add(cell);
+                    accuracyCells[row, col] = label;
+                }
+            }
+            RefreshAccuracyGrid();
+        }
+
+        private void RefreshAccuracyGrid()
+        {
+            for (int row = 0; row < SpatialAccuracyMap.Rows; row++)
+                for (int col = 0; col < SpatialAccuracyMap.Columns; col++)
+                {
+                    double? score = spatialAccuracy.Score(row, col);
+                    accuracyCells[row, col].Text = score.HasValue
+                        ? Math.Round(score.Value).ToString() + "%"
+                        : "NA";
+                }
+        }
+
         private void OnOpenLevels(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested) return;
@@ -455,9 +526,23 @@ namespace EyeGazeApiViability
             ShowScreen(AppScreen.Levels);
         }
 
+        private void OnTdControlTrainer(object sender, RoutedEventArgs e)
+        {
+            if (stopping || exitRequested || currentScreen != AppScreen.Menu) return;
+            HomeNoticeText.Text = "TD Control Trainer is coming soon.";
+        }
+
+        private void OnOpenDiagnostics(object sender, RoutedEventArgs e)
+        {
+            if (stopping || exitRequested || currentScreen != AppScreen.Menu) return;
+            HomeNoticeText.Text = "";
+            ShowScreen(AppScreen.Diagnostics);
+        }
+
         private void OnBackToMenu(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested) return;
+            HomeNoticeText.Text = "";
             ShowScreen(AppScreen.Menu);
         }
 
@@ -573,7 +658,10 @@ namespace EyeGazeApiViability
             double buttonHeight = Math.Max(76, displayScale.ToViewUnits(20));
             ExitButton.MinHeight = Math.Max(88, buttonHeight);
             LevelsMenuButton.MinHeight = Math.Max(100, buttonHeight);
-            SettingsMenuButton.MinHeight = Math.Max(100, buttonHeight);
+            SettingsMenuButton.MinHeight = Math.Max(76, buttonHeight);
+            LevelsMenuButton.MinHeight = Math.Max(76, buttonHeight);
+            TdControlMenuButton.MinHeight = Math.Max(76, buttonHeight);
+            DiagnosticsMenuButton.MinHeight = Math.Max(76, buttonHeight);
         }
 
         private void ResetReferencePreview()
@@ -725,6 +813,12 @@ namespace EyeGazeApiViability
                 TargetPerformance result = targetMeasurement.Measure(
                     center, TargetDiameter * 0.5, now);
                 gazeProfile.RecordTargetPerformance(result, 1);
+                Point canvasOriginOnPage = TrainingCanvas.TransformToVisual(RootLayout)
+                    .TransformPoint(new Point(0, 0));
+                spatialAccuracy.Record(
+                    new Point(center.X + canvasOriginOnPage.X,
+                              center.Y + canvasOriginOnPage.Y),
+                    RootLayout.ActualWidth, RootLayout.ActualHeight, result.Overall);
                 cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
                 UpdateAccuracyDisplay();
             }
@@ -895,6 +989,8 @@ namespace EyeGazeApiViability
                         bonusButtonMeasurement.Measure(center, radius,
                                                        DateTimeOffset.UtcNow);
                     gazeProfile.RecordTargetPerformance(performance, 1);
+                    spatialAccuracy.Record(center, RootLayout.ActualWidth,
+                                           RootLayout.ActualHeight, performance.Overall);
                     cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
                     UpdateAccuracyDisplay();
                 }
@@ -998,6 +1094,12 @@ namespace EyeGazeApiViability
             if (targetMeasurement.CancelIncompleteHold(now))
             {
                 gazeProfile.RecordIncompleteTargetDwell(1);
+                Point missedTarget = TargetCenter();
+                Point offset = TrainingCanvas.TransformToVisual(RootLayout)
+                    .TransformPoint(new Point(0, 0));
+                spatialAccuracy.Record(
+                    new Point(missedTarget.X + offset.X, missedTarget.Y + offset.Y),
+                    RootLayout.ActualWidth, RootLayout.ActualHeight, 0);
                 cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
                 UpdateAccuracyDisplay();
             }
