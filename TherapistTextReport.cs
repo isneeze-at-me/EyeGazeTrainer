@@ -26,7 +26,8 @@ namespace EyeGazeApiViability
             int targetHoldMilliseconds,
             int controlDwellMilliseconds,
             string[][] skillCategories,
-            string[] categoryNames)
+            string[] categoryNames,
+            string[] levelZeroValues)
         {
             var b = new StringBuilder(12000);
             b.AppendLine(new string('=', Width));
@@ -111,7 +112,8 @@ namespace EyeGazeApiViability
             b.AppendLine();
 
             Section(b, "5. THERAPIST SKILL METRICS");
-            b.AppendLine("  The following measures are planned but NOT YET RECORDED.");
+            b.AppendLine("  Level 0 displays recorded results when completed; remaining");
+            b.AppendLine("  planned measures remain NA (not recorded).");
             b.AppendLine("  The app does not infer unavailable measurements from other scores.");
             if (skillCategories != null && categoryNames != null)
             {
@@ -123,7 +125,14 @@ namespace EyeGazeApiViability
                     foreach (string definition in skillCategories[category])
                     {
                         string[] parts = definition.Split(new[] { '|' }, 2);
-                        b.AppendLine("    - " + parts[0] + ": NA (not recorded)");
+                        string observed = category == 0 && levelZeroValues != null &&
+                            Array.IndexOf(skillCategories[category], definition) <
+                            levelZeroValues.Length
+                            ? levelZeroValues[Array.IndexOf(skillCategories[category], definition)]
+                            : "NA";
+                        b.AppendLine("    - " + parts[0] + ": " +
+                            (string.IsNullOrEmpty(observed) || observed == "NA"
+                                ? "NA (not recorded)" : observed));
                         if (parts.Length > 1)
                             Wrap(b, "      ", parts[1], Width - 8);
                     }
