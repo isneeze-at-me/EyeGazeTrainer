@@ -1,7 +1,6 @@
 using System;
 using Windows.Graphics.Display;
 using Windows.Storage;
-using Windows.UI.Xaml;
 
 namespace EyeGazeApiViability
 {
@@ -16,7 +15,7 @@ namespace EyeGazeApiViability
         public const double LevelOneDiameterMillimeters = 40.0;
         public const double BullseyeDiameterMillimeters = 3.5;
         private const string SettingPrefix = "DisplaySizeAdjustment.V1.";
-        private const double MinimumMillimetersPerView = 0.05;
+        private const double MinimumViewUnitsPerMillimeter = 0.05;
         private const double MaximumViewUnitsPerMillimeter = 30.0;
 
         private readonly string displayKey;
@@ -35,18 +34,16 @@ namespace EyeGazeApiViability
                                     !double.IsInfinity(rawDpi)
                 ? rawDpi / pixelsPerView : 96.0;
             double automatic = dpiInViewUnits / 25.4;
-            viewUnitsPerMillimeter = Clamp(automatic, MinimumMillimetersPerView,
+            viewUnitsPerMillimeter = Clamp(automatic, MinimumViewUnitsPerMillimeter,
                                           MaximumViewUnitsPerMillimeter);
 
             // UWP does not expose a reliable cross-session monitor hardware ID.
             // Approximate a per-display key using pixel dimensions, DPI and scale.
             // Two identical displays can share this setting.
-            var window = Window.Current.Bounds;
             displayKey = SettingPrefix +
                 Math.Round(display.ScreenWidthInRawPixels) + "x" +
                 Math.Round(display.ScreenHeightInRawPixels) + "_" +
-                Math.Round(rawDpi) + "_" + Math.Round(pixelsPerView * 100) + "_" +
-                Math.Round(window.Width * pixelsPerView / 100) * 100;
+                Math.Round(rawDpi) + "_" + Math.Round(pixelsPerView * 100);
             try
             {
                 object saved;
@@ -79,7 +76,7 @@ namespace EyeGazeApiViability
 
         private static bool IsValid(double value)
         {
-            return value >= MinimumMillimetersPerView &&
+            return value >= MinimumViewUnitsPerMillimeter &&
                    value <= MaximumViewUnitsPerMillimeter &&
                    !double.IsNaN(value) && !double.IsInfinity(value);
         }
