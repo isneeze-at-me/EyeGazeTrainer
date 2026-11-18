@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Windows.Devices.Input.Preview;
 using Windows.Foundation;
 using Windows.Graphics.Display;
@@ -45,6 +46,16 @@ namespace EyeGazeApiViability
         private int cleanupStage;
         private DispatcherTimer cleanupTimer;
         private DispatcherTimer bonusTransitionTimer;
+        private DispatcherTimer bonusQuestionTimer;
+        private readonly TriviaQuestionBank triviaBank = new TriviaQuestionBank();
+        private readonly TrainingTargetMeasurement bonusButtonMeasurement = new TrainingTargetMeasurement();
+        private TriviaQuestion currentTriviaQuestion;
+        private int triviaAnswered;
+        private int triviaCorrect;
+        private bool triviaAwaitingAnswer;
+        private bool triviaFinishing;
+        private bool triviaLoading;
+        private bool triviaMouseSelection;
         private string tracePath;
         private int targetIndex = -1;
         private readonly TrainingTargetMeasurement targetMeasurement = new TrainingTargetMeasurement();
@@ -85,7 +96,7 @@ namespace EyeGazeApiViability
                 LevelThreeButton, LevelFourButton, LevelFiveButton,
                 LevelSixButton, LevelsBackButton };
             lessonButtons = new[] { LessonBackButton };
-            bonusButtons = new[] { BonusBackButton };
+            bonusButtons = new[] { BonusTrueButton, BonusFalseButton };
             displayButtons = new[] { ShorterButton, LongerButton, SaveDisplayButton,
                                      CancelDisplayButton, SettingsExitButton };
             displayScale = new DisplayScaleManager();
@@ -260,6 +271,7 @@ namespace EyeGazeApiViability
             if (lastGazeAt != default(DateTimeOffset) &&
                 now - lastGazeAt > TimeSpan.FromMilliseconds(500))
             {
+                bonusButtonMeasurement.CancelHold();
                 gazeControlTarget = null;
                 gazeControlTriggered = false;
                 buttonDwellWheel.Hide();
@@ -268,6 +280,7 @@ namespace EyeGazeApiViability
             Button target = FindGazeButton(stabilizedPoint, rawPoint);
             if (target == null)
             {
+                bonusButtonMeasurement.CancelHold();
                 gazeControlTarget = null;
                 gazeControlTriggered = false;
                 requireLookAwayAfterNavigation = false;
@@ -295,9 +308,12 @@ namespace EyeGazeApiViability
             {
                 gazeControlTarget = target;
                 gazeControlEnteredAt = now;
+                bonusButtonMeasurement.CancelHold();
+                if (IsBonusAnswer(target)) bonusButtonMeasurement.BeginTarget(now);
                 gazeControlTriggered = false;
             }
             if (gazeControlTriggered) return;
+            if (IsBonusAnswer(target)) bonusButtonMeasurement.Observe(rawPoint, now, true);
             double progress = (now - gazeControlEnteredAt).TotalMilliseconds /
                               ControlDwell.TotalMilliseconds;
             buttonDwellWheel.Present(target, progress);
@@ -314,8 +330,10 @@ namespace EyeGazeApiViability
                 OnDisplaySettingsRequested(null, null);
             else if (target == LevelsBackButton)
                 OnBackToMenu(null, null);
-            else if (target == LessonBackButton || target == BonusBackButton)
+            else if (target == LessonBackButton)
                 OnBackToLevels(null, null);
+            else if (target == BonusTrueButton || target == BonusFalseButton)
+                SubmitBonusAnswer(target == BonusTrueButton, true);
             else if (target == LevelOneButton)
                 OnLevelOne(null, null);
             else if (target == LevelTwoButton || target == LevelThreeButton ||
@@ -342,7 +360,7 @@ namespace EyeGazeApiViability
             {
                 case AppScreen.Levels: return levelsButtons;
                 case AppScreen.Lesson: return lessonButtons;
-                case AppScreen.Bonus: return bonusButtons;
+                case AppScreen.Bonus: return triviaAwaitingAnswer ? bonusButtons : new Button[0];
                 case AppScreen.Settings: return displayButtons;
                 default: return menuButtons;
             }
@@ -382,6 +400,7 @@ namespace EyeGazeApiViability
         {
             // Navigating away from the celebration must not fire a stale transition.
             if (screen != AppScreen.Lesson) CancelBonusTransition();
+            if (screen != AppScreen.Bonus) CancelBonusQuestionTimer();
             AppScreen previousScreen = currentScreen;
             currentScreen = screen;
             // Any live-gaze screen transition (including automatic lesson
@@ -392,6 +411,7 @@ namespace EyeGazeApiViability
                 lastActivatedGazePosition = mostRecentRawGazePosition;
             gazeControlTarget = null;
             gazeControlTriggered = false;
+            bonusButtonMeasurement.CancelHold();
             lastGazeAt = default(DateTimeOffset);
             // Old-screen smoothing must not slow acquisition on this screen.
             // Gaze device lifetime and controlled Exit are untouched.
@@ -430,6 +450,7 @@ namespace EyeGazeApiViability
         private void OnBackToLevels(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested) return;
+            CancelBonusQuestionTimer();
             // An unfinished lesson does not mark the level completed.
             completed = false;
             UpdateLevelBadges();
@@ -695,6 +716,7 @@ namespace EyeGazeApiViability
             if (!completed || stopping || exitRequested ||
                 currentScreen != AppScreen.Lesson) return;
             ShowScreen(AppScreen.Bonus);
+            _ = StartBonusRoundAsync();
         }
 
         private void CancelBonusTransition()
@@ -707,6 +729,186 @@ namespace EyeGazeApiViability
             }
             CompletionOverlay.Visibility = Visibility.Collapsed;
             LessonBackButton.Visibility = Visibility.Visible;
+        }
+
+        private bool IsBonusAnswer(Button button)
+        {
+            return currentScreen == AppScreen.Bonus && triviaAwaitingAnswer &&
+                   (button == BonusTrueButton || button == BonusFalseButton);
+        }
+
+        private async Task StartBonusRoundAsync()
+        {
+            if (triviaLoading) return;
+            triviaLoading = true;
+            triviaAnswered = 0;
+            triviaCorrect = 0;
+            triviaAwaitingAnswer = false;
+            triviaFinishing = false;
+            currentTriviaQuestion = null;
+            BonusChoicesPanel.Visibility = Visibility.Collapsed;
+            BonusFinalPanel.Visibility = Visibility.Collapsed;
+            BonusProgressText.Text = "BONUS ROUND";
+            BonusFactText.Text = "Getting your trivia ready…";
+            try
+            {
+                await triviaBank.LoadAsync();
+                if (currentScreen != AppScreen.Bonus || stopping || exitRequested) return;
+                triviaBank.BeginRound();
+                NextBonusQuestion();
+            }
+            catch (Exception ex)
+            {
+                BonusProgressText.Text = "TRIVIA UNAVAILABLE";
+                BonusFactText.Text = "Couldn't load the questions. Return to Levels and try again.";
+                BonusChoicesPanel.Visibility = Visibility.Collapsed;
+                BonusFinalPanel.Visibility = Visibility.Collapsed;
+                Trace("Trivia loading failed: " + ex.GetType().Name);
+                // The normal button-based navigation isn't available before the
+                // player has learned it; return without requiring a click.
+                StartBonusTimer(TimeSpan.FromSeconds(5), () => ShowScreen(AppScreen.Levels));
+            }
+            finally { triviaLoading = false; }
+        }
+
+        private void NextBonusQuestion()
+        {
+            if (currentScreen != AppScreen.Bonus || stopping || exitRequested) return;
+            CancelBonusQuestionTimer();
+            if (triviaAnswered >= 10)
+            {
+                FinishBonusRound();
+                return;
+            }
+
+            try { currentTriviaQuestion = triviaBank.Draw(); }
+            catch (Exception ex)
+            {
+                Trace("Trivia draw failed: " + ex.GetType().Name);
+                FinishBonusRound();
+                return;
+            }
+            triviaAwaitingAnswer = true;
+            BonusProgressText.Text = "QUESTION " + (triviaAnswered + 1) + " OF 10";
+            BonusFactText.Text = currentTriviaQuestion.Statement;
+            BonusChoicesPanel.Visibility = Visibility.Visible;
+            BonusFinalPanel.Visibility = Visibility.Collapsed;
+            BonusTrueButton.IsEnabled = true;
+            BonusFalseButton.IsEnabled = true;
+            // Enforce a new, complete gaze dwell for each question. Do not
+            // automatically select the same button on the next fact.
+            gazeControlTarget = null;
+            gazeControlTriggered = false;
+            bonusButtonMeasurement.CancelHold();
+            buttonDwellWheel.Hide();
+            cursorFilter.Reset();
+            requireLookAwayAfterNavigation = live;
+            lastActivatedGazePosition = mostRecentRawGazePosition;
+        }
+
+        private void OnBonusTrue(object sender, RoutedEventArgs e)
+        {
+            SubmitBonusAnswer(true, false);
+        }
+
+        private void OnBonusFalse(object sender, RoutedEventArgs e)
+        {
+            SubmitBonusAnswer(false, false);
+        }
+
+        private void SubmitBonusAnswer(bool selectedTrue, bool gazeActivated)
+        {
+            if (currentScreen != AppScreen.Bonus || !triviaAwaitingAnswer ||
+                stopping || exitRequested || currentTriviaQuestion == null) return;
+            triviaAwaitingAnswer = false;
+            bool right = selectedTrue == currentTriviaQuestion.IsTrue;
+            if (right) triviaCorrect++;
+            triviaAnswered++;
+
+            // Accuracy measures successful gaze-button selection, not factual
+            // knowledge. Incorrect trivia answers do NOT lower or raise it.
+            if (right && gazeActivated && live)
+            {
+                try
+                {
+                    Button button = selectedTrue ? BonusTrueButton : BonusFalseButton;
+                    Point origin = button.TransformToVisual(this)
+                                         .TransformPoint(new Point(0, 0));
+                    Point center = new Point(origin.X + button.ActualWidth / 2,
+                                             origin.Y + button.ActualHeight / 2);
+                    double radius = Math.Min(button.ActualWidth, button.ActualHeight) / 2;
+                    TargetPerformance performance =
+                        bonusButtonMeasurement.Measure(center, radius,
+                                                       DateTimeOffset.UtcNow);
+                    gazeProfile.RecordTargetPerformance(performance, 1);
+                    cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
+                    UpdateAccuracyDisplay();
+                }
+                catch (InvalidOperationException)
+                {
+                    // No valid settled gaze samples: do not fabricate a score.
+                }
+            }
+            bonusButtonMeasurement.CancelHold();
+            buttonDwellWheel.Hide();
+            gazeControlTarget = null;
+            gazeControlTriggered = false;
+            BonusTrueButton.IsEnabled = false;
+            BonusFalseButton.IsEnabled = false;
+            BonusChoicesPanel.Visibility = Visibility.Collapsed;
+            BonusProgressText.Text = right ? "THAT'S RIGHT!" : "GOOD TRY!";
+            BonusFactText.Text = "Answer: " +
+                (currentTriviaQuestion.IsTrue ? "TRUE" : "FALSE") +
+                "\n\n" + currentTriviaQuestion.Explanation;
+            StartBonusTimer(TimeSpan.FromSeconds(5), NextBonusQuestion);
+        }
+
+        private void FinishBonusRound()
+        {
+            if (currentScreen != AppScreen.Bonus || triviaFinishing) return;
+            triviaFinishing = true;
+            triviaAwaitingAnswer = false;
+            currentTriviaQuestion = null;
+            BonusChoicesPanel.Visibility = Visibility.Collapsed;
+            BonusFinalPanel.Visibility = Visibility.Visible;
+            BonusProgressText.Text = "BONUS ROUND COMPLETE!";
+            BonusFactText.Text = "";
+            BonusFinalText.Text = triviaCorrect + " OUT OF " + triviaAnswered + " CORRECT!";
+            StartBonusTimer(TimeSpan.FromSeconds(3), () =>
+            {
+                if (currentScreen != AppScreen.Bonus || exitRequested || stopping) return;
+                UpdateLevelBadges();
+                LevelsNoticeText.Text = "";
+                ShowScreen(AppScreen.Levels);
+            });
+        }
+
+        private void StartBonusTimer(TimeSpan delay, Action callback)
+        {
+            CancelBonusQuestionTimer();
+            bonusQuestionTimer = new DispatcherTimer { Interval = delay };
+            EventHandler<object> tick = null;
+            tick = (sender, args) =>
+            {
+                if (bonusQuestionTimer == null) return;
+                bonusQuestionTimer.Stop();
+                bonusQuestionTimer.Tick -= tick;
+                bonusQuestionTimer = null;
+                callback();
+            };
+            bonusQuestionTimer.Tick += tick;
+            bonusQuestionTimer.Start();
+        }
+
+        private void CancelBonusQuestionTimer()
+        {
+            if (bonusQuestionTimer != null)
+            {
+                bonusQuestionTimer.Stop();
+                bonusQuestionTimer = null;
+            }
+            triviaAwaitingAnswer = false;
+            bonusButtonMeasurement.CancelHold();
         }
 
         // Score only an actual started dwell (at least 150 ms), not an
@@ -882,6 +1084,8 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            CancelBonusTransition();
+            CancelBonusQuestionTimer();
             displaySettingsVisible = false;
             targetMeasurement.CancelHold();
             HideTargetDwellVisual();
@@ -1034,6 +1238,7 @@ namespace EyeGazeApiViability
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             CancelBonusTransition();
+            CancelBonusQuestionTimer();
             if (displayInformation != null)
             {
                 displayInformation.DpiChanged -= OnDisplayDpiChanged;
