@@ -9,10 +9,10 @@
     </Grid.RowDefinitions>
     <StackPanel Grid.Row="0" Margin="28,22,28,12" Spacing="10">
       <TextBlock Text="EyeGazeTrainer" FontSize="30" FontWeight="Bold" Foreground="White"/>
-      <TextBlock Text="Look at each circle to activate it. Use the large Exit button to return to your computer."
+      <TextBlock Text="Look at each circle and hold your gaze briefly. Use the large Exit button to return to your computer."
                  TextWrapping="Wrap" FontSize="18" Foreground="#FCA5A5"/>
       <TextBlock x:Name="InstructionText"
-                 Text="Follow the yellow targets with your eyes."
+                 Text="Look at each yellow target and hold for half a second."
                  FontSize="23" TextWrapping="Wrap" Foreground="#E2E8F0"/>
       <Button x:Name="ExitButton" Content="EXIT"
               Click="OnExitRequested" HorizontalAlignment="Stretch"
@@ -20,7 +20,7 @@
               Padding="24,22" FontSize="27" FontWeight="Bold"/>
       <TextBlock x:Name="LiveStatusText" Text="Connecting to eye tracker…" TextWrapping="Wrap" FontSize="17" Foreground="#FBBF24"/>
       <TextBlock x:Name="ProgressText" Text="Look at the colored circles to begin" FontSize="18" Foreground="#93C5FD"/>
-      <TextBlock x:Name="AccuracyText" Text="Accuracy: getting started" FontSize="18" Foreground="#86EFAC"/>
+      <TextBlock x:Name="AccuracyText" Text="Training score: getting started" FontSize="18" Foreground="#86EFAC"/>
     </StackPanel>
     <Canvas Grid.Row="1" x:Name="TrainingCanvas" Margin="24" Background="#17253D"
             PointerMoved="OnPointerMoved" PointerEntered="OnPointerMoved" SizeChanged="OnCanvasSized">
