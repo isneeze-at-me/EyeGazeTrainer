@@ -2,801 +2,801 @@
   {
     "id": "TF401",
     "category": "Transportation",
-    "question": "A bicycle usually has two wheels.",
+    "question": "The first London Underground railway opened in 1863.",
     "answer": true,
-    "explanation": "A bicycle usually has two wheels.",
+    "explanation": "The first London Underground railway opened in 1863.",
     "factGroup": "F201"
   },
   {
     "id": "TF402",
     "category": "Transportation",
-    "question": "A bicycle usually has four wheels.",
+    "question": "The first London Underground railway opened in 1923.",
     "answer": false,
-    "explanation": "Actually, A bicycle usually has two wheels.",
+    "explanation": "Actually, The first London Underground railway opened in 1863.",
     "factGroup": "F201"
   },
   {
     "id": "TF403",
     "category": "Transportation",
-    "question": "A sailboat can use wind to move.",
+    "question": "The Panama Canal connects the Atlantic and Pacific oceans.",
     "answer": true,
-    "explanation": "A sailboat can use wind to move.",
+    "explanation": "The Panama Canal connects the Atlantic and Pacific oceans.",
     "factGroup": "F202"
   },
   {
     "id": "TF404",
     "category": "Transportation",
-    "question": "A sailboat is powered only by train tracks.",
+    "question": "The Panama Canal connects the Atlantic and Indian oceans.",
     "answer": false,
-    "explanation": "Actually, A sailboat can use wind to move.",
+    "explanation": "Actually, The Panama Canal connects the Atlantic and Pacific oceans.",
     "factGroup": "F202"
   },
   {
     "id": "TF405",
     "category": "Transportation",
-    "question": "A helicopter can hover in one place.",
+    "question": "A hovercraft can travel on a cushion of air over both land and water.",
     "answer": true,
-    "explanation": "A helicopter can hover in one place.",
+    "explanation": "A hovercraft can travel on a cushion of air over both land and water.",
     "factGroup": "F203"
   },
   {
     "id": "TF406",
     "category": "Transportation",
-    "question": "A helicopter must always roll on rails to move.",
+    "question": "A hovercraft travels by pulling itself along underwater rails.",
     "answer": false,
-    "explanation": "Actually, A helicopter can hover in one place.",
+    "explanation": "Actually, A hovercraft can travel on a cushion of air over both land and water.",
     "factGroup": "F203"
   },
   {
     "id": "TF407",
     "category": "Transportation",
-    "question": "A subway train often travels through tunnels.",
+    "question": "The Wright Flyer made its first powered flight in North Carolina.",
     "answer": true,
-    "explanation": "A subway train often travels through tunnels.",
+    "explanation": "The Wright Flyer made its first powered flight in North Carolina.",
     "factGroup": "F204"
   },
   {
     "id": "TF408",
     "category": "Transportation",
-    "question": "A subway train can travel only across deserts.",
+    "question": "The Wright Flyer made its first powered flight in Florida.",
     "answer": false,
-    "explanation": "Actually, A subway train often travels through tunnels.",
+    "explanation": "Actually, The Wright Flyer made its first powered flight in North Carolina.",
     "factGroup": "F204"
   },
   {
     "id": "TF409",
     "category": "Transportation",
-    "question": "A hot-air balloon rises when the air inside is heated.",
+    "question": "The wheel arrangement of a traditional tricycle includes three wheels.",
     "answer": true,
-    "explanation": "A hot-air balloon rises when the air inside is heated.",
+    "explanation": "The wheel arrangement of a traditional tricycle includes three wheels.",
     "factGroup": "F205"
   },
   {
     "id": "TF410",
     "category": "Transportation",
-    "question": "A hot-air balloon rises when its basket fills with rocks.",
+    "question": "The wheel arrangement of a traditional tricycle includes four wheels.",
     "answer": false,
-    "explanation": "Actually, A hot-air balloon rises when the air inside is heated.",
+    "explanation": "Actually, The wheel arrangement of a traditional tricycle includes three wheels.",
     "factGroup": "F205"
   },
   {
     "id": "TF411",
     "category": "Transportation",
-    "question": "A canoe can be moved with a paddle.",
+    "question": "A submarine can change its buoyancy using ballast tanks.",
     "answer": true,
-    "explanation": "A canoe can be moved with a paddle.",
+    "explanation": "A submarine can change its buoyancy using ballast tanks.",
     "factGroup": "F206"
   },
   {
     "id": "TF412",
     "category": "Transportation",
-    "question": "A canoe is normally moved with airplane wings.",
+    "question": "A submarine changes its buoyancy by inflating a hot-air balloon above its hull.",
     "answer": false,
-    "explanation": "Actually, A canoe can be moved with a paddle.",
+    "explanation": "Actually, A submarine can change its buoyancy using ballast tanks.",
     "factGroup": "F206"
   },
   {
     "id": "TF413",
     "category": "Transportation",
-    "question": "An airplane's wings help generate lift.",
+    "question": "The Shinkansen is a high-speed railway system in Japan.",
     "answer": true,
-    "explanation": "An airplane's wings help generate lift.",
+    "explanation": "The Shinkansen is a high-speed railway system in Japan.",
     "factGroup": "F207"
   },
   {
     "id": "TF414",
     "category": "Transportation",
-    "question": "An airplane's wings are used only to store luggage.",
+    "question": "The Shinkansen is a high-speed railway system in Spain.",
     "answer": false,
-    "explanation": "Actually, An airplane's wings help generate lift.",
+    "explanation": "Actually, The Shinkansen is a high-speed railway system in Japan.",
     "factGroup": "F207"
   },
   {
     "id": "TF415",
     "category": "Transportation",
-    "question": "A locomotive can pull railroad cars.",
+    "question": "The first transcontinental railroad in the United States was completed in 1869.",
     "answer": true,
-    "explanation": "A locomotive can pull railroad cars.",
+    "explanation": "The first transcontinental railroad in the United States was completed in 1869.",
     "factGroup": "F208"
   },
   {
     "id": "TF416",
     "category": "Transportation",
-    "question": "A locomotive is a kind of bicycle bell.",
+    "question": "The first transcontinental railroad in the United States was completed in 1909.",
     "answer": false,
-    "explanation": "Actually, A locomotive can pull railroad cars.",
+    "explanation": "Actually, The first transcontinental railroad in the United States was completed in 1869.",
     "factGroup": "F208"
   },
   {
     "id": "TF417",
     "category": "Transportation",
-    "question": "A ferry can carry passengers across water.",
+    "question": "A glider can stay aloft without an engine by using rising air.",
     "answer": true,
-    "explanation": "A ferry can carry passengers across water.",
+    "explanation": "A glider can stay aloft without an engine by using rising air.",
     "factGroup": "F209"
   },
   {
     "id": "TF418",
     "category": "Transportation",
-    "question": "A ferry carries passengers only through underground tunnels.",
+    "question": "A glider cannot fly unless its engine is running.",
     "answer": false,
-    "explanation": "Actually, A ferry can carry passengers across water.",
+    "explanation": "Actually, A glider can stay aloft without an engine by using rising air.",
     "factGroup": "F209"
   },
   {
     "id": "TF419",
     "category": "Transportation",
-    "question": "A skateboard usually has four wheels.",
+    "question": "The Channel Tunnel connects the United Kingdom and France.",
     "answer": true,
-    "explanation": "A skateboard usually has four wheels.",
+    "explanation": "The Channel Tunnel connects the United Kingdom and France.",
     "factGroup": "F210"
   },
   {
     "id": "TF420",
     "category": "Transportation",
-    "question": "A skateboard usually has one large wheel.",
+    "question": "The Channel Tunnel connects the United Kingdom and Norway.",
     "answer": false,
-    "explanation": "Actually, A skateboard usually has four wheels.",
+    "explanation": "Actually, The Channel Tunnel connects the United Kingdom and France.",
     "factGroup": "F210"
   },
   {
     "id": "TF421",
     "category": "Technology",
-    "question": "A computer keyboard is used for typing.",
+    "question": "A byte is commonly made up of eight bits.",
     "answer": true,
-    "explanation": "A computer keyboard is used for typing.",
+    "explanation": "A byte is commonly made up of eight bits.",
     "factGroup": "F211"
   },
   {
     "id": "TF422",
     "category": "Technology",
-    "question": "A computer keyboard is used only for cooking.",
+    "question": "A byte is commonly made up of sixteen bits.",
     "answer": false,
-    "explanation": "Actually, A computer keyboard is used for typing.",
+    "explanation": "Actually, A byte is commonly made up of eight bits.",
     "factGroup": "F211"
   },
   {
     "id": "TF423",
     "category": "Technology",
-    "question": "A mouse can move a pointer on a computer screen.",
+    "question": "A QR code can be read in different orientations using its position-detection patterns.",
     "answer": true,
-    "explanation": "A mouse can move a pointer on a computer screen.",
+    "explanation": "A QR code can be read in different orientations using its position-detection patterns.",
     "factGroup": "F212"
   },
   {
     "id": "TF424",
     "category": "Technology",
-    "question": "A computer mouse is designed to make paper copies.",
+    "question": "A QR code can only be read when it is perfectly aligned upright.",
     "answer": false,
-    "explanation": "Actually, A mouse can move a pointer on a computer screen.",
+    "explanation": "Actually, A QR code can be read in different orientations using its position-detection patterns.",
     "factGroup": "F212"
   },
   {
     "id": "TF425",
     "category": "Technology",
-    "question": "A touchscreen can respond to a finger touching the display.",
+    "question": "GPS satellites transmit timing signals used to calculate position.",
     "answer": true,
-    "explanation": "A touchscreen can respond to a finger touching the display.",
+    "explanation": "GPS satellites transmit timing signals used to calculate position.",
     "factGroup": "F213"
   },
   {
     "id": "TF426",
     "category": "Technology",
-    "question": "A touchscreen can only respond to a pencil made of wood.",
+    "question": "GPS satellites determine a phone's position by taking pictures of it.",
     "answer": false,
-    "explanation": "Actually, A touchscreen can respond to a finger touching the display.",
+    "explanation": "Actually, GPS satellites transmit timing signals used to calculate position.",
     "factGroup": "F213"
   },
   {
     "id": "TF427",
     "category": "Technology",
-    "question": "A printer can put words or pictures on paper.",
+    "question": "A pixel is the smallest addressable picture element in a typical raster image.",
     "answer": true,
-    "explanation": "A printer can put words or pictures on paper.",
+    "explanation": "A pixel is the smallest addressable picture element in a typical raster image.",
     "factGroup": "F214"
   },
   {
     "id": "TF428",
     "category": "Technology",
-    "question": "A printer can only make sounds and never produce images.",
+    "question": "A pixel is the standard unit for measuring audio loudness.",
     "answer": false,
-    "explanation": "Actually, A printer can put words or pictures on paper.",
+    "explanation": "Actually, A pixel is the smallest addressable picture element in a typical raster image.",
     "factGroup": "F214"
   },
   {
     "id": "TF429",
     "category": "Technology",
-    "question": "A webcam can capture video.",
+    "question": "Bluetooth was named after a historical Scandinavian king.",
     "answer": true,
-    "explanation": "A webcam can capture video.",
+    "explanation": "Bluetooth was named after a historical Scandinavian king.",
     "factGroup": "F215"
   },
   {
     "id": "TF430",
     "category": "Technology",
-    "question": "A webcam is a kind of paper stapler.",
+    "question": "Bluetooth was named after a blue gemstone.",
     "answer": false,
-    "explanation": "Actually, A webcam can capture video.",
+    "explanation": "Actually, Bluetooth was named after a historical Scandinavian king.",
     "factGroup": "F215"
   },
   {
     "id": "TF431",
     "category": "Technology",
-    "question": "A battery stores energy that can power a device.",
+    "question": "An SSD stores digital data using semiconductor memory.",
     "answer": true,
-    "explanation": "A battery stores energy that can power a device.",
+    "explanation": "An SSD stores digital data using semiconductor memory.",
     "factGroup": "F216"
   },
   {
     "id": "TF432",
     "category": "Technology",
-    "question": "A battery is designed to store liquid paint.",
+    "question": "An SSD stores digital data on spinning magnetic platters.",
     "answer": false,
-    "explanation": "Actually, A battery stores energy that can power a device.",
+    "explanation": "Actually, An SSD stores digital data using semiconductor memory.",
     "factGroup": "F216"
   },
   {
     "id": "TF433",
     "category": "Technology",
-    "question": "A computer monitor displays pictures and text.",
+    "question": "The binary number 1010 represents decimal ten.",
     "answer": true,
-    "explanation": "A computer monitor displays pictures and text.",
+    "explanation": "The binary number 1010 represents decimal ten.",
     "factGroup": "F217"
   },
   {
     "id": "TF434",
     "category": "Technology",
-    "question": "A computer monitor is used only to wash dishes.",
+    "question": "The binary number 1010 represents decimal twelve.",
     "answer": false,
-    "explanation": "Actually, A computer monitor displays pictures and text.",
+    "explanation": "Actually, The binary number 1010 represents decimal ten.",
     "factGroup": "F217"
   },
   {
     "id": "TF435",
     "category": "Technology",
-    "question": "Wi-Fi allows devices to communicate wirelessly.",
+    "question": "A touchscreen can detect touch using changes in electrical capacitance.",
     "answer": true,
-    "explanation": "Wi-Fi allows devices to communicate wirelessly.",
+    "explanation": "A touchscreen can detect touch using changes in electrical capacitance.",
     "factGroup": "F218"
   },
   {
     "id": "TF436",
     "category": "Technology",
-    "question": "Wi-Fi always requires a physical cable between every connected device.",
+    "question": "A capacitive touchscreen works by sensing tiny changes in air pressure alone.",
     "answer": false,
-    "explanation": "Actually, Wi-Fi allows devices to communicate wirelessly.",
+    "explanation": "Actually, A touchscreen can detect touch using changes in electrical capacitance.",
     "factGroup": "F218"
   },
   {
     "id": "TF437",
     "category": "Technology",
-    "question": "A QR code can store information that a camera can read.",
+    "question": "A web browser uses URLs to locate resources on the internet.",
     "answer": true,
-    "explanation": "A QR code can store information that a camera can read.",
+    "explanation": "A web browser uses URLs to locate resources on the internet.",
     "factGroup": "F219"
   },
   {
     "id": "TF438",
     "category": "Technology",
-    "question": "A QR code is a musical instrument with strings.",
+    "question": "A web browser uses GPS coordinates to locate all webpages.",
     "answer": false,
-    "explanation": "Actually, A QR code can store information that a camera can read.",
+    "explanation": "Actually, A web browser uses URLs to locate resources on the internet.",
     "factGroup": "F219"
   },
   {
     "id": "TF439",
     "category": "Technology",
-    "question": "A digital camera records images using an electronic sensor.",
+    "question": "A computer's RAM typically loses its stored data when power is removed.",
     "answer": true,
-    "explanation": "A digital camera records images using an electronic sensor.",
+    "explanation": "A computer's RAM typically loses its stored data when power is removed.",
     "factGroup": "F220"
   },
   {
     "id": "TF440",
     "category": "Technology",
-    "question": "A digital camera must use photographic film for every picture.",
+    "question": "A computer's RAM typically keeps all its stored data indefinitely when power is removed.",
     "answer": false,
-    "explanation": "Actually, A digital camera records images using an electronic sensor.",
+    "explanation": "Actually, A computer's RAM typically loses its stored data when power is removed.",
     "factGroup": "F220"
   },
   {
     "id": "TF441",
     "category": "Inventions & History",
-    "question": "The Wright brothers made a famous powered airplane flight in 1903.",
+    "question": "The first successful human-powered flight of the Gossamer Albatross across the English Channel happened in 1979.",
     "answer": true,
-    "explanation": "The Wright brothers made a famous powered airplane flight in 1903.",
+    "explanation": "The first successful human-powered flight of the Gossamer Albatross across the English Channel happened in 1979.",
     "factGroup": "F221"
   },
   {
     "id": "TF442",
     "category": "Inventions & History",
-    "question": "The Wright brothers made their famous 1903 flight in a submarine.",
+    "question": "The Gossamer Albatross crossed the English Channel under human power in 1879.",
     "answer": false,
-    "explanation": "Actually, The Wright brothers made a famous powered airplane flight in 1903.",
+    "explanation": "Actually, The first successful human-powered flight of the Gossamer Albatross across the English Channel happened in 1979.",
     "factGroup": "F221"
   },
   {
     "id": "TF443",
     "category": "Inventions & History",
-    "question": "Johannes Gutenberg helped popularize movable-type printing in Europe.",
+    "question": "The first photograph to survive was made by Nicéphore Niépce in the 1820s.",
     "answer": true,
-    "explanation": "Johannes Gutenberg helped popularize movable-type printing in Europe.",
+    "explanation": "The first photograph to survive was made by Nicéphore Niépce in the 1820s.",
     "factGroup": "F222"
   },
   {
     "id": "TF444",
     "category": "Inventions & History",
-    "question": "Johannes Gutenberg is best known for inventing the bicycle helmet.",
+    "question": "The first photograph to survive was made by Thomas Edison in the 1920s.",
     "answer": false,
-    "explanation": "Actually, Johannes Gutenberg helped popularize movable-type printing in Europe.",
+    "explanation": "Actually, The first photograph to survive was made by Nicéphore Niépce in the 1820s.",
     "factGroup": "F222"
   },
   {
     "id": "TF445",
     "category": "Inventions & History",
-    "question": "Alexander Graham Bell is associated with early telephone development.",
+    "question": "The first commercially successful ballpoint pen was developed by László Bíró and his brother.",
     "answer": true,
-    "explanation": "Alexander Graham Bell is associated with early telephone development.",
+    "explanation": "The first commercially successful ballpoint pen was developed by László Bíró and his brother.",
     "factGroup": "F223"
   },
   {
     "id": "TF446",
     "category": "Inventions & History",
-    "question": "Alexander Graham Bell is known for inventing the electric toaster.",
+    "question": "The first commercially successful ballpoint pen was developed by the Wright brothers.",
     "answer": false,
-    "explanation": "Actually, Alexander Graham Bell is associated with early telephone development.",
+    "explanation": "Actually, The first commercially successful ballpoint pen was developed by László Bíró and his brother.",
     "factGroup": "F223"
   },
   {
     "id": "TF447",
     "category": "Inventions & History",
-    "question": "The first successful Moon landing by humans took place in 1969.",
+    "question": "The ancient Romans used a form of concrete in construction.",
     "answer": true,
-    "explanation": "The first successful Moon landing by humans took place in 1969.",
+    "explanation": "The ancient Romans used a form of concrete in construction.",
     "factGroup": "F224"
   },
   {
     "id": "TF448",
     "category": "Inventions & History",
-    "question": "The first successful Moon landing by humans took place in 1869.",
+    "question": "The ancient Romans built all their large structures without using concrete.",
     "answer": false,
-    "explanation": "Actually, The first successful Moon landing by humans took place in 1969.",
+    "explanation": "Actually, The ancient Romans used a form of concrete in construction.",
     "factGroup": "F224"
   },
   {
     "id": "TF449",
     "category": "Inventions & History",
-    "question": "Ancient Egyptians wrote on material made from papyrus plants.",
+    "question": "The original Olympic Games took place in ancient Greece.",
     "answer": true,
-    "explanation": "Ancient Egyptians wrote on material made from papyrus plants.",
+    "explanation": "The original Olympic Games took place in ancient Greece.",
     "factGroup": "F225"
   },
   {
     "id": "TF450",
     "category": "Inventions & History",
-    "question": "Ancient Egyptians made all their writing paper from plastic bottles.",
+    "question": "The original Olympic Games took place in ancient Egypt.",
     "answer": false,
-    "explanation": "Actually, Ancient Egyptians wrote on material made from papyrus plants.",
+    "explanation": "Actually, The original Olympic Games took place in ancient Greece.",
     "factGroup": "F225"
   },
   {
     "id": "TF451",
     "category": "Inventions & History",
-    "question": "The first modern Olympic Games were held in Athens in 1896.",
+    "question": "The first successful powered flight by the Wright brothers took place in 1903.",
     "answer": true,
-    "explanation": "The first modern Olympic Games were held in Athens in 1896.",
+    "explanation": "The first successful powered flight by the Wright brothers took place in 1903.",
     "factGroup": "F226"
   },
   {
     "id": "TF452",
     "category": "Inventions & History",
-    "question": "The first modern Olympic Games were held on the Moon in 1896.",
+    "question": "The first successful powered flight by the Wright brothers took place in 1893.",
     "answer": false,
-    "explanation": "Actually, The first modern Olympic Games were held in Athens in 1896.",
+    "explanation": "Actually, The first successful powered flight by the Wright brothers took place in 1903.",
     "factGroup": "F226"
   },
   {
     "id": "TF453",
     "category": "Inventions & History",
-    "question": "The printing press helped books become more widely available.",
+    "question": "The first postage stamp, the Penny Black, was issued in Britain in 1840.",
     "answer": true,
-    "explanation": "The printing press helped books become more widely available.",
+    "explanation": "The first postage stamp, the Penny Black, was issued in Britain in 1840.",
     "factGroup": "F227"
   },
   {
     "id": "TF454",
     "category": "Inventions & History",
-    "question": "The printing press was invented mainly to bake bread.",
+    "question": "The first postage stamp, the Penny Black, was issued in Britain in 1940.",
     "answer": false,
-    "explanation": "Actually, The printing press helped books become more widely available.",
+    "explanation": "Actually, The first postage stamp, the Penny Black, was issued in Britain in 1840.",
     "factGroup": "F227"
   },
   {
     "id": "TF455",
     "category": "Inventions & History",
-    "question": "The wheel has been used by people for thousands of years.",
+    "question": "Braille uses arrangements of raised dots that can be read by touch.",
     "answer": true,
-    "explanation": "The wheel has been used by people for thousands of years.",
+    "explanation": "Braille uses arrangements of raised dots that can be read by touch.",
     "factGroup": "F228"
   },
   {
     "id": "TF456",
     "category": "Inventions & History",
-    "question": "People first used the wheel in the 1990s.",
+    "question": "Braille uses arrangements of flat colored squares that must be read by sight.",
     "answer": false,
-    "explanation": "Actually, The wheel has been used by people for thousands of years.",
+    "explanation": "Actually, Braille uses arrangements of raised dots that can be read by touch.",
     "factGroup": "F228"
   },
   {
     "id": "TF457",
     "category": "Inventions & History",
-    "question": "Early clocks sometimes used flowing water to measure time.",
+    "question": "The word 'robot' became widely known through a 1920 play by Karel Čapek.",
     "answer": true,
-    "explanation": "Early clocks sometimes used flowing water to measure time.",
+    "explanation": "The word 'robot' became widely known through a 1920 play by Karel Čapek.",
     "factGroup": "F229"
   },
   {
     "id": "TF458",
     "category": "Inventions & History",
-    "question": "All early clocks used rechargeable batteries.",
+    "question": "The word 'robot' became widely known through a 1920 play by Jules Verne.",
     "answer": false,
-    "explanation": "Actually, Early clocks sometimes used flowing water to measure time.",
+    "explanation": "Actually, The word 'robot' became widely known through a 1920 play by Karel Čapek.",
     "factGroup": "F229"
   },
   {
     "id": "TF459",
     "category": "Inventions & History",
-    "question": "The first postage stamp, the Penny Black, appeared in 1840.",
+    "question": "The Rosetta Stone helped scholars decipher ancient Egyptian hieroglyphs.",
     "answer": true,
-    "explanation": "The first postage stamp, the Penny Black, appeared in 1840.",
+    "explanation": "The Rosetta Stone helped scholars decipher ancient Egyptian hieroglyphs.",
     "factGroup": "F230"
   },
   {
     "id": "TF460",
     "category": "Inventions & History",
-    "question": "The first postage stamp, the Penny Black, appeared in 2040.",
+    "question": "The Rosetta Stone helped scholars decipher the writing system of the ancient Maya.",
     "answer": false,
-    "explanation": "Actually, The first postage stamp, the Penny Black, appeared in 1840.",
+    "explanation": "Actually, The Rosetta Stone helped scholars decipher ancient Egyptian hieroglyphs.",
     "factGroup": "F230"
   },
   {
     "id": "TF461",
     "category": "Nature & Outdoors",
-    "question": "A rainbow can sometimes appear near a waterfall.",
+    "question": "Basalt is an igneous rock commonly formed from cooled lava.",
     "answer": true,
-    "explanation": "A rainbow can sometimes appear near a waterfall.",
+    "explanation": "Basalt is an igneous rock commonly formed from cooled lava.",
     "factGroup": "F231"
   },
   {
     "id": "TF462",
     "category": "Nature & Outdoors",
-    "question": "A rainbow can only appear inside a building.",
+    "question": "Basalt is a sedimentary rock formed mainly from compacted sand.",
     "answer": false,
-    "explanation": "Actually, A rainbow can sometimes appear near a waterfall.",
+    "explanation": "Actually, Basalt is an igneous rock commonly formed from cooled lava.",
     "factGroup": "F231"
   },
   {
     "id": "TF463",
     "category": "Nature & Outdoors",
-    "question": "A pinecone can hold seeds from a pine tree.",
+    "question": "Stalactites hang from cave ceilings.",
     "answer": true,
-    "explanation": "A pinecone can hold seeds from a pine tree.",
+    "explanation": "Stalactites hang from cave ceilings.",
     "factGroup": "F232"
   },
   {
     "id": "TF464",
     "category": "Nature & Outdoors",
-    "question": "A pinecone is the fruit of a banana plant.",
+    "question": "Stalagmites hang from cave ceilings.",
     "answer": false,
-    "explanation": "Actually, A pinecone can hold seeds from a pine tree.",
+    "explanation": "Actually, Stalactites hang from cave ceilings.",
     "factGroup": "F232"
   },
   {
     "id": "TF465",
     "category": "Nature & Outdoors",
-    "question": "A river generally flows downhill.",
+    "question": "A compass points approximately toward magnetic north, which differs from true north.",
     "answer": true,
-    "explanation": "A river generally flows downhill.",
+    "explanation": "A compass points approximately toward magnetic north, which differs from true north.",
     "factGroup": "F233"
   },
   {
     "id": "TF466",
     "category": "Nature & Outdoors",
-    "question": "A river naturally flows uphill without any outside force.",
+    "question": "A compass points exactly toward geographic true north everywhere on Earth.",
     "answer": false,
-    "explanation": "Actually, A river generally flows downhill.",
+    "explanation": "Actually, A compass points approximately toward magnetic north, which differs from true north.",
     "factGroup": "F233"
   },
   {
     "id": "TF467",
     "category": "Nature & Outdoors",
-    "question": "Some rocks are formed when lava cools.",
+    "question": "Lichens are partnerships involving a fungus and an alga or cyanobacterium.",
     "answer": true,
-    "explanation": "Some rocks are formed when lava cools.",
+    "explanation": "Lichens are partnerships involving a fungus and an alga or cyanobacterium.",
     "factGroup": "F234"
   },
   {
     "id": "TF468",
     "category": "Nature & Outdoors",
-    "question": "All rocks are made by freezing milk.",
+    "question": "Lichens are partnerships involving a mushroom and a beetle.",
     "answer": false,
-    "explanation": "Actually, Some rocks are formed when lava cools.",
+    "explanation": "Actually, Lichens are partnerships involving a fungus and an alga or cyanobacterium.",
     "factGroup": "F234"
   },
   {
     "id": "TF469",
     "category": "Nature & Outdoors",
-    "question": "A compass needle points approximately north-south because of Earth's magnetic field.",
+    "question": "The northern lights are also called aurora borealis.",
     "answer": true,
-    "explanation": "A compass needle points approximately north-south because of Earth's magnetic field.",
+    "explanation": "The northern lights are also called aurora borealis.",
     "factGroup": "F235"
   },
   {
     "id": "TF470",
     "category": "Nature & Outdoors",
-    "question": "A compass needle points approximately north-south because it follows nearby flowers.",
+    "question": "The southern lights are also called aurora borealis.",
     "answer": false,
-    "explanation": "Actually, A compass needle points approximately north-south because of Earth's magnetic field.",
+    "explanation": "Actually, The northern lights are also called aurora borealis.",
     "factGroup": "F235"
   },
   {
     "id": "TF471",
     "category": "Nature & Outdoors",
-    "question": "The tide is influenced strongly by the Moon's gravity.",
+    "question": "The rings in a temperate tree trunk commonly correspond to years of growth.",
     "answer": true,
-    "explanation": "The tide is influenced strongly by the Moon's gravity.",
+    "explanation": "The rings in a temperate tree trunk commonly correspond to years of growth.",
     "factGroup": "F236"
   },
   {
     "id": "TF472",
     "category": "Nature & Outdoors",
-    "question": "Ocean tides are caused only by fish swimming in circles.",
+    "question": "Each ring in a temperate tree trunk commonly represents ten years of growth.",
     "answer": false,
-    "explanation": "Actually, The tide is influenced strongly by the Moon's gravity.",
+    "explanation": "Actually, The rings in a temperate tree trunk commonly correspond to years of growth.",
     "factGroup": "F236"
   },
   {
     "id": "TF473",
     "category": "Nature & Outdoors",
-    "question": "A forest contains many trees.",
+    "question": "The process of erosion transports soil or rock from one place to another.",
     "answer": true,
-    "explanation": "A forest contains many trees.",
+    "explanation": "The process of erosion transports soil or rock from one place to another.",
     "factGroup": "F237"
   },
   {
     "id": "TF474",
     "category": "Nature & Outdoors",
-    "question": "A forest is a region made entirely of sand with no plants.",
+    "question": "The process of erosion turns solid rock directly into molten lava.",
     "answer": false,
-    "explanation": "Actually, A forest contains many trees.",
+    "explanation": "Actually, The process of erosion transports soil or rock from one place to another.",
     "factGroup": "F237"
   },
   {
     "id": "TF475",
     "category": "Nature & Outdoors",
-    "question": "A cave can form when water slowly dissolves certain rocks.",
+    "question": "Granite is an intrusive igneous rock.",
     "answer": true,
-    "explanation": "A cave can form when water slowly dissolves certain rocks.",
+    "explanation": "Granite is an intrusive igneous rock.",
     "factGroup": "F238"
   },
   {
     "id": "TF476",
     "category": "Nature & Outdoors",
-    "question": "Every cave is dug by a single ant.",
+    "question": "Granite is an extrusive igneous rock that cools on Earth's surface.",
     "answer": false,
-    "explanation": "Actually, A cave can form when water slowly dissolves certain rocks.",
+    "explanation": "Actually, Granite is an intrusive igneous rock.",
     "factGroup": "F238"
   },
   {
     "id": "TF477",
     "category": "Nature & Outdoors",
-    "question": "A waterfall is a place where water drops over a steep edge.",
+    "question": "A glacier is a large body of ice that moves under its own weight.",
     "answer": true,
-    "explanation": "A waterfall is a place where water drops over a steep edge.",
+    "explanation": "A glacier is a large body of ice that moves under its own weight.",
     "factGroup": "F239"
   },
   {
     "id": "TF478",
     "category": "Nature & Outdoors",
-    "question": "A waterfall is a kind of mountain bicycle.",
+    "question": "A glacier is a large body of permanently stationary ice.",
     "answer": false,
-    "explanation": "Actually, A waterfall is a place where water drops over a steep edge.",
+    "explanation": "Actually, A glacier is a large body of ice that moves under its own weight.",
     "factGroup": "F239"
   },
   {
     "id": "TF479",
     "category": "Nature & Outdoors",
-    "question": "Lichen is a partnership involving a fungus and a photosynthetic partner.",
+    "question": "A river delta often forms where a river deposits sediment near its mouth.",
     "answer": true,
-    "explanation": "Lichen is a partnership involving a fungus and a photosynthetic partner.",
+    "explanation": "A river delta often forms where a river deposits sediment near its mouth.",
     "factGroup": "F240"
   },
   {
     "id": "TF480",
     "category": "Nature & Outdoors",
-    "question": "Lichen is a type of tiny feathered bird.",
+    "question": "A river delta often forms where a river picks up sediment at its source.",
     "answer": false,
-    "explanation": "Actually, Lichen is a partnership involving a fungus and a photosynthetic partner.",
+    "explanation": "Actually, A river delta often forms where a river deposits sediment near its mouth.",
     "factGroup": "F240"
   },
   {
     "id": "TF481",
     "category": "Everyday Objects",
-    "question": "A zipper can fasten the edges of clothing or a bag.",
+    "question": "The graphite core of an ordinary pencil does not contain lead metal.",
     "answer": true,
-    "explanation": "A zipper can fasten the edges of clothing or a bag.",
+    "explanation": "The graphite core of an ordinary pencil does not contain lead metal.",
     "factGroup": "F241"
   },
   {
     "id": "TF482",
     "category": "Everyday Objects",
-    "question": "A zipper is used only to measure distance.",
+    "question": "The graphite core of an ordinary pencil contains lead metal.",
     "answer": false,
-    "explanation": "Actually, A zipper can fasten the edges of clothing or a bag.",
+    "explanation": "Actually, The graphite core of an ordinary pencil does not contain lead metal.",
     "factGroup": "F241"
   },
   {
     "id": "TF483",
     "category": "Everyday Objects",
-    "question": "A thermometer can show whether something is warm or cold.",
+    "question": "A traditional mercury thermometer measures temperature through thermal expansion.",
     "answer": true,
-    "explanation": "A thermometer can show whether something is warm or cold.",
+    "explanation": "A traditional mercury thermometer measures temperature through thermal expansion.",
     "factGroup": "F242"
   },
   {
     "id": "TF484",
     "category": "Everyday Objects",
-    "question": "A thermometer shows how many pages are in a book.",
+    "question": "A traditional mercury thermometer measures temperature by detecting magnetic fields.",
     "answer": false,
-    "explanation": "Actually, A thermometer can show whether something is warm or cold.",
+    "explanation": "Actually, A traditional mercury thermometer measures temperature through thermal expansion.",
     "factGroup": "F242"
   },
   {
     "id": "TF485",
     "category": "Everyday Objects",
-    "question": "A ruler is used to measure length.",
+    "question": "A standard analog clock's hour hand goes all the way around twice in 24 hours.",
     "answer": true,
-    "explanation": "A ruler is used to measure length.",
+    "explanation": "A standard analog clock's hour hand goes all the way around twice in 24 hours.",
     "factGroup": "F243"
   },
   {
     "id": "TF486",
     "category": "Everyday Objects",
-    "question": "A ruler is used to measure sound volume.",
+    "question": "A standard analog clock's hour hand goes all the way around once in 24 hours.",
     "answer": false,
-    "explanation": "Actually, A ruler is used to measure length.",
+    "explanation": "Actually, A standard analog clock's hour hand goes all the way around twice in 24 hours.",
     "factGroup": "F243"
   },
   {
     "id": "TF487",
     "category": "Everyday Objects",
-    "question": "A sponge can soak up water.",
+    "question": "A kaleidoscope uses mirrors to create repeating patterns.",
     "answer": true,
-    "explanation": "A sponge can soak up water.",
+    "explanation": "A kaleidoscope uses mirrors to create repeating patterns.",
     "factGroup": "F244"
   },
   {
     "id": "TF488",
     "category": "Everyday Objects",
-    "question": "A sponge is designed to repel every drop of water.",
+    "question": "A kaleidoscope uses magnifying lenses alone to create repeating patterns.",
     "answer": false,
-    "explanation": "Actually, A sponge can soak up water.",
+    "explanation": "Actually, A kaleidoscope uses mirrors to create repeating patterns.",
     "factGroup": "F244"
   },
   {
     "id": "TF489",
     "category": "Everyday Objects",
-    "question": "An umbrella can help keep rain off your head.",
+    "question": "A corkscrew uses a helical screw to help pull a stopper.",
     "answer": true,
-    "explanation": "An umbrella can help keep rain off your head.",
+    "explanation": "A corkscrew uses a helical screw to help pull a stopper.",
     "factGroup": "F245"
   },
   {
     "id": "TF490",
     "category": "Everyday Objects",
-    "question": "An umbrella is used only for digging holes.",
+    "question": "A corkscrew uses a pulley wheel to help pull a stopper.",
     "answer": false,
-    "explanation": "Actually, An umbrella can help keep rain off your head.",
+    "explanation": "Actually, A corkscrew uses a helical screw to help pull a stopper.",
     "factGroup": "F245"
   },
   {
     "id": "TF491",
     "category": "Everyday Objects",
-    "question": "A key can be used to open a matching lock.",
+    "question": "The ridged edge of some coins is called reeding.",
     "answer": true,
-    "explanation": "A key can be used to open a matching lock.",
+    "explanation": "The ridged edge of some coins is called reeding.",
     "factGroup": "F246"
   },
   {
     "id": "TF492",
     "category": "Everyday Objects",
-    "question": "A key is used only to sharpen crayons.",
+    "question": "The ridged edge of some coins is called threading.",
     "answer": false,
-    "explanation": "Actually, A key can be used to open a matching lock.",
+    "explanation": "Actually, The ridged edge of some coins is called reeding.",
     "factGroup": "F246"
   },
   {
     "id": "TF493",
     "category": "Everyday Objects",
-    "question": "Scissors have blades used for cutting.",
+    "question": "The convex surface of a spoon can produce an upright but reduced reflection.",
     "answer": true,
-    "explanation": "Scissors have blades used for cutting.",
+    "explanation": "The convex surface of a spoon can produce an upright but reduced reflection.",
     "factGroup": "F247"
   },
   {
     "id": "TF494",
     "category": "Everyday Objects",
-    "question": "Scissors have soft bristles used for painting.",
+    "question": "The convex surface of a spoon always creates an enlarged upright reflection.",
     "answer": false,
-    "explanation": "Actually, Scissors have blades used for cutting.",
+    "explanation": "Actually, The convex surface of a spoon can produce an upright but reduced reflection.",
     "factGroup": "F247"
   },
   {
     "id": "TF495",
     "category": "Everyday Objects",
-    "question": "A magnifying glass uses a lens.",
+    "question": "A mechanical pencil moves a thin graphite lead forward without sharpening its wood casing.",
     "answer": true,
-    "explanation": "A magnifying glass uses a lens.",
+    "explanation": "A mechanical pencil moves a thin graphite lead forward without sharpening its wood casing.",
     "factGroup": "F248"
   },
   {
     "id": "TF496",
     "category": "Everyday Objects",
-    "question": "A magnifying glass uses a tiny drum instead of a lens.",
+    "question": "A mechanical pencil requires its wooden casing to be sharpened after each use.",
     "answer": false,
-    "explanation": "Actually, A magnifying glass uses a lens.",
+    "explanation": "Actually, A mechanical pencil moves a thin graphite lead forward without sharpening its wood casing.",
     "factGroup": "F248"
   },
   {
     "id": "TF497",
     "category": "Everyday Objects",
-    "question": "A paper clip can hold sheets of paper together.",
+    "question": "A safety pin has a spring mechanism that helps keep its point covered.",
     "answer": true,
-    "explanation": "A paper clip can hold sheets of paper together.",
+    "explanation": "A safety pin has a spring mechanism that helps keep its point covered.",
     "factGroup": "F249"
   },
   {
     "id": "TF498",
     "category": "Everyday Objects",
-    "question": "A paper clip is used to boil water.",
+    "question": "A safety pin uses a magnet to keep its point covered.",
     "answer": false,
-    "explanation": "Actually, A paper clip can hold sheets of paper together.",
+    "explanation": "Actually, A safety pin has a spring mechanism that helps keep its point covered.",
     "factGroup": "F249"
   },
   {
     "id": "TF499",
     "category": "Everyday Objects",
-    "question": "A flashlight can help you see in the dark.",
+    "question": "A pair of binoculars typically uses prisms to correct the image orientation.",
     "answer": true,
-    "explanation": "A flashlight can help you see in the dark.",
+    "explanation": "A pair of binoculars typically uses prisms to correct the image orientation.",
     "factGroup": "F250"
   },
   {
     "id": "TF500",
     "category": "Everyday Objects",
-    "question": "A flashlight can only work when sunlight shines directly on it.",
+    "question": "A pair of binoculars typically uses prisms to turn the viewed image upside down.",
     "answer": false,
-    "explanation": "Actually, A flashlight can help you see in the dark.",
+    "explanation": "Actually, A pair of binoculars typically uses prisms to correct the image orientation.",
     "factGroup": "F250"
   }
 ]
