@@ -154,11 +154,49 @@
                  Fill="#FFFFFF" Stroke="#0D253B" StrokeThickness="2"
                  Visibility="Collapsed" IsHitTestVisible="False"/>
       </Canvas>
+      <!-- Celebration stays on the same black lesson screen for three seconds. -->
+      <Grid x:Name="CompletionOverlay" Background="Black"
+            Visibility="Collapsed" IsHitTestVisible="False">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Spacing="22" Margin="28">
+          <TextBlock Text="Great Job!" Foreground="#FFD84D"
+                     FontFamily="Comic Sans MS" FontWeight="Bold" FontSize="76"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock Text="On to the bonus round!" Foreground="#69E6FF"
+                     FontFamily="Comic Sans MS" FontWeight="Bold" FontSize="48"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Grid>
       <Button Style="{StaticResource SecondaryGazeButton}" x:Name="LessonBackButton" Content="BACK"
               Click="OnBackToLevels" MinHeight="86" MinWidth="155"
               Padding="16,12" FontSize="22" FontWeight="Bold"
               HorizontalAlignment="Left" VerticalAlignment="Top"
               Margin="20,16,0,0"/>
+    </Grid>
+
+    <!-- Quiz questions and scoring will be added in the next iteration. -->
+    <Grid x:Name="BonusPanel" Background="#101827" Visibility="Collapsed"
+          Padding="24">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <StackPanel Grid.Row="0" HorizontalAlignment="Center"
+                  VerticalAlignment="Center" Spacing="20">
+        <TextBlock Text="BONUS ROUND!" FontFamily="Comic Sans MS"
+                   FontSize="62" FontWeight="Bold" Foreground="#FFD84D"
+                   TextAlignment="Center" TextWrapping="Wrap"/>
+        <TextBlock Text="TRUE OR FALSE TRIVIA" FontSize="38"
+                   FontWeight="Bold" Foreground="#69E6FF"
+                   TextAlignment="Center" TextWrapping="Wrap"/>
+        <TextBlock Text="Coming next!" FontSize="25"
+                   Foreground="White" TextAlignment="Center"/>
+      </StackPanel>
+      <Button x:Name="BonusBackButton" Grid.Row="1"
+              Style="{StaticResource SecondaryGazeButton}"
+              Content="BACK TO LEVELS" Click="OnBackToLevels"
+              FontSize="28" FontWeight="Bold" MinHeight="100"
+              HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
     </Grid>
 
     <Grid x:Name="DisplaySettingsPanel"  Background="#101827"
