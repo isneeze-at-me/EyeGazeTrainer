@@ -87,13 +87,7 @@
               Visibility="Collapsed"
               AutomationProperties.Name="Open levels screen"
               Click="OnLevelZeroContinue"/>
-      <!-- Keep media loaded in the visual tree; Collapsed can prevent audio playback. -->
-      <MediaElement x:Name="LevelZeroSpeechPlayer" AutoPlay="False"
-                    AreTransportControlsEnabled="False"
-                    Visibility="Visible" Opacity="0" Width="1" Height="1"
-                    HorizontalAlignment="Left" VerticalAlignment="Top"
-                    MediaFailed="OnLevelZeroMediaFailed"
-                    IsHitTestVisible="False"/>
+      <!-- Speech plays through a nonvisual Windows MediaPlayer instance. -->
     </Grid>
 
     <Grid x:Name="HomePanel" Background="#101827" Padding="26">
