@@ -44,6 +44,9 @@ namespace EyeGazeApiViability
         private bool levelZeroSpeechBusy;
         private SpeechSynthesizer levelZeroSynth;
         private bool levelZeroSpeechUnavailable;
+        // Hold the synthesized audio stream open for the entire playback.
+        // Closing it immediately after Play can result in silent output.
+        private SpeechSynthesisStream levelZeroActiveSpeechStream;
 
         private bool ShouldStartLevelZero()
         {
@@ -101,9 +104,14 @@ namespace EyeGazeApiViability
                 levelZeroClock.Tick -= OnLevelZeroTick;
                 levelZeroClock = null;
             }
-            // Stop queued speech when leaving the tutorial.
+            // Stop any pending audio and close its backing stream.
             try { LevelZeroSpeechPlayer.Stop(); }
             catch (Exception) { }
+            if (levelZeroActiveSpeechStream != null)
+            {
+                levelZeroActiveSpeechStream.Dispose();
+                levelZeroActiveSpeechStream = null;
+            }
             levelZeroSpeechBusy = false;
             levelZeroPendingInstruction = null;
             levelZeroGuidanceStarted = false;
@@ -129,20 +137,29 @@ namespace EyeGazeApiViability
             try
             {
                 if (levelZeroSynth == null) levelZeroSynth = new SpeechSynthesizer();
-                using (var stream = await levelZeroSynth.SynthesizeTextToStreamAsync(text))
+                var stream = await levelZeroSynth.SynthesizeTextToStreamAsync(text);
+                if (currentScreen != AppScreen.LevelZero || exitRequested)
                 {
-                    if (currentScreen != AppScreen.LevelZero || exitRequested) return;
-                    LevelZeroSpeechPlayer.SetSource(stream, stream.ContentType);
-                    LevelZeroSpeechPlayer.Play();
-                    // Keep a bounded gap; the player may continue after this
-                    // delay, but a new prompt stops it before playing.
-                    await Task.Delay(Math.Max(2200, Math.Min(6000, text.Length * 78)));
+                    stream.Dispose();
+                    return;
                 }
+                LevelZeroSpeechPlayer.Stop();
+                if (levelZeroActiveSpeechStream != null)
+                    levelZeroActiveSpeechStream.Dispose();
+                levelZeroActiveSpeechStream = stream;
+                LevelZeroSpeechPlayer.Volume = 1.0;
+                LevelZeroSpeechPlayer.IsMuted = false;
+                LevelZeroSpeechPlayer.SetSource(stream, stream.ContentType);
+                LevelZeroSpeechPlayer.Play();
+                // Retain the stream, even after this quiet period.
+                // It is disposed on the next prompt or tutorial exit.
+                await Task.Delay(Math.Max(3500, Math.Min(9000, text.Length * 100)));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 levelZeroSpeechUnavailable = true;
-                // Missing voice output must not crash gaze or exit handling.
+                Trace("Level 0 speech unavailable: " + ex.GetType().Name);
+                // A speech failure never terminates training or gaze input.
             }
             finally
             {
@@ -160,12 +177,6 @@ namespace EyeGazeApiViability
         private void OnLevelZeroTick(object sender, object args)
         {
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested) return;
-            if (!levelZeroEscapePrompted &&
-                (DateTimeOffset.UtcNow - levelZeroStarted).TotalSeconds > 22)
-            {
-                levelZeroEscapePrompted = true;
-                SpeakLevelZero("To return to the main screen without a button, look at the upper left, then lower left, then repeat.", true);
-            }
             if (levelZeroStage != LevelZeroStage.Pursue) return;
             DateTimeOffset now = DateTimeOffset.UtcNow;
             double elapsed = (now - levelZeroStageStarted).TotalSeconds;
@@ -198,8 +209,6 @@ namespace EyeGazeApiViability
                 return;
             DateTimeOffset now = DateTimeOffset.UtcNow;
             levelZeroLastValid = now;
-            ProcessLevelZeroEscape(raw, w, h, now);
-            if (currentScreen != AppScreen.LevelZero) return;
             if (!levelZeroHadGaze)
                 levelZeroTimeToFirstGaze = (now - levelZeroStarted).TotalSeconds;
             levelZeroHadGaze = true;
@@ -285,43 +294,6 @@ namespace EyeGazeApiViability
             }
         }
 
-        // This movement-only escape requires no learned button or dwell.
-        // Two full top-left to bottom-left sweeps limit accidental activation.
-        private void ProcessLevelZeroEscape(Point p, double w, double h,
-                                            DateTimeOffset now)
-        {
-            int region = p.X <= w * .22 && p.Y <= h * .24 ? 0 :
-                         p.X <= w * .22 && p.Y >= h * .76 ? 1 : -1;
-            if (region == -1)
-            {
-                levelZeroEscapeLastRegion = -1;
-                return;
-            }
-            if (region == levelZeroEscapeLastRegion) return;
-            levelZeroEscapeLastRegion = region;
-
-            if (levelZeroEscapeStep > 0 &&
-                (now - levelZeroEscapeStarted).TotalSeconds > 12)
-                levelZeroEscapeStep = 0;
-
-            if (region != levelZeroEscapeStep % 2)
-            {
-                levelZeroEscapeStep = 0;
-                return;
-            }
-            if (levelZeroEscapeStep == 0) levelZeroEscapeStarted = now;
-            if (levelZeroEscapeStep > 0 &&
-                (now - levelZeroLastEscapePosition).TotalMilliseconds < 400)
-                return;
-            levelZeroLastEscapePosition = now;
-            levelZeroEscapeStep++;
-            if (levelZeroEscapeStep >= 4)
-            {
-                StopLevelZero();
-                ShowScreen(AppScreen.Menu);
-            }
-        }
-
         private static int CountBits(int mask)
         {
             int count = 0;
@@ -347,7 +319,7 @@ namespace EyeGazeApiViability
             LevelZeroPursuitTarget.Visibility = Visibility.Collapsed;
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
             LevelZeroContinueButton.Visibility = Visibility.Visible;
-            SpeakLevelZero("Look at the large button to open the main screen. Keep looking until the circle fills.", true);
+            SpeakLevelZero("Look at the large button to open the levels screen. Keep looking until the circle fills.", true);
         }
 
         private void OnLevelZeroReplay(object sender, RoutedEventArgs e)
@@ -413,7 +385,9 @@ namespace EyeGazeApiViability
             try { ApplicationData.Current.LocalSettings.Values[LevelZeroDoneKey] = true; }
             catch (Exception) { /* A storage error never prevents access to home. */ }
             StopLevelZero();
-            ShowScreen(AppScreen.Menu);
+            UpdateLevelBadges();
+            LevelsNoticeText.Text = "";
+            ShowScreen(AppScreen.Levels);
         }
     }
 }
