@@ -250,27 +250,31 @@
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
           </Grid.ColumnDefinitions>
-          <Button x:Name="SkillsTargetsButton" Grid.Column="0" Content="TARGETS"
+          <Button x:Name="SkillsIntroButton" Grid.Column="0" Content="LEVEL 0"
                   Style="{StaticResource PrimaryGazeButton}" Click="OnSkillsCategoryClicked"
-                  FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch"
+                  FontSize="19" FontWeight="Bold" HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button x:Name="SkillsDwellButton" Grid.Column="1" Content="DWELL"
+          <Button x:Name="SkillsTargetsButton" Grid.Column="1" Content="TARGETS"
                   Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
-                  FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch"
+                  FontSize="19" FontWeight="Bold" HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button x:Name="SkillsTrackingButton" Grid.Column="2" Content="TRACKING"
+          <Button x:Name="SkillsDwellButton" Grid.Column="2" Content="DWELL"
                   Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
-                  FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch"
+                  FontSize="19" FontWeight="Bold" HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button x:Name="SkillsEnduranceButton" Grid.Column="3" Content="ENDURANCE"
+          <Button x:Name="SkillsTrackingButton" Grid.Column="3" Content="TRACKING"
                   Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
-                  FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch"
+                  FontSize="19" FontWeight="Bold" HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button x:Name="SkillsFunctionButton" Grid.Column="4" Content="FUNCTION"
+          <Button x:Name="SkillsEnduranceButton" Grid.Column="4" Content="ENDURANCE"
                   Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
-                  FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch"
+                  FontSize="19" FontWeight="Bold" HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+          <Button x:Name="SkillsFunctionButton" Grid.Column="5" Content="FUNCTION"
+                  Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
+                  FontSize="19" FontWeight="Bold" HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
         </Grid>
         <Grid x:Name="SkillsMetricsGrid" Grid.Row="2"
