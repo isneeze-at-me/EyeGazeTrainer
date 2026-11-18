@@ -65,3 +65,18 @@ At user's explicit request, `LevelOnePreview` now has an **ENABLE LIVE GAZE — 
 **This is an experimental hardware path, not approved unattended operation or a fix to #9.** It can still cause the previous TD Control handoff failure. Compiling cannot verify gaze stream coexistence, watcher teardown or access recovery. Do not test on a computer whose only accessible controls depend on TD Control. Any attempt requires a competent helper with independently working mouse/keyboard and a proven means of restoring access. A reboot may still be needed; no verified non-reboot recovery method exists.
 
 The manually operated STOP control and BACK button are **developer controls** and violate the final learner-facing no-unlearned-click design until replaced with a proven gaze-only first-lesson interaction and independent recovery. Do not treat the prototype as appropriate for independent ALS users. The user requested development of the live mode, not proof that it is safe.
+
+## Diagnostics screen (Test branch, 2026-11-18)
+
+**Implemented in source; Visual Studio/UWP build and hardware verification pending.**
+
+- The home screen now has five gaze-accessible actions: **Eye Gaze Trainer** (existing Levels screen), **TD Control Trainer** (text-only placeholder), **Diagnostics**, **Settings**, and **Exit**.
+- Diagnostics is a black-background page within the existing gaze-owning view, with a centered DIAGNOSTICS title, a matching top-left Back button, and four blue padded quadrants. Three quadrants are reserved for future metrics.
+- The bottom-left quadrant contains a scalable Surface Pro-style tablet *vector illustration* with a black display and a 7-column × 7-row matrix. The illustration is drawn using XAML; it is not a Microsoft product photograph.
+- Every cell displays **NA** until a recorded attempt is available, and otherwise shows the average spatial performance percentage for that cell. The matrix indexes the full application view, not just the lesson canvas.
+- A *measured live-gaze target acquisition* contributes its target performance (precision, speed and stability composite). A started but interrupted live-gaze target dwell contributes a zero-valued attempt to the location of that target, revealing regions where holds are difficult. Valid live-gaze trivia selections that also count toward the global accuracy score contribute their measured button-performance outcome. Wrong trivia answers never change this spatial map.
+- Only 49 aggregated scores and attempt counts are stored in per-app local settings, not raw gaze coordinates, paths, or timestamped traces. The data persists across restarts; no per-location history exists from before the feature was installed, so those cells initially display NA.
+- The existing 1.5-second shared gaze dwell, smoothing and adaptive hitboxes are used for entering Diagnostics and for Back. No new gaze device or watcher is opened to view diagnostic scores.
+- The spatial percentages are internal performance indicators, **not a clinical calibration score**, and sparse cells should not be treated as reliable diagnosis.
+
+**Acceptance tests pending:** Build with Debug/x64, verify 49-cell rendering and font sizes at Surface display scaling, navigate in/out with gaze, ensure NA cells stay NA until sampled, record successful and incomplete holds in different regions, restart and check persistence, confirm quiz wrong answers leave the map unchanged, and ensure eye-tracker cleanup remains unchanged. Follow the existing supervised hardware safety guidance.
