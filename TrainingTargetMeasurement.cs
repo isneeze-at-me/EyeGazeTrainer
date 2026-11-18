@@ -14,6 +14,8 @@ namespace EyeGazeApiViability
         public const int TargetHoldMilliseconds = 1000;
         private const int LostGazeMilliseconds = 300;
         private const int SettledWindowMilliseconds = 300;
+        // Very short border flickers are not deliberate dwell attempts.
+        private const int MinimumAttemptMilliseconds = 150;
         private const int MaximumSamples = 120;
 
         private struct GazeSample
@@ -40,6 +42,21 @@ namespace EyeGazeApiViability
             dwelling = false;
             acquired = false;
             HoldProgress = 0;
+        }
+
+        /// <summary>
+        /// A started but unfinished dwell is one miss after 150 ms of
+        /// continuous inside-target gaze. Calling this repeatedly while
+        /// outside cannot score duplicate misses, and ordinary target
+        /// searching does not count as an attempt.
+        /// </summary>
+        public bool CancelIncompleteHold(DateTimeOffset now)
+        {
+            bool missed = dwelling && !acquired &&
+                (now - enteredAt).TotalMilliseconds >= MinimumAttemptMilliseconds &&
+                (now - enteredAt).TotalMilliseconds < TargetHoldMilliseconds;
+            CancelHold();
+            return missed;
         }
 
         public void CancelHold()
