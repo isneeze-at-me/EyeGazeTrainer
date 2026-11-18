@@ -559,7 +559,7 @@ namespace EyeGazeApiViability
         {
             if (screen != AppScreen.Diagnostics)
                 HideTherapistExportConfirmation();
-            if (screen != AppScreen.LevelZero && levelZeroClock != null)
+            if (currentScreen == AppScreen.LevelZero && screen != AppScreen.LevelZero)
                 StopLevelZero();
             // Navigating away from the celebration must not fire a stale transition.
             if (screen != AppScreen.Lesson) CancelBonusTransition();
