@@ -62,6 +62,10 @@ namespace EyeGazeApiViability
         private DateTimeOffset lastGazeAt;
         private bool gazeControlTriggered;
         private bool requireLookAwayAfterNavigation;
+        private Point lastActivatedGazePosition;
+        // A deliberate movement avoids requiring a tiny gap between
+        // buttons that consume almost the entire screen.
+        private const double NavigationRearmDistance = 65.0;
         private static readonly TimeSpan ControlDwell = TimeSpan.FromMilliseconds(1500);
 
         public LevelOnePreview()
@@ -267,8 +271,20 @@ namespace EyeGazeApiViability
             }
             if (requireLookAwayAfterNavigation)
             {
-                buttonDwellWheel.Hide();
-                return;
+                double dx = rawPoint.X - lastActivatedGazePosition.X;
+                double dy = rawPoint.Y - lastActivatedGazePosition.Y;
+                if (dx * dx + dy * dy <
+                    NavigationRearmDistance * NavigationRearmDistance)
+                {
+                    buttonDwellWheel.Hide();
+                    return;
+                }
+
+                // Start a full, fresh dwell on the new button once the
+                // gaze moves deliberately, even if no empty gap was crossed.
+                requireLookAwayAfterNavigation = false;
+                gazeControlTarget = null;
+                gazeControlTriggered = false;
             }
             if (gazeControlTarget != target)
             {
@@ -282,8 +298,9 @@ namespace EyeGazeApiViability
             buttonDwellWheel.Present(target, progress);
             if (progress < 1.0) return;
             gazeControlTriggered = true;
+            lastActivatedGazePosition = rawPoint;
             buttonDwellWheel.Hide();
-            // No new control activates until gaze leaves this hit region.
+            // New screen buttons re-arm after intentional eye movement.
             if (target == ExitButton)
                 OnExitRequested(null, null);
             else if (target == LevelsMenuButton)
@@ -358,9 +375,15 @@ namespace EyeGazeApiViability
         private void ShowScreen(AppScreen screen)
         {
             currentScreen = screen;
-            // Switching to a new screen never activates a button located
-            // under the previous screen's gaze point until gaze moves away.
-            requireLookAwayAfterNavigation = true;
+            // Only gaze-activated navigation needs a transition guard.
+            // Mouse navigation and initial app startup do not.
+            requireLookAwayAfterNavigation = gazeControlTriggered;
+            gazeControlTarget = null;
+            gazeControlTriggered = false;
+            lastGazeAt = default(DateTimeOffset);
+            // Old-screen smoothing must not slow acquisition on this screen.
+            // Gaze device lifetime and controlled Exit are untouched.
+            cursorFilter.Reset();
             displaySettingsVisible = screen == AppScreen.Settings;
             HomePanel.Visibility = screen == AppScreen.Menu ? Visibility.Visible : Visibility.Collapsed;
             LevelsPanel.Visibility = screen == AppScreen.Levels ? Visibility.Visible : Visibility.Collapsed;
