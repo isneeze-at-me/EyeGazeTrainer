@@ -283,51 +283,57 @@ namespace EyeGazeApiViability
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested)
                 return;
             DateTimeOffset now = DateTimeOffset.UtcNow;
-            if (!levelZeroHadGaze) return;
-            if ((now - levelZeroLastValid).TotalSeconds > 8)
-            {
-                if ((now - levelZeroLastPrompt).TotalSeconds > 25)
-                    SpeakLevelZero("I'm not seeing your eye cursor move right now. Try looking toward the middle of the screen. Take your time.");
-                return;
-            }
-            double elapsed = (now - levelZeroStageStarted).TotalSeconds;
             if (levelZeroStage == LevelZeroStage.Explore)
             {
-                double w = RootLayout.ActualWidth, h = RootLayout.ActualHeight;
-                bool horizontal = levelZeroMaxX - levelZeroMinX >= w * .34;
-                bool vertical = levelZeroMaxY - levelZeroMinY >= h * .27;
-                if (elapsed >= 14 && !horizontal && !levelZeroCoachedHorizontal)
+                if ((now - lastMovementCoach).TotalSeconds < 12) return;
+                string coaching = null;
+                if (!levelZeroHadGaze ||
+                    (now - levelZeroLastValid).TotalSeconds > 6)
+                    coaching = "I'm not detecting your eye cursor just yet. Try looking at the middle of the screen.";
+                else if (!hasActualMovement)
+                    coaching = "Let's get that cursor moving. Look up, down, or across the screen. No need to hold your gaze in one place.";
+                else if ((now - lastMovement).TotalSeconds > 7)
+                    coaching = "Your cursor has been resting. Whenever you're ready, " +
+                        MovementInstruction();
+                else if ((now - movementStepStarted).TotalSeconds > 7)
                 {
-                    levelZeroCoachedHorizontal = true;
-                    SpeakLevelZero("Let's try something. Look toward the left side of the screen, then slowly look to the right. Watch those two eyes travel with you.");
+                    string observed = horizontalSamples >= 5 &&
+                        horizontalSamples > verticalSamples * 1.5
+                        ? "You're moving side to side. " :
+                        verticalSamples >= 5 &&
+                        verticalSamples > horizontalSamples * 1.5
+                        ? "You're moving up and down. " :
+                        diagonalSamples >= 5
+                        ? "You're moving diagonally. " : "";
+                    if (movementStep == MovementStep.Vertical && verticalSamples >= 8 ||
+                        movementStep == MovementStep.Horizontal && horizontalSamples >= 8 ||
+                        movementStep == MovementStep.Circles && circleSamples >= 8)
+                        observed = "";
+                    coaching = observed + MovementInstruction();
                 }
-                else if (elapsed >= 24 && horizontal && !vertical &&
-                         !levelZeroCoachedVertical)
+                if (coaching != null)
                 {
-                    levelZeroCoachedVertical = true;
-                    SpeakLevelZero("You've got the side-to-side movement. Now try looking toward the top, then down toward the bottom.");
+                    lastMovementCoach = now;
+                    SpeakLevelZero(coaching);
                 }
-                else if (elapsed >= 32 && horizontal && vertical &&
-                         CountBits(levelZeroRegionMask) < 4 &&
-                         !levelZeroCoachedCorner)
-                {
-                    levelZeroCoachedCorner = true;
-                    SpeakLevelZero("Looking good! Try another part of the screen, perhaps a corner. You don't need to reach the very edge.");
-                }
+                return;
             }
-            else if (levelZeroStage == LevelZeroStage.Pursue)
+            if (!levelZeroHadGaze || (now - levelZeroLastValid).TotalSeconds > 8)
+                return;
+            double elapsed = (now - levelZeroStageStarted).TotalSeconds;
+            if (levelZeroStage == LevelZeroStage.Pursue)
             {
                 if (elapsed >= 14 && levelZeroCloseSamples < 5 &&
                     !levelZeroCoachedPursuit)
                 {
                     levelZeroCoachedPursuit = true;
-                    SpeakLevelZero("A little tip: watch the glowing circle, not your eye cursor. Your cursor will come along when you follow the circle.");
+                    SpeakLevelZero("Watch the glowing circle, not your cursor. Your eyes will guide the cursor as you follow.");
                 }
                 else if (elapsed >= 31 && levelZeroCloseSamples < 10 &&
                          !levelZeroCoachedButton)
                 {
                     levelZeroCoachedButton = true;
-                    SpeakLevelZero("It's okay to follow just part of the circle's path. Take your time. Every bit of control counts.");
+                    SpeakLevelZero("Try following just part of the circle's path. Take your time.");
                 }
             }
             else if (levelZeroStage == LevelZeroStage.Continue &&
@@ -337,15 +343,163 @@ namespace EyeGazeApiViability
                     !levelZeroCoachedPursuit)
                 {
                     levelZeroCoachedPursuit = true;
-                    SpeakLevelZero("See that large house button? It opens your training levels. Look at its center and stay there until the ring fills.");
+                    SpeakLevelZero("That large house button opens your Levels screen. Look at its center, and keep looking until the ring fills.");
                 }
                 else if (elapsed >= 20 && levelZeroDwellAttempts > 0 &&
                          !levelZeroCoachedButton)
                 {
                     levelZeroCoachedButton = true;
-                    SpeakLevelZero("Almost! Keep your eyes on the house button just a little longer, until the circle completes.");
+                    SpeakLevelZero("You're close. Keep your eyes on the house button until the circle finishes.");
                 }
             }
+        }
+
+        private string MovementInstruction()
+        {
+            switch (movementStep)
+            {
+                case MovementStep.Vertical:
+                    return "For this exercise, look up toward the top, then down toward the bottom, and repeat.";
+                case MovementStep.Horizontal:
+                    return "For this exercise, look to the left, then right, and repeat.";
+                case MovementStep.Circles:
+                    return "For this exercise, move your eyes in a big, comfortable circle around the middle of the screen.";
+                default:
+                    return "look around the screen and move the eye cursor with you.";
+            }
+        }
+
+        private void ResetMovementStep()
+        {
+            movementStepStarted = DateTimeOffset.UtcNow;
+            lastMotionSample = DateTimeOffset.MinValue;
+            lastMovement = movementStepStarted;
+            lastMovementCoach = movementStepStarted;
+            hasPreviousMotionPoint = false;
+            hasPreviousCircleAngle = false;
+            discoveryMotionSeconds = stepMotionSeconds = stepTravel = 0;
+            circleTravelRadians = 0;
+            circleDirection = circleSectorMask = axisReversals =
+                lastAxisDirection = verticalSamples = horizontalSamples =
+                diagonalSamples = circleSamples = 0;
+        }
+
+        private void NextMovementStep(MovementStep next, string instruction)
+        {
+            if (levelZeroStage != LevelZeroStage.Explore) return;
+            movementStep = next;
+            ResetMovementStep();
+            levelZeroFeedbackQueue.Clear();
+            SpeakLevelZero(instruction, true);
+        }
+
+        private void ObserveLevelZeroMovement(Point gaze, double width,
+                                              double height, DateTimeOffset now)
+        {
+            // Sample at 10 Hz, not every tracker frame; ignore jitter.
+            if ((now - lastMotionSample).TotalMilliseconds < 100) return;
+            if (hasPreviousMotionPoint &&
+                (now - lastMotionSample).TotalSeconds > 1.5)
+            {
+                hasPreviousMotionPoint = false;
+                hasPreviousCircleAngle = false;
+            }
+            double dt = lastMotionSample == DateTimeOffset.MinValue
+                ? 0 : Math.Min(.2, (now - lastMotionSample).TotalSeconds);
+            lastMotionSample = now;
+            if (!hasPreviousMotionPoint)
+            {
+                previousMotionPoint = gaze;
+                hasPreviousMotionPoint = true;
+                return;
+            }
+            double dx = (gaze.X - previousMotionPoint.X) / width;
+            double dy = (gaze.Y - previousMotionPoint.Y) / height;
+            previousMotionPoint = gaze;
+            double displacement = Math.Sqrt(dx * dx + dy * dy);
+            if (displacement < .012 || displacement > .32) return;
+            hasActualMovement = true;
+            lastMovement = now;
+            bool vertical = Math.Abs(dy) > 1.4 * Math.Abs(dx);
+            bool horizontal = Math.Abs(dx) > 1.4 * Math.Abs(dy);
+            if (vertical) verticalSamples++;
+            else if (horizontal) horizontalSamples++;
+            else diagonalSamples++;
+
+            if (movementStep == MovementStep.Discover)
+            {
+                discoveryMotionSeconds += dt;
+                stepTravel += displacement;
+                if (discoveryMotionSeconds >= 1.0 && stepTravel >= .15)
+                    NextMovementStep(MovementStep.Vertical,
+                        "There you go! You're moving the cursor. Now look toward the top of the screen, then down toward the bottom. Keep practicing up and down.");
+                return;
+            }
+
+            if (movementStep == MovementStep.Vertical ||
+                movementStep == MovementStep.Horizontal)
+            {
+                int direction = movementStep == MovementStep.Vertical
+                    ? (vertical ? Math.Sign(dy) : 0)
+                    : (horizontal ? Math.Sign(dx) : 0);
+                if (direction == 0) return;
+                if (lastAxisDirection != 0 && direction != lastAxisDirection)
+                    axisReversals++;
+                lastAxisDirection = direction;
+                stepMotionSeconds += dt;
+                stepTravel += displacement;
+                // Fifteen seconds in the activity, with meaningful deliberate
+                // movement and multiple direction changes. Idle alone won't pass.
+                if ((now - movementStepStarted).TotalSeconds >= 15 &&
+                    stepMotionSeconds >= 2.5 && axisReversals >= 2 &&
+                    stepTravel >= .35)
+                {
+                    if (movementStep == MovementStep.Vertical)
+                        NextMovementStep(MovementStep.Horizontal,
+                            "Great work! You've practiced up and down. Next is side to side. Look to the left, then to the right, and keep repeating.");
+                    else
+                        NextMovementStep(MovementStep.Circles,
+                            "Excellent! You've practiced left and right. Now let's try circles. Slowly trace a big circle with your eyes around the middle of the screen.");
+                }
+                return;
+            }
+
+            // Require angular travel around the center; random small
+            // movement in one area must never be scored as a circle.
+            double nx = (gaze.X / width - .5) * 2;
+            double ny = (gaze.Y / height - .5) * 2;
+            double radius = Math.Sqrt(nx * nx + ny * ny);
+            if (radius < .23 || radius > 1.3)
+            {
+                hasPreviousCircleAngle = false;
+                return;
+            }
+            double angle = Math.Atan2(ny, nx);
+            int sector = (int)Math.Floor((angle + Math.PI) / (Math.PI / 4));
+            circleSectorMask |= 1 << Math.Max(0, Math.Min(7, sector));
+            if (hasPreviousCircleAngle)
+            {
+                double delta = angle - previousCircleAngle;
+                while (delta > Math.PI) delta -= 2 * Math.PI;
+                while (delta < -Math.PI) delta += 2 * Math.PI;
+                if (Math.Abs(delta) >= .035 && Math.Abs(delta) < .9)
+                {
+                    int sign = Math.Sign(delta);
+                    if (circleDirection == 0) circleDirection = sign;
+                    if (circleDirection == sign)
+                    {
+                        circleTravelRadians += Math.Abs(delta);
+                        circleSamples++;
+                        stepMotionSeconds += dt;
+                    }
+                }
+            }
+            previousCircleAngle = angle;
+            hasPreviousCircleAngle = true;
+            if ((now - movementStepStarted).TotalSeconds >= 15 &&
+                circleTravelRadians >= Math.PI * 1.5 && circleSamples >= 10 &&
+                CountBits(circleSectorMask) >= 5)
+                GoToLevelZeroPursuit();
         }
 
         // CompositionTarget.Rendering tracks display refresh instead of a
