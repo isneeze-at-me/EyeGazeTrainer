@@ -34,7 +34,8 @@ namespace EyeGazeApiViability
         private readonly Random placementRandom = new Random();
         private readonly TrainingProgress trainingProgress = new TrainingProgress();
         private readonly SpatialAccuracyMap spatialAccuracy = new SpatialAccuracyMap();
-        private readonly TextBlock[,] accuracyCells = new TextBlock[7, 7];
+        private readonly TextBlock[,] accuracyCells =
+            new TextBlock[SpatialAccuracyMap.Rows, SpatialAccuracyMap.Columns];
         private Button[] diagnosticsButtons;
         private Point targetPosition;
         private Point previousTargetPosition;
