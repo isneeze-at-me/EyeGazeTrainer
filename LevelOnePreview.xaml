@@ -20,6 +20,7 @@
               Padding="24,22" FontSize="27" FontWeight="Bold"/>
       <TextBlock x:Name="LiveStatusText" Text="Connecting to eye tracker…" TextWrapping="Wrap" FontSize="17" Foreground="#FBBF24"/>
       <TextBlock x:Name="ProgressText" Text="Look at the colored circles to begin" FontSize="18" Foreground="#93C5FD"/>
+      <TextBlock x:Name="AccuracyText" Text="Accuracy: getting started" FontSize="18" Foreground="#86EFAC"/>
     </StackPanel>
     <Canvas Grid.Row="1" x:Name="TrainingCanvas" Margin="24" Background="#17253D"
             PointerMoved="OnPointerMoved" PointerEntered="OnPointerMoved" SizeChanged="OnCanvasSized">
