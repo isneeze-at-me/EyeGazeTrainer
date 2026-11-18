@@ -88,6 +88,7 @@ namespace EyeGazeApiViability
             levelZeroStarted = DateTimeOffset.UtcNow;
             levelZeroStageStarted = levelZeroStarted;
             movementStep = MovementStep.Discover;
+            hasActualMovement = false;
             ResetMovementStep();
             levelZeroLastPrompt = DateTimeOffset.MinValue;
             levelZeroSeconds = 0;
@@ -172,7 +173,14 @@ namespace EyeGazeApiViability
         {
             // MediaEnded is raised on a media thread; signal only.
             var completion = levelZeroPlaybackCompletion;
-            if (completion != null) completion.TrySetResult(true);
+            if (completion == null) return;
+            // Resume the narration sequence on the UI dispatcher. A native
+            // MediaPlayer callback can arrive on a background thread.
+            if (Dispatcher.HasThreadAccess)
+                completion.TrySetResult(true);
+            else
+                _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
+                    () => completion.TrySetResult(true));
         }
 
         // Important stage directions take precedence over ordinary praise.
@@ -297,19 +305,25 @@ namespace EyeGazeApiViability
                         MovementInstruction();
                 else if ((now - movementStepStarted).TotalSeconds > 7)
                 {
-                    string observed = horizontalSamples >= 5 &&
-                        horizontalSamples > verticalSamples * 1.5
-                        ? "You're moving side to side. " :
-                        verticalSamples >= 5 &&
-                        verticalSamples > horizontalSamples * 1.5
-                        ? "You're moving up and down. " :
-                        diagonalSamples >= 5
-                        ? "You're moving diagonally. " : "";
-                    if (movementStep == MovementStep.Vertical && verticalSamples >= 8 ||
-                        movementStep == MovementStep.Horizontal && horizontalSamples >= 8 ||
-                        movementStep == MovementStep.Circles && circleSamples >= 8)
-                        observed = "";
-                    coaching = observed + MovementInstruction();
+                    // If the requested activity is already happening, stay
+                    // quiet. Only redirect when another movement dominates.
+                    bool correct = movementStep == MovementStep.Vertical &&
+                        verticalSamples >= 8 && verticalSamples >= horizontalSamples ||
+                        movementStep == MovementStep.Horizontal &&
+                        horizontalSamples >= 8 && horizontalSamples >= verticalSamples ||
+                        movementStep == MovementStep.Circles && circleSamples >= 8;
+                    if (!correct)
+                    {
+                        string observed = horizontalSamples >= 5 &&
+                            horizontalSamples > verticalSamples * 1.5
+                            ? "You're moving side to side. " :
+                            verticalSamples >= 5 &&
+                            verticalSamples > horizontalSamples * 1.5
+                            ? "You're moving up and down. " :
+                            diagonalSamples >= 5
+                            ? "You're moving diagonally. " : "";
+                        coaching = observed + MovementInstruction();
+                    }
                 }
                 if (coaching != null)
                 {
