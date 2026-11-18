@@ -47,6 +47,9 @@ namespace EyeGazeApiViability
         private DispatcherTimer cleanupTimer;
         private DispatcherTimer bonusTransitionTimer;
         private DispatcherTimer bonusQuestionTimer;
+        private DateTimeOffset lastValidGazeSampleAt;
+        private DateTimeOffset bonusTimerLastTick;
+        private double bonusTimerSecondsRemaining;
         private readonly TriviaQuestionBank triviaBank = new TriviaQuestionBank();
         private readonly TrainingTargetMeasurement bonusButtonMeasurement = new TrainingTargetMeasurement();
         private TriviaQuestion currentTriviaQuestion;
@@ -224,6 +227,7 @@ namespace EyeGazeApiViability
             if (double.IsNaN(p.X) || double.IsNaN(p.Y) ||
                 double.IsInfinity(p.X) || double.IsInfinity(p.Y)) return;
             mostRecentRawGazePosition = p;
+            lastValidGazeSampleAt = DateTimeOffset.UtcNow;
 
             // UWP gaze points are in application-view coordinates, not
             // coordinates local to the canvas.
@@ -886,11 +890,27 @@ namespace EyeGazeApiViability
         private void StartBonusTimer(TimeSpan delay, Action callback)
         {
             CancelBonusQuestionTimer();
-            bonusQuestionTimer = new DispatcherTimer { Interval = delay };
+            bonusTimerSecondsRemaining = delay.TotalSeconds;
+            bonusTimerLastTick = DateTimeOffset.UtcNow;
+            bonusQuestionTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(100)
+            };
             EventHandler<object> tick = null;
             tick = (sender, args) =>
             {
                 if (bonusQuestionTimer == null) return;
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                double elapsed = Math.Max(0, (now - bonusTimerLastTick).TotalSeconds);
+                bonusTimerLastTick = now;
+                // Do not silently advance when the live gaze stream stops.
+                // Mouse-only preview has no gaze device to monitor.
+                bool gazeReady = !live || (gazeSubscribed &&
+                    lastValidGazeSampleAt != default(DateTimeOffset) &&
+                    now - lastValidGazeSampleAt <= TimeSpan.FromSeconds(1));
+                if (!gazeReady) return;
+                bonusTimerSecondsRemaining -= elapsed;
+                if (bonusTimerSecondsRemaining > 0) return;
                 bonusQuestionTimer.Stop();
                 bonusQuestionTimer.Tick -= tick;
                 bonusQuestionTimer = null;
@@ -907,6 +927,7 @@ namespace EyeGazeApiViability
                 bonusQuestionTimer.Stop();
                 bonusQuestionTimer = null;
             }
+            bonusTimerSecondsRemaining = 0;
             triviaAwaitingAnswer = false;
             bonusButtonMeasurement.CancelHold();
         }
