@@ -34,8 +34,15 @@ namespace EyeGazeApiViability
         private readonly Random placementRandom = new Random();
         private readonly TrainingProgress trainingProgress = new TrainingProgress();
         private readonly SpatialAccuracyMap spatialAccuracy = new SpatialAccuracyMap();
+        private readonly SpatialJitterMap spatialJitter = new SpatialJitterMap();
         private readonly TextBlock[,] accuracyCells =
             new TextBlock[SpatialAccuracyMap.Rows, SpatialAccuracyMap.Columns];
+        private readonly TextBlock[,] jitterCells =
+            new TextBlock[SpatialJitterMap.Rows, SpatialJitterMap.Columns];
+        private readonly Border[,] accuracyCellBorders =
+            new Border[SpatialAccuracyMap.Rows, SpatialAccuracyMap.Columns];
+        private readonly Border[,] jitterCellBorders =
+            new Border[SpatialJitterMap.Rows, SpatialJitterMap.Columns];
         private Button[] diagnosticsButtons;
         private Point targetPosition;
         private Point previousTargetPosition;
@@ -104,7 +111,7 @@ namespace EyeGazeApiViability
             menuButtons = new[] { LevelsMenuButton, TdControlMenuButton,
                                   DiagnosticsMenuButton, SettingsMenuButton, ExitButton };
             diagnosticsButtons = new[] { DiagnosticsBackButton };
-            BuildAccuracyGrid();
+            BuildDiagnosticGrids();
             allLevelButtons = new[] { LevelOneButton, LevelTwoButton,
                 LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton };
             levelsButtons = new[] { LevelOneButton, LevelTwoButton,
@@ -453,7 +460,7 @@ namespace EyeGazeApiViability
             BonusPanel.Visibility = screen == AppScreen.Bonus ? Visibility.Visible : Visibility.Collapsed;
             DisplaySettingsPanel.Visibility = screen == AppScreen.Settings ? Visibility.Visible : Visibility.Collapsed;
             DiagnosticsPanel.Visibility = screen == AppScreen.Diagnostics ? Visibility.Visible : Visibility.Collapsed;
-            if (screen == AppScreen.Diagnostics) RefreshAccuracyGrid();
+            if (screen == AppScreen.Diagnostics) RefreshDiagnosticGrids();
             targetMeasurement.CancelHold();
             buttonDwellWheel.Hide();
             HideTargetDwellVisual();
@@ -465,58 +472,98 @@ namespace EyeGazeApiViability
             if (screen != AppScreen.Lesson) UpdateAccuracyDisplay();
         }
 
-        // A small, fixed 7x7 grid is rendered into a vector tablet silhouette.
-        // Cells are display-only; no new gaze interactions are required.
-        private void BuildAccuracyGrid()
+        // Both maps use the same screen coordinates and 7x5 region geometry.
+        // The colors are provisional performance bands, not medical cutoffs.
+        private static readonly SolidColorBrush NoDataBrush =
+            new SolidColorBrush(Color.FromArgb(255, 38, 53, 75));
+        private static readonly SolidColorBrush GoodBrush =
+            new SolidColorBrush(Color.FromArgb(255, 22, 101, 52));
+        private static readonly SolidColorBrush MediumBrush =
+            new SolidColorBrush(Color.FromArgb(255, 133, 77, 14));
+        private static readonly SolidColorBrush PoorBrush =
+            new SolidColorBrush(Color.FromArgb(255, 153, 27, 27));
+        private static readonly SolidColorBrush WhiteTextBrush =
+            new SolidColorBrush(Colors.White);
+
+        private void BuildDiagnosticGrids()
         {
-            for (int i = 0; i < SpatialAccuracyMap.Rows; i++)
-                AccuracyHeatmapGrid.RowDefinitions.Add(new RowDefinition
+            CreateDiagnosticGrid(AccuracyHeatmapGrid, accuracyCells, accuracyCellBorders);
+            CreateDiagnosticGrid(JitterHeatmapGrid, jitterCells, jitterCellBorders);
+            RefreshDiagnosticGrids();
+        }
+
+        private static void CreateDiagnosticGrid(Grid container, TextBlock[,] labels,
+                                                 Border[,] backgrounds)
+        {
+            for (int row = 0; row < SpatialAccuracyMap.Rows; row++)
+                container.RowDefinitions.Add(new RowDefinition
                 { Height = new GridLength(1, GridUnitType.Star) });
-            for (int i = 0; i < SpatialAccuracyMap.Columns; i++)
-                AccuracyHeatmapGrid.ColumnDefinitions.Add(new ColumnDefinition
+            for (int col = 0; col < SpatialAccuracyMap.Columns; col++)
+                container.ColumnDefinitions.Add(new ColumnDefinition
                 { Width = new GridLength(1, GridUnitType.Star) });
 
             for (int row = 0; row < SpatialAccuracyMap.Rows; row++)
-            {
                 for (int col = 0; col < SpatialAccuracyMap.Columns; col++)
                 {
                     var cell = new Border
                     {
                         Margin = new Thickness(2),
-                        BorderBrush = new SolidColorBrush(Color.FromArgb(255, 52, 82, 117)),
+                        BorderBrush = new SolidColorBrush(
+                            Color.FromArgb(255, 52, 82, 117)),
                         BorderThickness = new Thickness(1),
-                        Background = new SolidColorBrush(Color.FromArgb(255, 17, 35, 58)),
+                        Background = NoDataBrush,
                         CornerRadius = new CornerRadius(2)
                     };
-                    var label = new TextBlock
+                    var text = new TextBlock
                     {
-                        FontSize = 19,
+                        Text = "NA",
+                        FontSize = 18,
                         FontWeight = Windows.UI.Text.FontWeights.SemiBold,
-                        Foreground = new SolidColorBrush(Colors.White),
+                        Foreground = WhiteTextBrush,
                         TextAlignment = TextAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
                         HorizontalAlignment = HorizontalAlignment.Center
                     };
-                    cell.Child = label;
+                    cell.Child = text;
                     Grid.SetRow(cell, row);
                     Grid.SetColumn(cell, col);
-                    AccuracyHeatmapGrid.Children.Add(cell);
-                    accuracyCells[row, col] = label;
+                    container.Children.Add(cell);
+                    labels[row, col] = text;
+                    backgrounds[row, col] = cell;
                 }
-            }
-            RefreshAccuracyGrid();
         }
 
-        private void RefreshAccuracyGrid()
+        private void RefreshDiagnosticGrids()
         {
             for (int row = 0; row < SpatialAccuracyMap.Rows; row++)
                 for (int col = 0; col < SpatialAccuracyMap.Columns; col++)
                 {
-                    double? score = spatialAccuracy.Score(row, col);
-                    accuracyCells[row, col].Text = score.HasValue
-                        ? Math.Round(score.Value).ToString() + "%"
-                        : "NA";
+                    double? accuracy = spatialAccuracy.Score(row, col);
+                    accuracyCells[row, col].Text = accuracy.HasValue
+                        ? Math.Round(accuracy.Value).ToString() + "%" : "NA";
+                    accuracyCellBorders[row, col].Background = !accuracy.HasValue
+                        ? NoDataBrush : accuracy.Value >= 80 ? GoodBrush :
+                          accuracy.Value >= 60 ? MediumBrush : PoorBrush;
+
+                    double? jitter = spatialJitter.AverageMillimeters(row, col);
+                    jitterCells[row, col].Text = jitter.HasValue
+                        ? jitter.Value.ToString("0.0") : "NA";
+                    jitterCellBorders[row, col].Background = !jitter.HasValue
+                        ? NoDataBrush : jitter.Value <= 2 ? GoodBrush :
+                          jitter.Value <= 4 ? MediumBrush : PoorBrush;
                 }
+        }
+
+        // Store only the physical RMS dispersion of a completed settled hold.
+        // Conversion uses the existing DPI/reference-bar screen size setting.
+        private void RecordMeasuredJitter(Point screenCenter, TargetPerformance result)
+        {
+            if (!live || result == null || !result.JitterViewUnits.HasValue ||
+                displayScale == null || displayScale.ViewUnitsPerMillimeter <= 0) return;
+            double jitterMillimeters = result.JitterViewUnits.Value /
+                                        displayScale.ViewUnitsPerMillimeter;
+            spatialJitter.Record(screenCenter, RootLayout.ActualWidth,
+                                 RootLayout.ActualHeight, jitterMillimeters);
         }
 
         private void OnOpenLevels(object sender, RoutedEventArgs e)
@@ -820,6 +867,9 @@ namespace EyeGazeApiViability
                     new Point(center.X + canvasOriginOnPage.X,
                               center.Y + canvasOriginOnPage.Y),
                     RootLayout.ActualWidth, RootLayout.ActualHeight, result.Overall);
+                RecordMeasuredJitter(
+                    new Point(center.X + canvasOriginOnPage.X,
+                              center.Y + canvasOriginOnPage.Y), result);
                 cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
                 UpdateAccuracyDisplay();
             }
@@ -992,6 +1042,7 @@ namespace EyeGazeApiViability
                     gazeProfile.RecordTargetPerformance(performance, 1);
                     spatialAccuracy.Record(center, RootLayout.ActualWidth,
                                            RootLayout.ActualHeight, performance.Overall);
+                    RecordMeasuredJitter(center, performance);
                     cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
                     UpdateAccuracyDisplay();
                 }
