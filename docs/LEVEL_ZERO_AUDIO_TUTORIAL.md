@@ -92,3 +92,11 @@
 - Gaze watcher creation, ownership, TD Control coexistence, and staged shutdown were not modified.
 
 **Safety and build disclaimer:** Static code/XAML integration checks do not establish an executable build, usability, or tracker compatibility. Do not use Level 0 as unattended independent access until on-device safety, audio availability and non-dwell recovery have passed.
+
+## Bug-fix notes — 2026-11-18 (voice / early exit / destination)
+
+- **Voice:** The invisible UWP speech `MediaElement` is kept **Visible at 1×1 and 0 opacity** rather than `Collapsed`. The synthesized `SpeechSynthesisStream` stays alive until a following phrase or exit, instead of being closed by the synthesis method after an estimated delay. Media playback errors are traced to the existing local diagnostic trace. These changes address likely sources of silence but must be verified on the Surface/Windows audio device.
+- **Unintended early exit:** Removed the experimental upper-left/lower-left repeated-sweep shortcut. Normal exploratory gaze movements could match its pattern and send the learner away before pursuit or the final button. No automatic exit should occur on exploration. A new, explicitly requested and independently accessible pre-dwell escape control must be designed and tested separately; do not claim novice independent escape is solved yet.
+- **Destination:** After a successful deliberate dwell on the single final large button, Level 0 saves measurements/completion and goes to the **Levels screen**, not the main home menu. The voice says “levels screen,” and the button's accessibility name matches.
+- **No change** to the shared gaze watcher, existing Level 1 lesson, bonus round or staged device cleanup.
+- **Build and hardware tests outstanding:** verify initial audible speech and each stage prompt; ensure audio does not overlap; observe target and final button in sequence; verify Level 0 can't leave before deliberate selection; verify successful dwell enters Levels; verify TD Control coexistence.
