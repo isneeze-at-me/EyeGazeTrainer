@@ -505,6 +505,20 @@ namespace EyeGazeApiViability
                                trend < 0 ? PoorBrush : WhiteTextBrush;
         }
 
+        // Arrows indicate actual filter percentage rising or falling.
+        // A decrease in filtering is not by itself proof of better precision.
+        private static void SetSmoothingTrend(TextBlock label, int direction)
+        {
+            label.Text = direction > 0 ? "▲" : direction < 0 ? "▼" : "—";
+            label.Foreground = WhiteTextBrush;
+        }
+
+        private void ApplyAdaptiveSmoothingAndRecord()
+        {
+            ApplyAdaptiveSmoothingAndRecord();
+            trainingReport.RecordSmoothing(cursorFilter.SmoothingLevel);
+        }
+
         private void RefreshTrainingReport()
         {
             int finished = 0;
@@ -523,6 +537,8 @@ namespace EyeGazeApiViability
             SetTrend(ReportOverallTrend, trainingReport.OverallTrend);
             SetTrend(ReportAccuracyTrend, trainingReport.AccuracyTrend);
             SetTrend(ReportJitterTrend, trainingReport.JitterTrend);
+            ReportSmoothingText.Text = cursorFilter.SmoothingLevel.ToString() + "%";
+            SetSmoothingTrend(ReportSmoothingTrend, trainingReport.SmoothingTrend);
         }
 
         // Both maps use the same screen coordinates and 7x5 region geometry.
@@ -926,7 +942,7 @@ namespace EyeGazeApiViability
                 RecordMeasuredJitter(
                     new Point(center.X + canvasOriginOnPage.X,
                               center.Y + canvasOriginOnPage.Y), result);
-                cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
+                ApplyAdaptiveSmoothingAndRecord();
                 UpdateAccuracyDisplay();
             }
 
@@ -1102,7 +1118,7 @@ namespace EyeGazeApiViability
                     spatialAccuracy.Record(center, RootLayout.ActualWidth,
                                            RootLayout.ActualHeight, performance.Overall);
                     RecordMeasuredJitter(center, performance);
-                    cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
+                    ApplyAdaptiveSmoothingAndRecord();
                     UpdateAccuracyDisplay();
                 }
                 catch (InvalidOperationException)
@@ -1214,7 +1230,7 @@ namespace EyeGazeApiViability
                 spatialAccuracy.Record(
                     new Point(missedTarget.X + offset.X, missedTarget.Y + offset.Y),
                     RootLayout.ActualWidth, RootLayout.ActualHeight, 0);
-                cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
+                ApplyAdaptiveSmoothingAndRecord();
                 UpdateAccuracyDisplay();
             }
         }
@@ -1231,7 +1247,7 @@ namespace EyeGazeApiViability
             TargetRing.Visibility = Visibility.Collapsed;
             TargetBullseye.Visibility = Visibility.Collapsed;
             cursorFilter.Reset();
-            cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
+            ApplyAdaptiveSmoothingAndRecord();
             if (TrainingCanvas.ActualWidth >= TargetDiameter + 24 &&
                 TrainingCanvas.ActualHeight >= TargetDiameter + 24)
             {
