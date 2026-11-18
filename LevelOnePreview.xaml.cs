@@ -222,7 +222,7 @@ namespace EyeGazeApiViability
                 p.X > RootLayout.ActualWidth || p.Y > RootLayout.ActualHeight)
             {
                 cursorFilter.Reset();
-                targetMeasurement.CancelHold();
+                RecordInterruptedTargetDwell(DateTimeOffset.UtcNow);
                 HideTargetDwellVisual();
                 PreviewDot.Visibility = Visibility.Collapsed;
                 buttonDwellWheel.Hide();
@@ -608,7 +608,7 @@ namespace EyeGazeApiViability
                 p.X > TrainingCanvas.ActualWidth ||
                 p.Y > TrainingCanvas.ActualHeight)
             {
-                targetMeasurement.CancelHold();
+                RecordInterruptedTargetDwell(DateTimeOffset.UtcNow);
                 TargetRing.StrokeThickness = 8;
                 UpdateTargetDwellVisual(false);
                 return;
@@ -626,9 +626,15 @@ namespace EyeGazeApiViability
             Point center = TargetCenter();
             bool inRing = AdaptiveHitTesting.ContainsCircle(
                 p, center, TargetDiameter, gazeProfile.HitBoxScale);
+            if (!inRing)
+            {
+                RecordInterruptedTargetDwell(now);
+                UpdateTargetDwellVisual(false);
+                return;
+            }
 
             // A full 1000ms uninterrupted hold is required for acquisition.
-            bool acquired = targetMeasurement.Observe(rawPoint, now, inRing);
+            bool acquired = targetMeasurement.Observe(rawPoint, now, true);
             UpdateTargetDwellVisual(inRing);
             if (!acquired) return;
             TargetRing.StrokeThickness = 8;
@@ -637,7 +643,7 @@ namespace EyeGazeApiViability
             {
                 TargetPerformance result = targetMeasurement.Measure(
                     center, TargetDiameter * 0.5, now);
-                gazeProfile.RecordTargetPerformance(result);
+                gazeProfile.RecordTargetPerformance(result, 1);
                 cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
                 UpdateAccuracyDisplay();
             }
@@ -656,6 +662,27 @@ namespace EyeGazeApiViability
             }
             PickRandomTarget();
             targetMeasurement.BeginTarget(now);
+        }
+
+        // Score only an actual started dwell (at least 150 ms), not an
+        // ordinary search across the black canvas. CancelIncompleteHold
+        // clears the attempt so the same miss cannot be counted twice.
+        // Hardware disconnects and intentional lesson navigation use the
+        // regular CancelHold() path, which never adds a penalty.
+        private void RecordInterruptedTargetDwell(DateTimeOffset now)
+        {
+            if (!live || completed || currentScreen != AppScreen.Lesson ||
+                targetIndex < 0)
+            {
+                targetMeasurement.CancelHold();
+                return;
+            }
+            if (targetMeasurement.CancelIncompleteHold(now))
+            {
+                gazeProfile.RecordIncompleteTargetDwell(1);
+                cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
+                UpdateAccuracyDisplay();
+            }
         }
 
         private void ResetLesson()
