@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Windows.Devices.Input.Preview;
 using Windows.Foundation;
+using Windows.Graphics.Display;
 using Windows.Storage;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
@@ -16,8 +17,14 @@ namespace EyeGazeApiViability
     // This is NOT approved for independent or unattended use (issue #9).
     public sealed partial class LevelOnePreview : Page
     {
-        private const double TargetDiameter = 116;
         private const double DotDiameter = 44;
+        private DisplayScaleManager displayScale;
+        private double targetDiameter;
+        private double bullseyeDiameter;
+        private double pendingReferenceWidth;
+        private bool displaySettingsVisible;
+        private DisplayInformation displayInformation;
+        private double TargetDiameter { get { return targetDiameter; } }
         private readonly MasterCursorSmoothingFilter cursorFilter = new MasterCursorSmoothingFilter();
         private readonly AdaptiveGazeProfile gazeProfile = new AdaptiveGazeProfile();
         private static readonly Point[] TargetFractions =
@@ -51,6 +58,10 @@ namespace EyeGazeApiViability
         {
             InitializeComponent();
             buttonDwellWheel = new SharedButtonDwellWheel(CursorOverlay);
+            displayScale = new DisplayScaleManager();
+            ApplyDisplaySizes();
+            displayInformation = DisplayInformation.GetForCurrentView();
+            displayInformation.DpiChanged += OnDisplayDpiChanged;
             cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
             UpdateAccuracyDisplay();
             Loaded += OnPageLoaded;
@@ -186,10 +197,11 @@ namespace EyeGazeApiViability
             UpdateCursor(stabilized);
             Point canvasOrigin = TrainingCanvas.TransformToVisual(this)
                                   .TransformPoint(new Point(0, 0));
-            ProcessPosition(new Point(stabilized.X - canvasOrigin.X,
-                                      stabilized.Y - canvasOrigin.Y),
-                            new Point(p.X - canvasOrigin.X,
-                                      p.Y - canvasOrigin.Y));
+            if (!displaySettingsVisible)
+                ProcessPosition(new Point(stabilized.X - canvasOrigin.X,
+                                          stabilized.Y - canvasOrigin.Y),
+                                new Point(p.X - canvasOrigin.X,
+                                          p.Y - canvasOrigin.Y));
             ProcessGazeControl(stabilized, p);
             e.Handled = true;
         }
@@ -230,10 +242,21 @@ namespace EyeGazeApiViability
             buttonDwellWheel.Present(target, progress);
             if (progress < 1.0) return;
             gazeControlTriggered = true;
-            gazeControlTarget = null;
             buttonDwellWheel.Hide();
-            Trace("Native gaze control activated: EXIT");
-            OnExitRequested(null, null);
+            // Re-arm only after looking away to avoid accidental repeats.
+            gazeControlTriggered = true;
+            if (target == ExitButton || target == SettingsExitButton)
+                OnExitRequested(null, null);
+            else if (target == DisplaySettingsButton)
+                OnDisplaySettingsRequested(null, null);
+            else if (target == ShorterButton)
+                OnReferenceShorter(null, null);
+            else if (target == LongerButton)
+                OnReferenceLonger(null, null);
+            else if (target == SaveDisplayButton)
+                OnSaveDisplay(null, null);
+            else if (target == CancelDisplayButton)
+                OnCancelDisplay(null, null);
         }
 
         // Central registration point for every gaze button on this page.
@@ -241,7 +264,10 @@ namespace EyeGazeApiViability
         // filters, geometry, or dwell timers.
         private Button[] GetGazeButtons()
         {
-            return new[] { ExitButton };
+            return displaySettingsVisible
+                ? new[] { ShorterButton, LongerButton, SaveDisplayButton,
+                          CancelDisplayButton, SettingsExitButton }
+                : new[] { ExitButton, DisplaySettingsButton };
         }
 
         private Button FindGazeButton(Point stabilizedPoint, Point rawPoint)
@@ -254,7 +280,8 @@ namespace EyeGazeApiViability
                 // For the safety-critical Exit button, accept the same
                 // adaptive hit region under raw gaze as well. This prevents
                 // smoothing from delaying access when attention shifts to Exit.
-                if (button == ExitButton && InsideButton(button, rawPoint))
+                if ((button == ExitButton || button == SettingsExitButton) &&
+                    InsideButton(button, rawPoint))
                     return button;
             }
             return null;
@@ -275,7 +302,119 @@ namespace EyeGazeApiViability
 
         private void OnCanvasSized(object sender, SizeChangedEventArgs e)
         {
+            ApplyDisplaySizes();
             RepositionTarget();
+        }
+
+        private async void OnDisplayDpiChanged(DisplayInformation sender, object args)
+        {
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                if (exitRequested || stopping) return;
+                displayScale = new DisplayScaleManager();
+                ApplyDisplaySizes();
+                RepositionTarget();
+                if (displaySettingsVisible) ResetReferencePreview();
+            });
+        }
+
+        private void ApplyDisplaySizes()
+        {
+            if (displayScale == null) return;
+            double size = displayScale.ToViewUnits(
+                DisplayScaleManager.LevelOneDiameterMillimeters);
+            targetDiameter = Math.Max(1, size);
+            bullseyeDiameter = Math.Max(1, displayScale.ToViewUnits(
+                DisplayScaleManager.BullseyeDiameterMillimeters));
+            TargetRing.Width = targetDiameter;
+            TargetRing.Height = targetDiameter;
+            TargetBullseye.Width = bullseyeDiameter;
+            TargetBullseye.Height = bullseyeDiameter;
+
+            // Preserve generous minimum gaze-button sizes on small screens.
+            double buttonHeight = Math.Max(76, displayScale.ToViewUnits(20));
+            ExitButton.MinHeight = Math.Max(88, buttonHeight);
+            DisplaySettingsButton.MinHeight = buttonHeight;
+        }
+
+        private void ResetReferencePreview()
+        {
+            pendingReferenceWidth = displayScale.ReferenceBarViewWidth;
+            UpdateReferencePreview();
+        }
+
+        private void UpdateReferencePreview()
+        {
+            double available = RootLayout.ActualWidth - 48;
+            double limit = Math.Max(80, available);
+            pendingReferenceWidth = Math.Max(30,
+                Math.Min(limit, pendingReferenceWidth));
+            CalibrationReferenceBar.Width = pendingReferenceWidth;
+            CalibrationStatusText.Text =
+                "Match the line to the middle camera glass, then SAVE.";
+        }
+
+        private void OnDisplaySettingsRequested(object sender, RoutedEventArgs e)
+        {
+            if (stopping || exitRequested || displaySettingsVisible) return;
+            displaySettingsVisible = true;
+            targetMeasurement.CancelHold();
+            TargetRing.StrokeThickness = 8;
+            buttonDwellWheel.Hide();
+            gazeControlTarget = null;
+            gazeControlTriggered = false;
+            DisplaySettingsPanel.Visibility = Visibility.Visible;
+            ResetReferencePreview();
+        }
+
+        private void OnReferenceShorter(object sender, RoutedEventArgs e)
+        {
+            if (!displaySettingsVisible) return;
+            pendingReferenceWidth -= 6;
+            UpdateReferencePreview();
+        }
+
+        private void OnReferenceLonger(object sender, RoutedEventArgs e)
+        {
+            if (!displaySettingsVisible) return;
+            pendingReferenceWidth += 6;
+            UpdateReferencePreview();
+        }
+
+        private void OnSaveDisplay(object sender, RoutedEventArgs e)
+        {
+            if (!displaySettingsVisible) return;
+            try
+            {
+                displayScale.SaveReferenceWidth(pendingReferenceWidth);
+                ApplyDisplaySizes();
+                RepositionTarget();
+                CloseDisplaySettings();
+                LiveStatusText.Text = "Display size saved.";
+            }
+            catch (Exception ex)
+            {
+                CalibrationStatusText.Text = "Unable to save display size: " +
+                                              ex.GetType().Name;
+            }
+        }
+
+        private void OnCancelDisplay(object sender, RoutedEventArgs e)
+        {
+            if (displaySettingsVisible) CloseDisplaySettings();
+        }
+
+        private void CloseDisplaySettings()
+        {
+            displaySettingsVisible = false;
+            DisplaySettingsPanel.Visibility = Visibility.Collapsed;
+            buttonDwellWheel.Hide();
+            gazeControlTarget = null;
+            gazeControlTriggered = false;
+            // Restart target timing after settings; editing scale is not
+            // counted against speed or stability.
+            if (!completed && targetIndex >= 0)
+                targetMeasurement.BeginTarget(DateTimeOffset.UtcNow);
         }
 
         private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
@@ -316,7 +455,8 @@ namespace EyeGazeApiViability
 
         private void ProcessPosition(Point p, Point rawPoint)
         {
-            if (completed || exitRequested || stopping) return;
+            if (completed || exitRequested || stopping ||
+                displaySettingsVisible) return;
             if (TrainingCanvas.ActualWidth <= DotDiameter ||
                 TrainingCanvas.ActualHeight <= DotDiameter ||
                 p.X < 0 || p.Y < 0 ||
@@ -369,6 +509,7 @@ namespace EyeGazeApiViability
             {
                 completed = true;
                 TargetRing.Visibility = Visibility.Collapsed;
+                TargetBullseye.Visibility = Visibility.Collapsed;
                 InstructionText.Text = "All four targets completed!";
                 ProgressText.Text = "Great job! You found all four circles.";
                 Trace("Lesson completed; source=" + (live ? "live gaze" : "mouse"));
@@ -386,6 +527,7 @@ namespace EyeGazeApiViability
             targetIndex = -1;
             completed = false;
             TargetRing.Visibility = Visibility.Collapsed;
+            TargetBullseye.Visibility = Visibility.Collapsed;
             TargetRing.StrokeThickness = 8;
             targetMeasurement.CancelHold();
             PreviewDot.Visibility = Visibility.Collapsed;
@@ -424,7 +566,10 @@ namespace EyeGazeApiViability
             Point p = TargetCenter();
             Canvas.SetLeft(TargetRing, p.X - TargetDiameter / 2);
             Canvas.SetTop(TargetRing, p.Y - TargetDiameter / 2);
+            Canvas.SetLeft(TargetBullseye, p.X - bullseyeDiameter / 2);
+            Canvas.SetTop(TargetBullseye, p.Y - bullseyeDiameter / 2);
             TargetRing.Visibility = Visibility.Visible;
+            TargetBullseye.Visibility = Visibility.Visible;
         }
 
         private static double Clamp(double value, double min, double max)
@@ -436,6 +581,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            displaySettingsVisible = false;
             targetMeasurement.CancelHold();
             cursorFilter.Reset();
             buttonDwellWheel.Hide();
@@ -579,6 +725,11 @@ namespace EyeGazeApiViability
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            if (displayInformation != null)
+            {
+                displayInformation.DpiChanged -= OnDisplayDpiChanged;
+                displayInformation = null;
+            }
             Trace("Page OnNavigatedFrom; gaze active=" + live +
                   " cleanup stage=" + cleanupStage + " exit requested=" + exitRequested);
             base.OnNavigatedFrom(e);
