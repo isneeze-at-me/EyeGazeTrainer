@@ -416,9 +416,16 @@
             <StackPanel VerticalAlignment="Center" Spacing="12">
               <TextBlock Text="THERAPIST EXPORT" Foreground="White"
                          FontSize="23" FontWeight="Bold" TextAlignment="Center"/>
-              <TextBlock Text="Not available yet" Foreground="#E2E8F0"
-                         FontSize="23" FontWeight="Bold" TextAlignment="Center"/>
-              <TextBlock Text="Planned PDF and CSV reports: progress, skill metrics, session trends, 7×5 heatmaps, data quality and approved notes. No export occurs automatically."
+              <Button x:Name="TherapistExportButton" Content="EXPORT .TXT REPORT"
+                      Style="{StaticResource PrimaryGazeButton}" Click="OnExportTherapistReport"
+                      FontSize="22" FontWeight="Bold" MinHeight="80"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+              <TextBlock x:Name="TherapistExportStatusText"
+                         Text="Export a readable report to your Downloads folder."
+                         Foreground="#E2E8F0" FontSize="18"
+                         TextAlignment="Center" TextWrapping="Wrap"
+                         MaxLines="3"/>
+              <TextBlock Text="Text only. Includes actual progress, trends, settings, both 7×5 maps, and clearly marked unavailable metrics. Saved only when selected."
                          Foreground="#E2E8F0" FontSize="17" TextWrapping="Wrap"
                          TextAlignment="Center"/>
             </StackPanel>
