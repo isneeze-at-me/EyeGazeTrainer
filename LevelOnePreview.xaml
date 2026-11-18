@@ -174,29 +174,41 @@
               Margin="20,16,0,0"/>
     </Grid>
 
-    <!-- Quiz questions and scoring will be added in the next iteration. -->
-    <Grid x:Name="BonusPanel" Background="#101827" Visibility="Collapsed"
-          Padding="24">
+    <!-- The question or its answer occupies the top half of the screen. -->
+    <Grid x:Name="BonusPanel" Background="#101827" Visibility="Collapsed" Padding="24">
       <Grid.RowDefinitions>
         <RowDefinition Height="*"/>
-        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
-      <StackPanel Grid.Row="0" HorizontalAlignment="Center"
-                  VerticalAlignment="Center" Spacing="20">
-        <TextBlock Text="BONUS ROUND!" FontFamily="Comic Sans MS"
-                   FontSize="62" FontWeight="Bold" Foreground="#FFD84D"
-                   TextAlignment="Center" TextWrapping="Wrap"/>
-        <TextBlock Text="TRUE OR FALSE TRIVIA" FontSize="38"
-                   FontWeight="Bold" Foreground="#69E6FF"
-                   TextAlignment="Center" TextWrapping="Wrap"/>
-        <TextBlock Text="Coming next!" FontSize="25"
-                   Foreground="White" TextAlignment="Center"/>
-      </StackPanel>
-      <Button x:Name="BonusBackButton" Grid.Row="1"
-              Style="{StaticResource SecondaryGazeButton}"
-              Content="BACK TO LEVELS" Click="OnBackToLevels"
-              FontSize="28" FontWeight="Bold" MinHeight="100"
-              HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+      <Grid Grid.Row="0" Padding="14" VerticalAlignment="Stretch">
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Spacing="18">
+          <TextBlock x:Name="BonusProgressText" Foreground="#69E6FF" FontSize="23"
+                     FontWeight="SemiBold" TextAlignment="Center"/>
+          <TextBlock x:Name="BonusFactText" Foreground="White" FontSize="40"
+                     FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Grid>
+      <Grid x:Name="BonusChoicesPanel" Grid.Row="1" ColumnSpacing="22"
+            Margin="10,8,10,12">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Button x:Name="BonusTrueButton" Grid.Column="0" Content="TRUE"
+                Style="{StaticResource PrimaryGazeButton}" Click="OnBonusTrue"
+                FontSize="48" FontWeight="Bold" HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        <Button x:Name="BonusFalseButton" Grid.Column="1" Content="FALSE"
+                Style="{StaticResource PrimaryGazeButton}" Click="OnBonusFalse"
+                FontSize="48" FontWeight="Bold" HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+      </Grid>
+      <Grid x:Name="BonusFinalPanel" Grid.Row="1" Visibility="Collapsed">
+        <TextBlock x:Name="BonusFinalText" Foreground="#FFD84D"
+                   FontSize="54" FontWeight="Bold" TextWrapping="Wrap"
+                   TextAlignment="Center" HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+      </Grid>
     </Grid>
 
     <Grid x:Name="DisplaySettingsPanel"  Background="#101827"
