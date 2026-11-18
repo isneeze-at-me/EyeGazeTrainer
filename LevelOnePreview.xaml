@@ -193,7 +193,7 @@
                 </Border>
               </Grid>
             </Viewbox>
-            <TextBlock Grid.Row="2" Text="Lower mm = steadier · Green ≤2 · Yellow ≤4 · Red >4" FontSize="15"
+            <TextBlock Grid.Row="2" Text="Lower mm = steadier · Green ≤2 · Yellow ≤4 · Red &gt;4" FontSize="15"
                        Foreground="#EFF6FF" TextAlignment="Center" Margin="0,5,0,0"/>
           </Grid>
         </Border>
