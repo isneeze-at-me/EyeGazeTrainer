@@ -28,7 +28,7 @@ namespace EyeGazeApiViability
         private double TargetDiameter { get { return targetDiameter; } }
         private readonly MasterCursorSmoothingFilter cursorFilter = new MasterCursorSmoothingFilter();
         private readonly AdaptiveGazeProfile gazeProfile = new AdaptiveGazeProfile();
-        private const int TargetsPerLevel = 6;
+        private const int TargetsPerLevel = 10;
         private readonly Random placementRandom = new Random();
         private readonly TrainingProgress trainingProgress = new TrainingProgress();
         private Point targetPosition;
@@ -466,7 +466,7 @@ namespace EyeGazeApiViability
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Levels) return;
             // A completed level stays selectable. Replay resets only the
-            // current six-target session, never the persisted completion flag.
+            // current ten-target session, never the persisted completion flag.
             ShowScreen(AppScreen.Lesson);
             ResetLesson();
         }
@@ -685,7 +685,7 @@ namespace EyeGazeApiViability
             {
                 completed = true;
                 trainingProgress.MarkCompleted(1);
-                Trace("Level 1 completed: six targets; source=" +
+                Trace("Level 1 completed: ten targets; source=" +
                       (live ? "live gaze" : "mouse"));
                 UpdateLevelBadges();
                 BeginBonusTransition();
