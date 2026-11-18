@@ -1,9 +1,53 @@
 <Page x:Class="EyeGazeApiViability.LevelOnePreview"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Page.Resources>
+    <!-- Accessible high-contrast button palette. Keep native UWP focus,
+         pointer, and click semantics for eye-gaze hit testing. -->
+    <Style x:Key="PrimaryGazeButton" TargetType="Button">
+      <Setter Property="Background" Value="#265B96"/>
+      <Setter Property="Foreground" Value="#FFFFFF"/>
+      <Setter Property="BorderBrush" Value="#76B9F3"/>
+      <Setter Property="BorderThickness" Value="2"/>
+      <Setter Property="CornerRadius" Value="18"/>
+      <Setter Property="Padding" Value="24,16"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style x:Key="SecondaryGazeButton" TargetType="Button">
+      <Setter Property="Background" Value="#293A53"/>
+      <Setter Property="Foreground" Value="#FFFFFF"/>
+      <Setter Property="BorderBrush" Value="#7187A5"/>
+      <Setter Property="BorderThickness" Value="2"/>
+      <Setter Property="CornerRadius" Value="18"/>
+      <Setter Property="Padding" Value="22,14"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style x:Key="DangerGazeButton" TargetType="Button">
+      <Setter Property="Background" Value="#713A47"/>
+      <Setter Property="Foreground" Value="#FFFFFF"/>
+      <Setter Property="BorderBrush" Value="#EAA0AE"/>
+      <Setter Property="BorderThickness" Value="2"/>
+      <Setter Property="CornerRadius" Value="18"/>
+      <Setter Property="Padding" Value="22,14"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style x:Key="PendingLevelButton" TargetType="Button">
+      <Setter Property="Background" Value="#26354B"/>
+      <Setter Property="Foreground" Value="#E4ECF8"/>
+      <Setter Property="BorderBrush" Value="#566D8A"/>
+      <Setter Property="BorderThickness" Value="2"/>
+      <Setter Property="CornerRadius" Value="18"/>
+      <Setter Property="Padding" Value="14,12"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+  </Page.Resources>
   <Grid x:Name="RootLayout" Background="#101827">
     <!-- Single gaze-owning Page: screen changes never release the eye tracker. -->
-    <Grid x:Name="HomePanel" Background="#101827" Padding="18">
+    <Grid x:Name="HomePanel" Background="#101827" Padding="26">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
@@ -23,21 +67,21 @@
                    Foreground="#FBBF24"/>
       </StackPanel>
       <!-- Three equally tall buttons consume nearly all available space. -->
-      <Grid Grid.Row="1" RowSpacing="16">
+      <Grid Grid.Row="1" RowSpacing="22">
         <Grid.RowDefinitions>
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Button x:Name="LevelsMenuButton" Grid.Row="0" Content="LEVELS"
+        <Button Style="{StaticResource PrimaryGazeButton}" x:Name="LevelsMenuButton" Grid.Row="0" Content="LEVELS"
                 Click="OnOpenLevels" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
                 MinHeight="110" FontSize="36" FontWeight="Bold"/>
-        <Button x:Name="SettingsMenuButton" Grid.Row="1" Content="SETTINGS"
+        <Button Style="{StaticResource SecondaryGazeButton}" x:Name="SettingsMenuButton" Grid.Row="1" Content="SETTINGS"
                 Click="OnDisplaySettingsRequested" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
                 MinHeight="110" FontSize="36" FontWeight="Bold"/>
-        <Button x:Name="ExitButton" Grid.Row="2" Content="EXIT"
+        <Button Style="{StaticResource DangerGazeButton}" x:Name="ExitButton" Grid.Row="2" Content="EXIT"
                 Click="OnExitRequested" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
                 MinHeight="110" FontSize="36" FontWeight="Bold"/>
@@ -45,7 +89,7 @@
 
     </Grid>
 
-    <Grid x:Name="LevelsPanel" Background="#101827" Padding="16"
+    <Grid x:Name="LevelsPanel" Background="#101827" Padding="24"
           Visibility="Collapsed">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
@@ -58,41 +102,41 @@
         <TextBlock Text="Complete each lesson to track your progress."
                    FontSize="19" Foreground="#B7C9E4" TextAlignment="Center"/>
       </StackPanel>
-      <Grid Grid.Row="1" ColumnSpacing="12" RowSpacing="12"
+      <Grid Grid.Row="1" ColumnSpacing="20" RowSpacing="20"
             VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
           <RowDefinition Height="*"/><RowDefinition Height="*"/><RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Button x:Name="LevelOneButton" Grid.Row="0" Grid.Column="0"
+        <Button Style="{StaticResource PrimaryGazeButton}" x:Name="LevelOneButton" Grid.Row="0" Grid.Column="0"
                 Content="LEVEL 1" Click="OnLevelOne" MinHeight="112"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-        <Button x:Name="LevelTwoButton" Grid.Row="0" Grid.Column="1"
+        <Button Style="{StaticResource PendingLevelButton}" x:Name="LevelTwoButton" Grid.Row="0" Grid.Column="1"
                 Content="LEVEL 2" Click="OnPlaceholderLevel" MinHeight="112"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-        <Button x:Name="LevelThreeButton" Grid.Row="1" Grid.Column="0"
+        <Button Style="{StaticResource PendingLevelButton}" x:Name="LevelThreeButton" Grid.Row="1" Grid.Column="0"
                 Content="LEVEL 3" Click="OnPlaceholderLevel" MinHeight="112"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-        <Button x:Name="LevelFourButton" Grid.Row="1" Grid.Column="1"
+        <Button Style="{StaticResource PendingLevelButton}" x:Name="LevelFourButton" Grid.Row="1" Grid.Column="1"
                 Content="LEVEL 4" Click="OnPlaceholderLevel" MinHeight="112"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-        <Button x:Name="LevelFiveButton" Grid.Row="2" Grid.Column="0"
+        <Button Style="{StaticResource PendingLevelButton}" x:Name="LevelFiveButton" Grid.Row="2" Grid.Column="0"
                 Content="LEVEL 5" Click="OnPlaceholderLevel" MinHeight="112"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-        <Button x:Name="LevelSixButton" Grid.Row="2" Grid.Column="1"
+        <Button Style="{StaticResource PendingLevelButton}" x:Name="LevelSixButton" Grid.Row="2" Grid.Column="1"
                 Content="LEVEL 6" Click="OnPlaceholderLevel" MinHeight="112"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
       </Grid>
-      <StackPanel Grid.Row="2" Spacing="6" Margin="0,10,0,0">
+      <StackPanel Grid.Row="2" Spacing="10" Margin="0,18,0,0">
         <TextBlock x:Name="LevelsNoticeText" FontSize="18" TextAlignment="Center"
                    Foreground="#FBBF24" TextWrapping="Wrap"/>
-        <Button x:Name="LevelsBackButton" Content="BACK TO MENU"
+        <Button Style="{StaticResource SecondaryGazeButton}" x:Name="LevelsBackButton" Content="BACK TO MENU"
                 Click="OnBackToMenu" MinHeight="94"
                 FontSize="27" FontWeight="Bold" HorizontalAlignment="Stretch"
                 HorizontalContentAlignment="Center"/>
@@ -110,7 +154,7 @@
                  Fill="#FFFFFF" Stroke="#0D253B" StrokeThickness="2"
                  Visibility="Collapsed" IsHitTestVisible="False"/>
       </Canvas>
-      <Button x:Name="LessonBackButton" Content="BACK"
+      <Button Style="{StaticResource SecondaryGazeButton}" x:Name="LessonBackButton" Content="BACK"
               Click="OnBackToLevels" MinHeight="86" MinWidth="155"
               Padding="16,12" FontSize="22" FontWeight="Bold"
               HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -167,10 +211,10 @@
                    TextAlignment="Center" FontSize="18" Foreground="#E2E8F0"/>
         <Grid ColumnSpacing="12">
           <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-          <Button x:Name="ShorterButton" Grid.Column="0" Content="−  SHORTER"
+          <Button Style="{StaticResource SecondaryGazeButton}" x:Name="ShorterButton" Grid.Column="0" Content="−  SHORTER"
                   Click="OnReferenceShorter" MinHeight="82" FontWeight="Bold"
                   FontSize="22" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button x:Name="LongerButton" Grid.Column="1" Content="+  LONGER"
+          <Button Style="{StaticResource PrimaryGazeButton}" x:Name="LongerButton" Grid.Column="1" Content="+  LONGER"
                   Click="OnReferenceLonger" MinHeight="82" FontWeight="Bold"
                   FontSize="22" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
         </Grid>
@@ -178,13 +222,13 @@
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
           </Grid.ColumnDefinitions>
-          <Button x:Name="SaveDisplayButton" Grid.Column="0" Content="SAVE"
+          <Button Style="{StaticResource PrimaryGazeButton}" x:Name="SaveDisplayButton" Grid.Column="0" Content="SAVE"
                   Click="OnSaveDisplay" MinHeight="76" FontSize="21" FontWeight="Bold"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button x:Name="CancelDisplayButton" Grid.Column="1" Content="CANCEL"
+          <Button Style="{StaticResource SecondaryGazeButton}" x:Name="CancelDisplayButton" Grid.Column="1" Content="CANCEL"
                   Click="OnCancelDisplay" MinHeight="76" FontSize="21" FontWeight="Bold"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button x:Name="SettingsExitButton" Grid.Column="2" Content="BACK"
+          <Button Style="{StaticResource SecondaryGazeButton}" x:Name="SettingsExitButton" Grid.Column="2" Content="BACK"
                   Click="OnCancelDisplay" MinHeight="76" FontSize="21" FontWeight="Bold"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
         </Grid>
