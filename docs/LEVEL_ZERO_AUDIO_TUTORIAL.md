@@ -1,6 +1,6 @@
 # Level 0 — Audio-Guided Eye Cursor (Adult First-Run Experience)
 
-**Status:** Design specification, not implemented yet. This is a separate first-launch tutorial before the existing Level 1; do not change Level 1, its trivia, or eye-tracker shutdown lifecycle in this task.
+**Status (2026-11-18):** Initial implementation is committed on the `Test` branch: the first-run Level 0 screen, eyeball-shaped gaze cursor, local Windows spoken instructions with activity-based feedback, slow geometric pursuit target, and a single large button using the shared 1.5-second dwell to open the existing home screen. Existing Level 1 and eye-tracker shutdown lifecycle were not changed. **Windows build and live PCEye 5/TD Control coexistence have not been validated.** Independent non-dwell recovery, replay UX, and persistent six-metric Level 0 reporting remain unfinished; do not represent this as a complete accessible release.
 
 ## Core experience
 
@@ -79,4 +79,4 @@
 - [ ] Local reports store aggregate data, with NA for insufficient observations.
 - [ ] Gaze-only safety/back/recovery and TD Control handoff are supervised and verified.
 
-**Implementation sequence:** first-run routing and voice service; eye cursor; free movement/feedback classifier; slow pursuit and measurements; first large selection; persistence and replay; guided hardware/accessibility tests.
+**Implementation progress:** [x] first-run routing for a new learner (existing learners with training records skip); [x] local speech service; [x] eye-shaped cursor; [x] free-movement and corner feedback; [x] animated slow target and sampled proximity; [x] large final dwell button; [x] completion flag and entry to home; [ ] independent no-dwell escape/recovery that novice users can reliably perform; [ ] replay from menu; [ ] persist Level 0 summary metrics and populate reporting cards; [ ] supervised Windows compile/layout/device tests. Level 0 is **development-preview only** until those remaining items are addressed.
