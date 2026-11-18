@@ -2,6 +2,8 @@
 
 **Status:** Implementation roadmap, prepared 2026-11-18. Diagnostics tab shell is implemented on `Test`; levels 2–6 and the additional measurement pipelines below are **not** implemented. No claim of verified live gaze hardware safety.
 
+> **Level 0 design update (2026-11-18):** The app's first-run introduction is a separate, **audio-only Level 0** before the existing ten-target Level 1. The eyeball shape is the **moving gaze cursor itself**, not a pair of stationary eyes. Spoken prompts depend on real activity (for example stable visits to screen corners), then a slow moving target is introduced, followed by one large gaze-dwell Main Screen button. **No text instructions, no child-themed games, no compulsory dwell before it is taught.** Keep the current Level 1 exercise. Full design and acceptance tests: [Level 0 Audio Tutorial](LEVEL_ZERO_AUDIO_TUTORIAL.md). This is specification only, not implemented.
+
 ## Product constraints
 
 1. **Independent eye-only operation:** Starting, instruction, navigation, rest, retry, help, adjustment, resume and exit must not require a skill the learner has not been taught. Onboarding must begin with gaze presence and/or gaze location only—no undisclosed dwell or click. Existing prototype menu navigation uses dwell and must be redesigned before being called beginner-safe.
@@ -93,10 +95,10 @@ Global layout: fixed black header with readable title + existing **BACK**, large
 
 **Exit gate:** every displayed metric is backed by valid measured input and is labeled NA otherwise.
 
-### Phase 2 — Preserve and refine Level 1, then build Level 2
+### Phase 2 — Implement audio-only Level 0, preserve Level 1, then build Level 2
 
-- [ ] Rework beginner launch, instructions, controls, rest and exit to use only gaze presence/location; remove compulsory dwell before taught.
-- [ ] Retain the existing ten-target Level 1, adding only an introductory immediate-gaze feedback step and an independent first-use entry/recovery mechanism; retain the optional adult-interest trivia reward.
+- [ ] Implement first-run **Level 0** with the eye-shaped gaze cursor, spoken-only instructions, context-sensitive verbal feedback, slow pursuit exercise, taught final large-button dwell, and independent non-dwell recovery; see [spec](LEVEL_ZERO_AUDIO_TUTORIAL.md).
+- [ ] Preserve the existing ten-target Level 1; Level 0 handles first-time cursor discovery and introduces the selection concept. Retain optional adult-interest trivia.
 - [ ] Build Level 2 directional movement and adult-styled challenges; persist tracking/dropout and latency metrics.
 - [ ] Validate novice usability without caregiver assistance under a safe observed setup.
 
