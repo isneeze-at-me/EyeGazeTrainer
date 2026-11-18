@@ -92,6 +92,7 @@
                     AreTransportControlsEnabled="False"
                     Visibility="Visible" Opacity="0" Width="1" Height="1"
                     HorizontalAlignment="Left" VerticalAlignment="Top"
+                    MediaFailed="OnLevelZeroMediaFailed"
                     IsHitTestVisible="False"/>
     </Grid>
 
