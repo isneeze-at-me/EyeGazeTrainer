@@ -18,6 +18,8 @@ namespace EyeGazeApiViability
     {
         private const double TargetDiameter = 116;
         private const double DotDiameter = 44;
+        private readonly MasterCursorSmoothingFilter cursorFilter = new MasterCursorSmoothingFilter();
+        private readonly AdaptiveGazeProfile gazeProfile = new AdaptiveGazeProfile();
         private static readonly Point[] TargetFractions =
         {
             new Point(0.25, 0.50), new Point(0.75, 0.50),
@@ -49,6 +51,8 @@ namespace EyeGazeApiViability
         {
             InitializeComponent();
             buttonDwellWheel = new SharedButtonDwellWheel(CursorOverlay);
+            cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
+            UpdateAccuracyDisplay();
             Loaded += OnPageLoaded;
         }
 
@@ -118,6 +122,7 @@ namespace EyeGazeApiViability
             _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
                 if (!live || stopping) return;
+                cursorFilter.Reset();
                 LiveStatusText.Text = "Eye tracker disconnected. Please ask for assistance.";
                 Trace("Gaze device removed");
             });
@@ -163,10 +168,28 @@ namespace EyeGazeApiViability
             // coordinates local to the canvas.
             // Show the indicator across the entire page, including Exit.
             // Gaze position remains in UWP view coordinates for button hit tests.
-            UpdateCursor(p);
+            // Present and interact using the SAME master stabilized stream.
+            // Exit is deliberately different: its safety-critical 1.5s dwell
+            // uses RAW gaze so smoothing never delays or traps an exit.
+            if (p.X < 0 || p.Y < 0 ||
+                p.X > RootLayout.ActualWidth || p.Y > RootLayout.ActualHeight)
+            {
+                cursorFilter.Reset();
+                PreviewDot.Visibility = Visibility.Collapsed;
+                buttonDwellWheel.Hide();
+                ProcessGazeControl(p);
+                e.Handled = true;
+                return;
+            }
+
+            Point stabilized = cursorFilter.Update(p, DateTimeOffset.UtcNow);
+            UpdateCursor(stabilized);
             Point canvasOrigin = TrainingCanvas.TransformToVisual(this)
                                   .TransformPoint(new Point(0, 0));
-            ProcessPosition(new Point(p.X - canvasOrigin.X, p.Y - canvasOrigin.Y));
+            ProcessPosition(new Point(stabilized.X - canvasOrigin.X,
+                                      stabilized.Y - canvasOrigin.Y),
+                            new Point(p.X - canvasOrigin.X,
+                                      p.Y - canvasOrigin.Y));
             ProcessGazeControl(p);
             e.Handled = true;
         }
@@ -236,7 +259,7 @@ namespace EyeGazeApiViability
                                   .TransformPoint(new Point(0, 0));
             UpdateCursor(new Point(canvasPoint.X + canvasOrigin.X,
                                    canvasPoint.Y + canvasOrigin.Y));
-            ProcessPosition(canvasPoint);
+            ProcessPosition(canvasPoint, canvasPoint);
         }
 
         // This overlay belongs to the page, not the training canvas. It cannot
@@ -263,7 +286,7 @@ namespace EyeGazeApiViability
                 CursorOverlay.ActualHeight - DotDiameter));
         }
 
-        private void ProcessPosition(Point p)
+        private void ProcessPosition(Point p, Point rawPoint)
         {
             if (TrainingCanvas.ActualWidth <= DotDiameter ||
                 TrainingCanvas.ActualHeight <= DotDiameter ||
@@ -286,10 +309,25 @@ namespace EyeGazeApiViability
             Point target = TargetCenter();
             double dx = p.X - target.X;
             double dy = p.Y - target.Y;
-            bool inRing = dx * dx + dy * dy <= 58 * 58;
+            // Keep the visible ring unchanged; only its activation region
+            // starts at 110% and gradually contracts toward the true circle.
+            double hitRadius = TargetDiameter * 0.5 * gazeProfile.HitBoxScale;
+            bool inRing = dx * dx + dy * dy <= hitRadius * hitRadius;
             if (inRing && !insideTarget)
             {
                 insideTarget = true;
+                if (live)
+                {
+                    double rawDx = rawPoint.X - target.X;
+                    double rawDy = rawPoint.Y - target.Y;
+                    gazeProfile.RecordTargetAcquisition(
+                        Math.Sqrt(rawDx * rawDx + rawDy * rawDy),
+                        TargetDiameter * 0.5);
+                    // One level and hitbox scale apply to every subsequent
+                    // target; no per-target difficulty overrides.
+                    cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
+                    UpdateAccuracyDisplay();
+                }
                 targetIndex++;
                 if (targetIndex >= TargetFractions.Length)
                 {
@@ -318,8 +356,18 @@ namespace EyeGazeApiViability
             completed = false;
             TargetRing.Visibility = Visibility.Collapsed;
             PreviewDot.Visibility = Visibility.Collapsed;
+            cursorFilter.Reset();
+            cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
+            UpdateAccuracyDisplay();
             ProgressText.Text = "Look at the blue area to begin";
             InstructionText.Text = "Look at each yellow ring. No dwell or click is needed.";
+        }
+
+        private void UpdateAccuracyDisplay()
+        {
+            AccuracyText.Text = gazeProfile.Acquisitions == 0
+                ? "Accuracy: getting started"
+                : "Accuracy: " + Math.Round(gazeProfile.AccuracyScore) + "%";
         }
 
         private Point TargetCenter()
@@ -352,6 +400,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            cursorFilter.Reset();
             buttonDwellWheel.Hide();
             ExitButton.IsEnabled = false;
             Trace("EXIT requested; source active=" + live);
