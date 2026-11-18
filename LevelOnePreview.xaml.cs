@@ -168,16 +168,16 @@ namespace EyeGazeApiViability
             // coordinates local to the canvas.
             // Show the indicator across the entire page, including Exit.
             // Gaze position remains in UWP view coordinates for button hit tests.
-            // Present and interact using the SAME master stabilized stream.
-            // Exit is deliberately different: its safety-critical 1.5s dwell
-            // uses RAW gaze so smoothing never delays or traps an exit.
+            // All gaze targets, including buttons, share the master stabilized
+            // stream and adaptive hitboxes. Exit additionally accepts raw gaze
+            // as a safety fallback, so stabilization cannot make it unreachable.
             if (p.X < 0 || p.Y < 0 ||
                 p.X > RootLayout.ActualWidth || p.Y > RootLayout.ActualHeight)
             {
                 cursorFilter.Reset();
                 PreviewDot.Visibility = Visibility.Collapsed;
                 buttonDwellWheel.Hide();
-                ProcessGazeControl(p);
+                ProcessGazeControl(p, p);
                 e.Handled = true;
                 return;
             }
@@ -190,13 +190,14 @@ namespace EyeGazeApiViability
                                       stabilized.Y - canvasOrigin.Y),
                             new Point(p.X - canvasOrigin.X,
                                       p.Y - canvasOrigin.Y));
-            ProcessGazeControl(p);
+            ProcessGazeControl(stabilized, p);
             e.Handled = true;
         }
 
 
-        // Direct gaze-position hit test: no Windows mouse or TD Control click.
-        private void ProcessGazeControl(Point viewPoint)
+        // All controls use the shared stabilized stream and adaptive hitboxes.
+        // Exit additionally accepts a raw-gaze hit to preserve accessibility.
+        private void ProcessGazeControl(Point stabilizedPoint, Point rawPoint)
         {
             if (!live || stopping || exitRequested) return;
             var now = DateTimeOffset.UtcNow;
@@ -209,7 +210,7 @@ namespace EyeGazeApiViability
                 buttonDwellWheel.Hide();
             }
             lastGazeAt = now;
-            Button target = InsideButton(ExitButton, viewPoint) ? ExitButton : null;
+            Button target = FindGazeButton(stabilizedPoint, rawPoint);
             if (target == null)
             {
                 gazeControlTarget = null;
@@ -235,14 +236,41 @@ namespace EyeGazeApiViability
             OnExitRequested(null, null);
         }
 
+        // Central registration point for every gaze button on this page.
+        // Future buttons are added to this collection, not given bespoke
+        // filters, geometry, or dwell timers.
+        private Button[] GetGazeButtons()
+        {
+            return new[] { ExitButton };
+        }
+
+        private Button FindGazeButton(Point stabilizedPoint, Point rawPoint)
+        {
+            foreach (Button button in GetGazeButtons())
+            {
+                if (InsideButton(button, stabilizedPoint))
+                    return button;
+
+                // For the safety-critical Exit button, accept the same
+                // adaptive hit region under raw gaze as well. This prevents
+                // smoothing from delaying access when attention shifts to Exit.
+                if (button == ExitButton && InsideButton(button, rawPoint))
+                    return button;
+            }
+            return null;
+        }
+
         private bool InsideButton(Button button, Point gaze)
         {
             if (button == null || !button.IsEnabled ||
                 button.Visibility != Visibility.Visible ||
                 button.ActualWidth <= 0 || button.ActualHeight <= 0) return false;
+
             Point origin = button.TransformToVisual(this).TransformPoint(new Point(0, 0));
-            return gaze.X >= origin.X && gaze.X <= origin.X + button.ActualWidth &&
-                   gaze.Y >= origin.Y && gaze.Y <= origin.Y + button.ActualHeight;
+            var bounds = new Rect(origin.X, origin.Y, button.ActualWidth,
+                                  button.ActualHeight);
+            return AdaptiveHitTesting.ContainsRectangle(
+                gaze, bounds, gazeProfile.HitBoxScale);
         }
 
         private void OnCanvasSized(object sender, SizeChangedEventArgs e)
