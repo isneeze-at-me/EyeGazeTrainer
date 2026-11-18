@@ -1,6 +1,6 @@
 # EyeGazeTrainer — adult-oriented eight-level curriculum, therapist diagnostics and delivery plan
 
-**Status:** Roadmap updated 2026-11-18. The four-tab Diagnostics layout, six gaze-navigable Skills categories with 36 clearly labeled NA metric cards, session/report layout, existing lifetime report, and 7×5 maps are committed on `Test`. New Skills recording, session history, and export are **not** implemented. Level 0 and Levels 2–8 remain planned. Windows build and gaze hardware tests are pending. See [Diagnostics Metric Catalog](DIAGNOSTICS_METRIC_CATALOG.md).
+**Status:** Roadmap updated 2026-11-18. The four-tab Diagnostics layout, six gaze-navigable Skills categories with 36 clearly labeled NA metric cards, session/report layout, existing lifetime report, and 7×5 maps are committed on `Test`. New Skills recording and dated session history are **not** implemented; user-triggered TXT export of the existing aggregates and NA placeholders **is implemented**. Level 0 and Levels 2–8 remain planned. Windows build and gaze hardware tests are pending. See [Diagnostics Metric Catalog](DIAGNOSTICS_METRIC_CATALOG.md).
 
 > **Level 0 design update (2026-11-18):** The app's first-run introduction is a separate, **audio-only Level 0** before the existing ten-target Level 1. The eyeball shape is the **moving gaze cursor itself**, not a pair of stationary eyes. Spoken prompts depend on real activity (for example stable visits to screen corners), then a slow moving target is introduced, followed by one large gaze-dwell Main Screen button. **No text instructions, no child-themed games, no compulsory dwell before it is taught.** Keep the current Level 1 exercise. Full design and acceptance tests: [Level 0 Audio Tutorial](LEVEL_ZERO_AUDIO_TUTORIAL.md). This is specification only, not implemented.
 
@@ -68,7 +68,7 @@ Implemented on `Test` as four large non-scrolling, 1.5-second shared gaze-dwell 
 1. **OVERVIEW** — existing cumulative Training Report: completed levels, runs, practice hours, overall adaptive score and trend, target precision and trend, jitter and trend, smoothing % and direction. Companion explanatory card replaces overcrowded four-quadrant grid. Future: recent best result, independent rest/return success, an explicitly *nonclinical* observation callout.
 2. **SKILLS** — implemented as six large gaze-dwell categories: Level 0, Targets, Dwell, Tracking, Endurance and Function. Each category displays six defined metrics in a 2×3 card layout, totaling **36 NA placeholders** until validated measurement sources are wired. Do not require this tab during first-time novice onboarding.
 3. **MAPS** — existing persistent 7-column × 5-row Accuracy and Eye Jitter tablet maps side by side at larger readable sizes; consistent green/yellow/red/NA and units. Future: explicit legend, sample-count overlay, user-controlled selection to show one region (without ever requiring tiny 35-cell gaze activation for novice use).
-4. **SESSIONS** — four separate placeholder tiles for session history, early/middle/late matched-task comparisons, user-controlled conditions notes, and consent-controlled PDF/CSV export. No historical sessions are fabricated.
+4. **SESSIONS** — four separate placeholder tiles for session history, early/middle/late matched-task comparisons, user-controlled conditions notes, and user-triggered .txt export (implemented for current aggregates). No historical sessions are fabricated.
 
 Global layout: fixed black header with readable title + existing **BACK**, large separated tab buttons (minimum gaze targets), no automatic scroll, sufficient spacing to avoid adjacent-button misactivation, selected-tab contrast, single gaze-owning page. Preserve look-away rearm and common dwell wheel. Maintain session and tab state if eye-tracking availability changes without requiring a new skill.
 
@@ -125,7 +125,7 @@ Global layout: fixed black header with readable title + existing **BACK**, large
 - [ ] Populate SKILLS with real metrics, data-quality indicators and sample counts; filter comparisons by level, conditions and settings.
 - [ ] Populate SESSIONS with chronological summaries and matched early-vs-late performance plot; show provisional trends with caveats.
 - [ ] Add simple user-controlled optional post-session self-rating of effort/comfort, reachable with existing taught input.
-- [ ] Add consent-controlled **Export PDF** and **Export CSV** (summary only), including metric definitions, sample counts, date interval, device/display settings, 7×5 maps, completed levels/runs and user-approved notes. Do not auto-email, sync or upload.
+- [x] Add gaze-operated **Export .TXT** with current progress, definitions, sample counts, two 7×5 maps, settings and explicit NA for unavailable data; creates a unique local Downloads file only on user activation. [ ] After new session/context collection is implemented, expand the same text report with genuine dated sessions and user-approved notes. Do not auto-email, sync or upload.
 - [ ] Define optional therapist note workflow without forcing it on users or requiring typed input to end a session.
 
 **Exit gate:** clinician can inspect a truthful report; user independently controls export/share.
@@ -147,7 +147,7 @@ Global layout: fixed black header with readable title + existing **BACK**, large
 3. Implement **reliable session and event recording** and real SKILLS measurements, with unit tests.
 4. Build **Levels 2 and 3** (directional arrival and hold stability) and instrument them; retain the current Level 1 exercise and add a first-use non-dwell introduction and independent recovery route.
 5. Implement **Levels 4–8**: dwell, selection accuracy, menu navigation, advanced precision and practical AAC tasks.
-6. Complete Sessions and user-controlled PDF/CSV export after sufficient valid data exists.
+6. Complete Sessions measurement and expand the existing user-controlled TXT export after sufficient valid data exists.
 
 ## Testing notes
 
