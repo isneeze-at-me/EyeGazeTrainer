@@ -155,6 +155,8 @@ namespace EyeGazeApiViability
             {
                 if (!live || stopping) return;
                 cursorFilter.Reset();
+                targetMeasurement.CancelHold();
+                HideTargetDwellVisual();
                 LiveStatusText.Text = "Eye tracker disconnected. Please ask for assistance.";
                 Trace("Gaze device removed");
             });
@@ -206,6 +208,8 @@ namespace EyeGazeApiViability
                 p.X > RootLayout.ActualWidth || p.Y > RootLayout.ActualHeight)
             {
                 cursorFilter.Reset();
+                targetMeasurement.CancelHold();
+                HideTargetDwellVisual();
                 PreviewDot.Visibility = Visibility.Collapsed;
                 buttonDwellWheel.Hide();
                 ProcessGazeControl(p, p);
