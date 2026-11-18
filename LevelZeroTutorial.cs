@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 using System.Globalization;
 using Windows.Foundation;
 using Windows.Media.SpeechSynthesis;
+using Windows.Media.Playback;
+using Windows.Media.Core;
+using Windows.UI.Xaml.Media;
 using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -15,7 +18,7 @@ namespace EyeGazeApiViability
         private const string LevelZeroDoneKey = "EyeGazeTrainer.LevelZero.CompletedV1";
         private enum LevelZeroStage { Explore, Pursue, Continue }
         private LevelZeroStage levelZeroStage;
-        private DispatcherTimer levelZeroClock;
+        private bool levelZeroRenderingSubscribed;
         private DateTimeOffset levelZeroStarted;
         private DateTimeOffset levelZeroStageStarted;
         private DateTimeOffset levelZeroLastPrompt;
@@ -38,6 +41,7 @@ namespace EyeGazeApiViability
         private bool levelZeroHorizontalPrompted, levelZeroCornerPrompted, levelZeroFollowPrompted;
         private bool levelZeroSpeechBusy;
         private SpeechSynthesizer levelZeroSynth;
+        private MediaPlayer levelZeroAudioPlayer;
         private bool levelZeroSpeechUnavailable;
         // Hold the synthesized audio stream open for the entire playback.
         // Closing it immediately after Play can result in silent output.
@@ -83,22 +87,22 @@ namespace EyeGazeApiViability
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
             LevelZeroContinueButton.Visibility = Visibility.Collapsed;
             ShowScreen(AppScreen.LevelZero);
-            levelZeroClock = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
-            levelZeroClock.Tick += OnLevelZeroTick;
-            levelZeroClock.Start();
+            // Only animate while the pursuit stage is visible. The gaze
+            // watcher lifecycle is unchanged.
         }
 
         private void StopLevelZero()
         {
-            if (levelZeroClock != null)
+            StopLevelZeroRendering();
+            // MediaPlayer is independent of the hidden/collapsed XAML visual.
+            if (levelZeroAudioPlayer != null)
             {
-                levelZeroClock.Stop();
-                levelZeroClock.Tick -= OnLevelZeroTick;
-                levelZeroClock = null;
+                levelZeroAudioPlayer.Pause();
+                levelZeroAudioPlayer.Source = null;
+                levelZeroAudioPlayer.MediaFailed -= OnLevelZeroMediaPlayerFailed;
+                levelZeroAudioPlayer.Dispose();
+                levelZeroAudioPlayer = null;
             }
-            // Stop any pending audio and close its backing stream.
-            try { LevelZeroSpeechPlayer.Stop(); }
-            catch (Exception) { }
             if (levelZeroActiveSpeechStream != null)
             {
                 levelZeroActiveSpeechStream.Dispose();
@@ -113,11 +117,11 @@ namespace EyeGazeApiViability
             LevelZeroEyeCursor.Visibility = Visibility.Collapsed;
         }
 
-        private void OnLevelZeroMediaFailed(object sender, ExceptionRoutedEventArgs e)
+        private void OnLevelZeroMediaPlayerFailed(MediaPlayer sender,
+                                                  MediaPlayerFailedEventArgs args)
         {
-            Trace("Level 0 media playback error: " +
-                (e.ErrorMessage ?? "unknown"));
-            // Retain tutorial access if the default audio device is unavailable.
+            Trace("Level 0 speech playback failure: " +
+                  args.ErrorMessage);
         }
 
         private async void SpeakLevelZero(string text, bool essential = false)
@@ -142,14 +146,22 @@ namespace EyeGazeApiViability
                     stream.Dispose();
                     return;
                 }
-                LevelZeroSpeechPlayer.Stop();
+                if (levelZeroAudioPlayer == null)
+                {
+                    levelZeroAudioPlayer = new MediaPlayer();
+                    levelZeroAudioPlayer.MediaFailed += OnLevelZeroMediaPlayerFailed;
+                }
+                levelZeroAudioPlayer.Pause();
+                levelZeroAudioPlayer.Source = null;
                 if (levelZeroActiveSpeechStream != null)
                     levelZeroActiveSpeechStream.Dispose();
                 levelZeroActiveSpeechStream = stream;
-                LevelZeroSpeechPlayer.Volume = 1.0;
-                LevelZeroSpeechPlayer.IsMuted = false;
-                LevelZeroSpeechPlayer.SetSource(stream, stream.ContentType);
-                LevelZeroSpeechPlayer.Play();
+                levelZeroAudioPlayer.Volume = 1.0;
+                levelZeroAudioPlayer.IsMuted = false;
+                levelZeroAudioPlayer.Source =
+                    MediaSource.CreateFromStream(stream, stream.ContentType);
+                levelZeroAudioPlayer.Play();
+                Trace("Level 0 speech playback started.");
                 // Retain the stream, even after this quiet period.
                 // It is disposed on the next prompt or tutorial exit.
                 await Task.Delay(Math.Max(3500, Math.Min(9000, text.Length * 100)));
@@ -173,7 +185,23 @@ namespace EyeGazeApiViability
             }
         }
 
-        private void OnLevelZeroTick(object sender, object args)
+        // CompositionTarget.Rendering tracks display refresh instead of a
+        // 50 ms dispatcher timer (which stepped the marker at only 20 Hz).
+        private void StartLevelZeroRendering()
+        {
+            if (levelZeroRenderingSubscribed) return;
+            CompositionTarget.Rendering += OnLevelZeroRendering;
+            levelZeroRenderingSubscribed = true;
+        }
+
+        private void StopLevelZeroRendering()
+        {
+            if (!levelZeroRenderingSubscribed) return;
+            CompositionTarget.Rendering -= OnLevelZeroRendering;
+            levelZeroRenderingSubscribed = false;
+        }
+
+        private void OnLevelZeroRendering(object sender, object args)
         {
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested) return;
             if (levelZeroStage != LevelZeroStage.Pursue) return;
@@ -305,6 +333,7 @@ namespace EyeGazeApiViability
             if (levelZeroStage != LevelZeroStage.Explore) return;
             levelZeroStage = LevelZeroStage.Pursue;
             levelZeroStageStarted = DateTimeOffset.UtcNow;
+            StartLevelZeroRendering();
             LevelZeroPursuitTarget.Visibility = Visibility.Visible;
             LevelZeroPursuitCenter.Visibility = Visibility.Visible;
             SpeakLevelZero("Now follow the moving target with your eye cursor.", true);
@@ -314,6 +343,7 @@ namespace EyeGazeApiViability
         {
             if (levelZeroStage != LevelZeroStage.Pursue) return;
             levelZeroStage = LevelZeroStage.Continue;
+            StopLevelZeroRendering();
             levelZeroStageStarted = DateTimeOffset.UtcNow;
             LevelZeroPursuitTarget.Visibility = Visibility.Collapsed;
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
