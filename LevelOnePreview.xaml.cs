@@ -50,6 +50,7 @@ namespace EyeGazeApiViability
         private Button[] diagnosticsSkillsButtons;
         private Button[] diagnosticsSessionsButtons;
         private bool therapistExportInProgress;
+        private DispatcherTimer therapistExportConfirmationTimer;
         private static readonly string[] TherapistSkillCategoryNames =
             { "Level 0", "Targets", "Dwell", "Tracking", "Endurance", "Function" };
         private Button[] skillCategoryButtons;
@@ -539,6 +540,8 @@ namespace EyeGazeApiViability
 
         private void ShowScreen(AppScreen screen)
         {
+            if (screen != AppScreen.Diagnostics)
+                HideTherapistExportConfirmation();
             // Navigating away from the celebration must not fire a stale transition.
             if (screen != AppScreen.Lesson) CancelBonusTransition();
             if (screen != AppScreen.Bonus) CancelBonusQuestionTimer();
@@ -892,6 +895,35 @@ namespace EyeGazeApiViability
                     ? "PrimaryGazeButton" : "SecondaryGazeButton"];
         }
 
+        private void ShowTherapistExportConfirmation(string fileName)
+        {
+            HideTherapistExportConfirmation();
+            TherapistExportConfirmationFilename.Text = fileName;
+            TherapistExportConfirmation.Visibility = Visibility.Visible;
+            therapistExportConfirmationTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(8)
+            };
+            therapistExportConfirmationTimer.Tick += OnTherapistExportConfirmationTick;
+            therapistExportConfirmationTimer.Start();
+        }
+
+        private void OnTherapistExportConfirmationTick(object sender, object e)
+        {
+            HideTherapistExportConfirmation();
+        }
+
+        private void HideTherapistExportConfirmation()
+        {
+            if (therapistExportConfirmationTimer != null)
+            {
+                therapistExportConfirmationTimer.Stop();
+                therapistExportConfirmationTimer.Tick -= OnTherapistExportConfirmationTick;
+                therapistExportConfirmationTimer = null;
+            }
+            TherapistExportConfirmation.Visibility = Visibility.Collapsed;
+        }
+
         // Uses the existing gaze-button dwell and saves with no modal picker.
         // Export is strictly opt-in and does not send data anywhere.
         private async void OnExportTherapistReport(object sender, RoutedEventArgs e)
@@ -923,6 +955,9 @@ namespace EyeGazeApiViability
 
                 TherapistExportStatusText.Text =
                     "Saved to Downloads: " + createdFile.Name;
+                if (!exitRequested && !stopping &&
+                    currentScreen == AppScreen.Diagnostics)
+                    ShowTherapistExportConfirmation(createdFile.Name);
             }
             catch (Exception)
             {
@@ -1679,6 +1714,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            HideTherapistExportConfirmation();
             if (practiceTimer != null)
             {
                 practiceTimer.Stop();
@@ -1842,6 +1878,7 @@ namespace EyeGazeApiViability
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            HideTherapistExportConfirmation();
             if (practiceTimer != null)
             {
                 practiceTimer.Stop();
