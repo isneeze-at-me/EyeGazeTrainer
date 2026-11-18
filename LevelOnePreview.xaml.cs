@@ -307,12 +307,10 @@ namespace EyeGazeApiViability
             }
 
             Point target = TargetCenter();
-            double dx = p.X - target.X;
-            double dy = p.Y - target.Y;
-            // Keep the visible ring unchanged; only its activation region
-            // starts at 110% and gradually contracts toward the true circle.
-            double hitRadius = TargetDiameter * 0.5 * gazeProfile.HitBoxScale;
-            bool inRing = dx * dx + dy * dy <= hitRadius * hitRadius;
+            // One shared hitbox rule applies to all training objects.
+            // The visible target remains 116 units in diameter.
+            bool inRing = AdaptiveHitTesting.ContainsCircle(
+                p, target, TargetDiameter, gazeProfile.HitBoxScale);
             if (inRing && !insideTarget)
             {
                 insideTarget = true;
