@@ -62,8 +62,8 @@ $callback = [EyeGazeTrainerWindowSurvey+WindowCallback] {
         return $true
     }
 
-    [uint32]$pid = 0
-    [void][EyeGazeTrainerWindowSurvey]::GetWindowThreadProcessId($handle, [ref]$pid)
+    [uint32]$windowPid = 0
+    [void][EyeGazeTrainerWindowSurvey]::GetWindowThreadProcessId($handle, [ref]$windowPid)
     $title = New-Object System.Text.StringBuilder 1024
     $className = New-Object System.Text.StringBuilder 256
     [void][EyeGazeTrainerWindowSurvey]::GetWindowText($handle, $title, $title.Capacity)
@@ -71,13 +71,13 @@ $callback = [EyeGazeTrainerWindowSurvey+WindowCallback] {
 
     $processName = '<unavailable>'
     try {
-        $processName = (Get-Process -Id $pid -ErrorAction Stop).ProcessName
+        $processName = (Get-Process -Id $windowPid -ErrorAction Stop).ProcessName
     } catch {}
 
     $records.Add([pscustomobject]@{
         Foreground = ($handle -eq $foreground)
         Process = $processName
-        PID = $pid
+        PID = $windowPid
         WindowClass = $className.ToString()
         Title = $title.ToString()
         Handle = ('0x{0:X}' -f $handle.ToInt64())
