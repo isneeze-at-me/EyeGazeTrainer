@@ -1,4 +1,4 @@
-# Level 1 True/False Trivia — 500-question bank
+# Level 1 True/False Trivia — 500-question intermediate bank
 
 **Status:** Question bank and Level 1 ten-question bonus flow implemented on `Test`; Windows/UWP compilation and supervised gaze hardware testing remain **unverified**.
 
@@ -21,7 +21,7 @@ Each UTF-8 JSON file is an array of 100 records with the fields:
 
 ## Content constraints
 
-The bank contains 500 unique statements, evenly split into 250 True and 250 False answers, with simple-to-moderate topics and no intentional political, religious, violent, sexual, or otherwise controversial material. Each category contains 10 True and 10 False answers.
+The bank contains 500 unique statements, evenly split into 250 True and 250 False answers, with moderate/intermediate topics (with a few stretch questions) and no intentional political, religious, violent, sexual, or otherwise controversial material. Each category contains 10 True and 10 False answers.
 
 ## Implemented quiz behavior
 
@@ -29,7 +29,7 @@ The bank contains 500 unique statements, evenly split into 250 True and 250 Fals
 - The complete statement appears centered in the top half. Two large True and False buttons fill the bottom half.
 - The existing shared 1500 ms gaze-button dwell, radial progress wheel, global smoothing and adaptive button hitbox are reused. Mouse or touch Click works for developer tests.
 - Ten questions are selected randomly across available topics, with a preference for different topics and balanced truth values. No two questions from the same fact group appear in one round.
-- Dealt question IDs are saved to UWP LocalSettings across sessions; none repeats until the pool of 500 is exhausted. At exhaustion the deck replenishes.
+- Dealt question IDs are saved to UWP LocalSettings across sessions; none repeats until the pool of 500 is exhausted. The deck's storage key is versioned V2 so replacing the prior easier bank starts a fresh cycle. At exhaustion the deck replenishes.
 - After an answer, the answer and explanation replace the statement for five seconds, regardless of correctness. Timing pauses if live gaze samples stop arriving; preview mode proceeds normally.
 - The separate trivia score is the count correct. Incorrect answers leave the existing gaze accuracy score untouched; correct answers from a valid live-gaze dwell can update it using the measured button selection. Mouse clicks do not impersonate gaze accuracy measurements.
 - After the tenth explanation, show the result for three seconds and return to the level-selection screen (also paused if the live gaze stream is lost).
@@ -39,4 +39,4 @@ The bank contains 500 unique statements, evenly split into 250 True and 250 Fals
 
 Run Visual Studio UWP x64 build, confirm all five JSON content files are included in the deployment package, test a complete round with mouse, verify persisted non-repeating deck over restarts, test late-deck cycle reset, and separately validate button accuracy with **supervised** eye-gaze testing only after critical TD Control recovery issue #9 has been resolved.
 
-Editorial QA: record counts, category counts, unique IDs and question strings were checked programmatically when added. Factual statements have not undergone independent external fact-checking or user acceptance testing.
+Editorial QA: the revised bank was checked for 500 records, 250 True and 250 False, 25 categories with 20 questions each, unique IDs and question strings, and 250 complete True/False fact groups. Individual factual claims have not all been independently externally fact-checked. No user acceptance testing has been completed.
