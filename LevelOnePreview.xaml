@@ -106,14 +106,6 @@
         <Ellipse x:Name="TargetRing" Width="116" Height="116"
                  Stroke="#FBBF24" StrokeThickness="8" Fill="#344358"
                  Visibility="Collapsed" IsHitTestVisible="False"/>
-        <Ellipse x:Name="TargetDwellTrack" Width="130" Height="130"
-                 Stroke="#526477" StrokeThickness="7" Fill="Transparent"
-                 Visibility="Collapsed" IsHitTestVisible="False"/>
-        <Path x:Name="TargetDwellProgress" Stroke="#80E5FF" StrokeThickness="9"
-              StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-              IsHitTestVisible="False" Visibility="Collapsed"/>
-        <TextBlock x:Name="TargetDwellCountdown" FontSize="23" FontWeight="Bold"
-                   Foreground="#FFFFFF" Visibility="Collapsed" IsHitTestVisible="False"/>
         <Ellipse x:Name="TargetBullseye" Width="14" Height="14"
                  Fill="#FFFFFF" Stroke="#0D253B" StrokeThickness="2"
                  Visibility="Collapsed" IsHitTestVisible="False"/>
