@@ -4,699 +4,799 @@
     "category": "Space",
     "question": "The Sun is a star.",
     "answer": true,
-    "explanation": "The Sun is a star."
+    "explanation": "The Sun is a star.",
+    "factGroup": "F051"
   },
   {
     "id": "TF102",
     "category": "Space",
     "question": "The Sun is a planet.",
     "answer": false,
-    "explanation": "Actually, The Sun is a star."
+    "explanation": "Actually, The Sun is a star.",
+    "factGroup": "F051"
   },
   {
     "id": "TF103",
     "category": "Space",
     "question": "Earth has one natural moon.",
     "answer": true,
-    "explanation": "Earth has one natural moon."
+    "explanation": "Earth has one natural moon.",
+    "factGroup": "F052"
   },
   {
     "id": "TF104",
     "category": "Space",
     "question": "Earth has three natural moons.",
     "answer": false,
-    "explanation": "Actually, Earth has one natural moon."
+    "explanation": "Actually, Earth has one natural moon.",
+    "factGroup": "F052"
   },
   {
     "id": "TF105",
     "category": "Space",
     "question": "Mars is often called the Red Planet.",
     "answer": true,
-    "explanation": "Mars is often called the Red Planet."
+    "explanation": "Mars is often called the Red Planet.",
+    "factGroup": "F053"
   },
   {
     "id": "TF106",
     "category": "Space",
     "question": "Neptune is often called the Red Planet.",
     "answer": false,
-    "explanation": "Actually, Mars is often called the Red Planet."
+    "explanation": "Actually, Mars is often called the Red Planet.",
+    "factGroup": "F053"
   },
   {
     "id": "TF107",
     "category": "Space",
     "question": "Saturn has rings made largely of ice and rock particles.",
     "answer": true,
-    "explanation": "Saturn has rings made largely of ice and rock particles."
+    "explanation": "Saturn has rings made largely of ice and rock particles.",
+    "factGroup": "F054"
   },
   {
     "id": "TF108",
     "category": "Space",
     "question": "Saturn's rings are made of one solid metal hoop.",
     "answer": false,
-    "explanation": "Actually, Saturn has rings made largely of ice and rock particles."
+    "explanation": "Actually, Saturn has rings made largely of ice and rock particles.",
+    "factGroup": "F054"
   },
   {
     "id": "TF109",
     "category": "Space",
     "question": "Jupiter is the largest planet in our solar system.",
     "answer": true,
-    "explanation": "Jupiter is the largest planet in our solar system."
+    "explanation": "Jupiter is the largest planet in our solar system.",
+    "factGroup": "F055"
   },
   {
     "id": "TF110",
     "category": "Space",
     "question": "Mercury is the largest planet in our solar system.",
     "answer": false,
-    "explanation": "Actually, Jupiter is the largest planet in our solar system."
+    "explanation": "Actually, Jupiter is the largest planet in our solar system.",
+    "factGroup": "F055"
   },
   {
     "id": "TF111",
     "category": "Space",
     "question": "A day on Earth is about 24 hours long.",
     "answer": true,
-    "explanation": "A day on Earth is about 24 hours long."
+    "explanation": "A day on Earth is about 24 hours long.",
+    "factGroup": "F056"
   },
   {
     "id": "TF112",
     "category": "Space",
     "question": "A day on Earth is about 48 hours long.",
     "answer": false,
-    "explanation": "Actually, A day on Earth is about 24 hours long."
+    "explanation": "Actually, A day on Earth is about 24 hours long.",
+    "factGroup": "F056"
   },
   {
     "id": "TF113",
     "category": "Space",
     "question": "The Moon shines mainly by reflecting sunlight.",
     "answer": true,
-    "explanation": "The Moon shines mainly by reflecting sunlight."
+    "explanation": "The Moon shines mainly by reflecting sunlight.",
+    "factGroup": "F057"
   },
   {
     "id": "TF114",
     "category": "Space",
     "question": "The Moon produces its own sunlight.",
     "answer": false,
-    "explanation": "Actually, The Moon shines mainly by reflecting sunlight."
+    "explanation": "Actually, The Moon shines mainly by reflecting sunlight.",
+    "factGroup": "F057"
   },
   {
     "id": "TF115",
     "category": "Space",
     "question": "Astronauts wear spacesuits to help protect them in space.",
     "answer": true,
-    "explanation": "Astronauts wear spacesuits to help protect them in space."
+    "explanation": "Astronauts wear spacesuits to help protect them in space.",
+    "factGroup": "F058"
   },
   {
     "id": "TF116",
     "category": "Space",
     "question": "Astronauts can breathe normally in the vacuum of space without equipment.",
     "answer": false,
-    "explanation": "Actually, Astronauts wear spacesuits to help protect them in space."
+    "explanation": "Actually, Astronauts wear spacesuits to help protect them in space.",
+    "factGroup": "F058"
   },
   {
     "id": "TF117",
     "category": "Space",
     "question": "Venus is hotter at its surface than Mercury.",
     "answer": true,
-    "explanation": "Venus is hotter at its surface than Mercury."
+    "explanation": "Venus is hotter at its surface than Mercury.",
+    "factGroup": "F059"
   },
   {
     "id": "TF118",
     "category": "Space",
     "question": "Mercury is hotter at its surface than Venus.",
     "answer": false,
-    "explanation": "Actually, Venus is hotter at its surface than Mercury."
+    "explanation": "Actually, Venus is hotter at its surface than Mercury.",
+    "factGroup": "F059"
   },
   {
     "id": "TF119",
     "category": "Space",
     "question": "The Milky Way is the galaxy that contains our solar system.",
     "answer": true,
-    "explanation": "The Milky Way is the galaxy that contains our solar system."
+    "explanation": "The Milky Way is the galaxy that contains our solar system.",
+    "factGroup": "F060"
   },
   {
     "id": "TF120",
     "category": "Space",
     "question": "Our solar system is located in the Andromeda Galaxy.",
     "answer": false,
-    "explanation": "Actually, The Milky Way is the galaxy that contains our solar system."
+    "explanation": "Actually, The Milky Way is the galaxy that contains our solar system.",
+    "factGroup": "F060"
   },
   {
     "id": "TF121",
     "category": "Earth & Weather",
     "question": "A rainbow forms when sunlight interacts with water droplets.",
     "answer": true,
-    "explanation": "A rainbow forms when sunlight interacts with water droplets."
+    "explanation": "A rainbow forms when sunlight interacts with water droplets.",
+    "factGroup": "F061"
   },
   {
     "id": "TF122",
     "category": "Earth & Weather",
     "question": "A rainbow is made when clouds paint colors across the sky.",
     "answer": false,
-    "explanation": "Actually, A rainbow forms when sunlight interacts with water droplets."
+    "explanation": "Actually, A rainbow forms when sunlight interacts with water droplets.",
+    "factGroup": "F061"
   },
   {
     "id": "TF123",
     "category": "Earth & Weather",
     "question": "Snowflakes are made of ice crystals.",
     "answer": true,
-    "explanation": "Snowflakes are made of ice crystals."
+    "explanation": "Snowflakes are made of ice crystals.",
+    "factGroup": "F062"
   },
   {
     "id": "TF124",
     "category": "Earth & Weather",
     "question": "Snowflakes are made of tiny grains of sand.",
     "answer": false,
-    "explanation": "Actually, Snowflakes are made of ice crystals."
+    "explanation": "Actually, Snowflakes are made of ice crystals.",
+    "factGroup": "F062"
   },
   {
     "id": "TF125",
     "category": "Earth & Weather",
     "question": "Lightning is an electrical discharge.",
     "answer": true,
-    "explanation": "Lightning is an electrical discharge."
+    "explanation": "Lightning is an electrical discharge.",
+    "factGroup": "F063"
   },
   {
     "id": "TF126",
     "category": "Earth & Weather",
     "question": "Lightning is caused by the Moon flashing.",
     "answer": false,
-    "explanation": "Actually, Lightning is an electrical discharge."
+    "explanation": "Actually, Lightning is an electrical discharge.",
+    "factGroup": "F063"
   },
   {
     "id": "TF127",
     "category": "Earth & Weather",
     "question": "Earth's atmosphere contains more nitrogen than oxygen.",
     "answer": true,
-    "explanation": "Earth's atmosphere contains more nitrogen than oxygen."
+    "explanation": "Earth's atmosphere contains more nitrogen than oxygen.",
+    "factGroup": "F064"
   },
   {
     "id": "TF128",
     "category": "Earth & Weather",
     "question": "Earth's atmosphere contains more oxygen than nitrogen.",
     "answer": false,
-    "explanation": "Actually, Earth's atmosphere contains more nitrogen than oxygen."
+    "explanation": "Actually, Earth's atmosphere contains more nitrogen than oxygen.",
+    "factGroup": "F064"
   },
   {
     "id": "TF129",
     "category": "Earth & Weather",
     "question": "A thermometer measures temperature.",
     "answer": true,
-    "explanation": "A thermometer measures temperature."
+    "explanation": "A thermometer measures temperature.",
+    "factGroup": "F065"
   },
   {
     "id": "TF130",
     "category": "Earth & Weather",
     "question": "A thermometer measures wind direction.",
     "answer": false,
-    "explanation": "Actually, A thermometer measures temperature."
+    "explanation": "Actually, A thermometer measures temperature.",
+    "factGroup": "F065"
   },
   {
     "id": "TF131",
     "category": "Earth & Weather",
     "question": "The equator is an imaginary line around Earth's middle.",
     "answer": true,
-    "explanation": "The equator is an imaginary line around Earth's middle."
+    "explanation": "The equator is an imaginary line around Earth's middle.",
+    "factGroup": "F066"
   },
   {
     "id": "TF132",
     "category": "Earth & Weather",
     "question": "The equator is a mountain range on Earth.",
     "answer": false,
-    "explanation": "Actually, The equator is an imaginary line around Earth's middle."
+    "explanation": "Actually, The equator is an imaginary line around Earth's middle.",
+    "factGroup": "F066"
   },
   {
     "id": "TF133",
     "category": "Earth & Weather",
     "question": "Water can exist naturally as ice, liquid, and vapor.",
     "answer": true,
-    "explanation": "Water can exist naturally as ice, liquid, and vapor."
+    "explanation": "Water can exist naturally as ice, liquid, and vapor.",
+    "factGroup": "F067"
   },
   {
     "id": "TF134",
     "category": "Earth & Weather",
     "question": "Water exists naturally only as a liquid.",
     "answer": false,
-    "explanation": "Actually, Water can exist naturally as ice, liquid, and vapor."
+    "explanation": "Actually, Water can exist naturally as ice, liquid, and vapor.",
+    "factGroup": "F067"
   },
   {
     "id": "TF135",
     "category": "Earth & Weather",
     "question": "The North Pole is in the Arctic region.",
     "answer": true,
-    "explanation": "The North Pole is in the Arctic region."
+    "explanation": "The North Pole is in the Arctic region.",
+    "factGroup": "F068"
   },
   {
     "id": "TF136",
     "category": "Earth & Weather",
     "question": "The North Pole is located in Antarctica.",
     "answer": false,
-    "explanation": "Actually, The North Pole is in the Arctic region."
+    "explanation": "Actually, The North Pole is in the Arctic region.",
+    "factGroup": "F068"
   },
   {
     "id": "TF137",
     "category": "Earth & Weather",
     "question": "A cloud is made of tiny water droplets or ice crystals.",
     "answer": true,
-    "explanation": "A cloud is made of tiny water droplets or ice crystals."
+    "explanation": "A cloud is made of tiny water droplets or ice crystals.",
+    "factGroup": "F069"
   },
   {
     "id": "TF138",
     "category": "Earth & Weather",
     "question": "A cloud is made entirely of cotton.",
     "answer": false,
-    "explanation": "Actually, A cloud is made of tiny water droplets or ice crystals."
+    "explanation": "Actually, A cloud is made of tiny water droplets or ice crystals.",
+    "factGroup": "F069"
   },
   {
     "id": "TF139",
     "category": "Earth & Weather",
     "question": "A year on Earth is about 365 days.",
     "answer": true,
-    "explanation": "A year on Earth is about 365 days."
+    "explanation": "A year on Earth is about 365 days.",
+    "factGroup": "F070"
   },
   {
     "id": "TF140",
     "category": "Earth & Weather",
     "question": "A year on Earth lasts about 100 days.",
     "answer": false,
-    "explanation": "Actually, A year on Earth is about 365 days."
+    "explanation": "Actually, A year on Earth is about 365 days.",
+    "factGroup": "F070"
   },
   {
     "id": "TF141",
     "category": "Plants & Trees",
     "question": "Plants use sunlight to make sugars through photosynthesis.",
     "answer": true,
-    "explanation": "Plants use sunlight to make sugars through photosynthesis."
+    "explanation": "Plants use sunlight to make sugars through photosynthesis.",
+    "factGroup": "F071"
   },
   {
     "id": "TF142",
     "category": "Plants & Trees",
     "question": "Plants make their food only by eating soil.",
     "answer": false,
-    "explanation": "Actually, Plants use sunlight to make sugars through photosynthesis."
+    "explanation": "Actually, Plants use sunlight to make sugars through photosynthesis.",
+    "factGroup": "F071"
   },
   {
     "id": "TF143",
     "category": "Plants & Trees",
     "question": "Tree rings can help scientists estimate a tree's age.",
     "answer": true,
-    "explanation": "Tree rings can help scientists estimate a tree's age."
+    "explanation": "Tree rings can help scientists estimate a tree's age.",
+    "factGroup": "F072"
   },
   {
     "id": "TF144",
     "category": "Plants & Trees",
     "question": "Every tree grows exactly five rings each year.",
     "answer": false,
-    "explanation": "Actually, Tree rings can help scientists estimate a tree's age."
+    "explanation": "Actually, Tree rings can help scientists estimate a tree's age.",
+    "factGroup": "F072"
   },
   {
     "id": "TF145",
     "category": "Plants & Trees",
     "question": "A cactus can store water in its tissues.",
     "answer": true,
-    "explanation": "A cactus can store water in its tissues."
+    "explanation": "A cactus can store water in its tissues.",
+    "factGroup": "F073"
   },
   {
     "id": "TF146",
     "category": "Plants & Trees",
     "question": "A cactus is unable to store any water.",
     "answer": false,
-    "explanation": "Actually, A cactus can store water in its tissues."
+    "explanation": "Actually, A cactus can store water in its tissues.",
+    "factGroup": "F073"
   },
   {
     "id": "TF147",
     "category": "Plants & Trees",
     "question": "Bamboo is a type of grass.",
     "answer": true,
-    "explanation": "Bamboo is a type of grass."
+    "explanation": "Bamboo is a type of grass.",
+    "factGroup": "F074"
   },
   {
     "id": "TF148",
     "category": "Plants & Trees",
     "question": "Bamboo is a type of mushroom.",
     "answer": false,
-    "explanation": "Actually, Bamboo is a type of grass."
+    "explanation": "Actually, Bamboo is a type of grass.",
+    "factGroup": "F074"
   },
   {
     "id": "TF149",
     "category": "Plants & Trees",
     "question": "A sunflower is made up of many small flowers in its head.",
     "answer": true,
-    "explanation": "A sunflower is made up of many small flowers in its head."
+    "explanation": "A sunflower is made up of many small flowers in its head.",
+    "factGroup": "F075"
   },
   {
     "id": "TF150",
     "category": "Plants & Trees",
     "question": "A sunflower head is always a single petal.",
     "answer": false,
-    "explanation": "Actually, A sunflower is made up of many small flowers in its head."
+    "explanation": "Actually, A sunflower is made up of many small flowers in its head.",
+    "factGroup": "F075"
   },
   {
     "id": "TF151",
     "category": "Plants & Trees",
     "question": "Mosses do not produce flowers.",
     "answer": true,
-    "explanation": "Mosses do not produce flowers."
+    "explanation": "Mosses do not produce flowers.",
+    "factGroup": "F076"
   },
   {
     "id": "TF152",
     "category": "Plants & Trees",
     "question": "Moss plants grow large colorful roses.",
     "answer": false,
-    "explanation": "Actually, Mosses do not produce flowers."
+    "explanation": "Actually, Mosses do not produce flowers.",
+    "factGroup": "F076"
   },
   {
     "id": "TF153",
     "category": "Plants & Trees",
     "question": "Roots help anchor many plants in the ground.",
     "answer": true,
-    "explanation": "Roots help anchor many plants in the ground."
+    "explanation": "Roots help anchor many plants in the ground.",
+    "factGroup": "F077"
   },
   {
     "id": "TF154",
     "category": "Plants & Trees",
     "question": "Roots are the part of a tree that normally collects sunlight.",
     "answer": false,
-    "explanation": "Actually, Roots help anchor many plants in the ground."
+    "explanation": "Actually, Roots help anchor many plants in the ground.",
+    "factGroup": "F077"
   },
   {
     "id": "TF155",
     "category": "Plants & Trees",
     "question": "Acorns grow on oak trees.",
     "answer": true,
-    "explanation": "Acorns grow on oak trees."
+    "explanation": "Acorns grow on oak trees.",
+    "factGroup": "F078"
   },
   {
     "id": "TF156",
     "category": "Plants & Trees",
     "question": "Acorns grow on pine trees.",
     "answer": false,
-    "explanation": "Actually, Acorns grow on oak trees."
+    "explanation": "Actually, Acorns grow on oak trees.",
+    "factGroup": "F078"
   },
   {
     "id": "TF157",
     "category": "Plants & Trees",
     "question": "Evergreen trees keep living leaves through the winter.",
     "answer": true,
-    "explanation": "Evergreen trees keep living leaves through the winter."
+    "explanation": "Evergreen trees keep living leaves through the winter.",
+    "factGroup": "F079"
   },
   {
     "id": "TF158",
     "category": "Plants & Trees",
     "question": "All evergreen trees lose every leaf at the start of winter.",
     "answer": false,
-    "explanation": "Actually, Evergreen trees keep living leaves through the winter."
+    "explanation": "Actually, Evergreen trees keep living leaves through the winter.",
+    "factGroup": "F079"
   },
   {
     "id": "TF159",
     "category": "Plants & Trees",
     "question": "Seeds can travel by wind, water, or animals.",
     "answer": true,
-    "explanation": "Seeds can travel by wind, water, or animals."
+    "explanation": "Seeds can travel by wind, water, or animals.",
+    "factGroup": "F080"
   },
   {
     "id": "TF160",
     "category": "Plants & Trees",
     "question": "Every plant seed must be carried by a bird to grow.",
     "answer": false,
-    "explanation": "Actually, Seeds can travel by wind, water, or animals."
+    "explanation": "Actually, Seeds can travel by wind, water, or animals.",
+    "factGroup": "F080"
   },
   {
     "id": "TF161",
     "category": "Fruits & Vegetables",
     "question": "A tomato is botanically a fruit.",
     "answer": true,
-    "explanation": "A tomato is botanically a fruit."
+    "explanation": "A tomato is botanically a fruit.",
+    "factGroup": "F081"
   },
   {
     "id": "TF162",
     "category": "Fruits & Vegetables",
     "question": "A tomato is botanically a root.",
     "answer": false,
-    "explanation": "Actually, A tomato is botanically a fruit."
+    "explanation": "Actually, A tomato is botanically a fruit.",
+    "factGroup": "F081"
   },
   {
     "id": "TF163",
     "category": "Fruits & Vegetables",
     "question": "A strawberry has seeds visible on its outside.",
     "answer": true,
-    "explanation": "A strawberry has seeds visible on its outside."
+    "explanation": "A strawberry has seeds visible on its outside.",
+    "factGroup": "F082"
   },
   {
     "id": "TF164",
     "category": "Fruits & Vegetables",
     "question": "A strawberry keeps all its seeds inside a hard pit.",
     "answer": false,
-    "explanation": "Actually, A strawberry has seeds visible on its outside."
+    "explanation": "Actually, A strawberry has seeds visible on its outside.",
+    "factGroup": "F082"
   },
   {
     "id": "TF165",
     "category": "Fruits & Vegetables",
     "question": "Carrots are root vegetables.",
     "answer": true,
-    "explanation": "Carrots are root vegetables."
+    "explanation": "Carrots are root vegetables.",
+    "factGroup": "F083"
   },
   {
     "id": "TF166",
     "category": "Fruits & Vegetables",
     "question": "Carrots grow as leaves on tall trees.",
     "answer": false,
-    "explanation": "Actually, Carrots are root vegetables."
+    "explanation": "Actually, Carrots are root vegetables.",
+    "factGroup": "F083"
   },
   {
     "id": "TF167",
     "category": "Fruits & Vegetables",
     "question": "Bananas grow in bunches.",
     "answer": true,
-    "explanation": "Bananas grow in bunches."
+    "explanation": "Bananas grow in bunches.",
+    "factGroup": "F084"
   },
   {
     "id": "TF168",
     "category": "Fruits & Vegetables",
     "question": "Bananas grow one at a time on pine trees.",
     "answer": false,
-    "explanation": "Actually, Bananas grow in bunches."
+    "explanation": "Actually, Bananas grow in bunches.",
+    "factGroup": "F084"
   },
   {
     "id": "TF169",
     "category": "Fruits & Vegetables",
     "question": "An avocado contains a large seed.",
     "answer": true,
-    "explanation": "An avocado contains a large seed."
+    "explanation": "An avocado contains a large seed.",
+    "factGroup": "F085"
   },
   {
     "id": "TF170",
     "category": "Fruits & Vegetables",
     "question": "An avocado never has a seed.",
     "answer": false,
-    "explanation": "Actually, An avocado contains a large seed."
+    "explanation": "Actually, An avocado contains a large seed.",
+    "factGroup": "F085"
   },
   {
     "id": "TF171",
     "category": "Fruits & Vegetables",
     "question": "Broccoli is made up partly of immature flower buds.",
     "answer": true,
-    "explanation": "Broccoli is made up partly of immature flower buds."
+    "explanation": "Broccoli is made up partly of immature flower buds.",
+    "factGroup": "F086"
   },
   {
     "id": "TF172",
     "category": "Fruits & Vegetables",
     "question": "Broccoli is harvested from underground roots.",
     "answer": false,
-    "explanation": "Actually, Broccoli is made up partly of immature flower buds."
+    "explanation": "Actually, Broccoli is made up partly of immature flower buds.",
+    "factGroup": "F086"
   },
   {
     "id": "TF173",
     "category": "Fruits & Vegetables",
     "question": "Peanuts grow in pods underground.",
     "answer": true,
-    "explanation": "Peanuts grow in pods underground."
+    "explanation": "Peanuts grow in pods underground.",
+    "factGroup": "F087"
   },
   {
     "id": "TF174",
     "category": "Fruits & Vegetables",
     "question": "Peanuts grow inside pinecones.",
     "answer": false,
-    "explanation": "Actually, Peanuts grow in pods underground."
+    "explanation": "Actually, Peanuts grow in pods underground.",
+    "factGroup": "F087"
   },
   {
     "id": "TF175",
     "category": "Fruits & Vegetables",
     "question": "A cucumber is botanically a fruit.",
     "answer": true,
-    "explanation": "A cucumber is botanically a fruit."
+    "explanation": "A cucumber is botanically a fruit.",
+    "factGroup": "F088"
   },
   {
     "id": "TF176",
     "category": "Fruits & Vegetables",
     "question": "A cucumber is botanically a leaf.",
     "answer": false,
-    "explanation": "Actually, A cucumber is botanically a fruit."
+    "explanation": "Actually, A cucumber is botanically a fruit.",
+    "factGroup": "F088"
   },
   {
     "id": "TF177",
     "category": "Fruits & Vegetables",
     "question": "Pumpkins belong to the squash family.",
     "answer": true,
-    "explanation": "Pumpkins belong to the squash family."
+    "explanation": "Pumpkins belong to the squash family.",
+    "factGroup": "F089"
   },
   {
     "id": "TF178",
     "category": "Fruits & Vegetables",
     "question": "Pumpkins are a type of citrus fruit.",
     "answer": false,
-    "explanation": "Actually, Pumpkins belong to the squash family."
+    "explanation": "Actually, Pumpkins belong to the squash family.",
+    "factGroup": "F089"
   },
   {
     "id": "TF179",
     "category": "Fruits & Vegetables",
     "question": "Grapes can be dried to make raisins.",
     "answer": true,
-    "explanation": "Grapes can be dried to make raisins."
+    "explanation": "Grapes can be dried to make raisins.",
+    "factGroup": "F090"
   },
   {
     "id": "TF180",
     "category": "Fruits & Vegetables",
     "question": "Raisins are dried blueberries.",
     "answer": false,
-    "explanation": "Actually, Grapes can be dried to make raisins."
+    "explanation": "Actually, Grapes can be dried to make raisins.",
+    "factGroup": "F090"
   },
   {
     "id": "TF181",
     "category": "Human Body",
     "question": "The human heart pumps blood through the body.",
     "answer": true,
-    "explanation": "The human heart pumps blood through the body."
+    "explanation": "The human heart pumps blood through the body.",
+    "factGroup": "F091"
   },
   {
     "id": "TF182",
     "category": "Human Body",
     "question": "The human heart pumps air through the body.",
     "answer": false,
-    "explanation": "Actually, The human heart pumps blood through the body."
+    "explanation": "Actually, The human heart pumps blood through the body.",
+    "factGroup": "F091"
   },
   {
     "id": "TF183",
     "category": "Human Body",
     "question": "An adult human typically has 206 bones.",
     "answer": true,
-    "explanation": "An adult human typically has 206 bones."
+    "explanation": "An adult human typically has 206 bones.",
+    "factGroup": "F092"
   },
   {
     "id": "TF184",
     "category": "Human Body",
     "question": "An adult human typically has 406 bones.",
     "answer": false,
-    "explanation": "Actually, An adult human typically has 206 bones."
+    "explanation": "Actually, An adult human typically has 206 bones.",
+    "factGroup": "F092"
   },
   {
     "id": "TF185",
     "category": "Human Body",
     "question": "The smallest bones in the human body are in the middle ear.",
     "answer": true,
-    "explanation": "The smallest bones in the human body are in the middle ear."
+    "explanation": "The smallest bones in the human body are in the middle ear.",
+    "factGroup": "F093"
   },
   {
     "id": "TF186",
     "category": "Human Body",
     "question": "The smallest bones in the human body are in the big toe.",
     "answer": false,
-    "explanation": "Actually, The smallest bones in the human body are in the middle ear."
+    "explanation": "Actually, The smallest bones in the human body are in the middle ear.",
+    "factGroup": "F093"
   },
   {
     "id": "TF187",
     "category": "Human Body",
     "question": "Your tongue helps you taste food.",
     "answer": true,
-    "explanation": "Your tongue helps you taste food."
+    "explanation": "Your tongue helps you taste food.",
+    "factGroup": "F094"
   },
   {
     "id": "TF188",
     "category": "Human Body",
     "question": "Your tongue is used only for breathing.",
     "answer": false,
-    "explanation": "Actually, Your tongue helps you taste food."
+    "explanation": "Actually, Your tongue helps you taste food.",
+    "factGroup": "F094"
   },
   {
     "id": "TF189",
     "category": "Human Body",
     "question": "The lungs bring oxygen from the air into the body.",
     "answer": true,
-    "explanation": "The lungs bring oxygen from the air into the body."
+    "explanation": "The lungs bring oxygen from the air into the body.",
+    "factGroup": "F095"
   },
   {
     "id": "TF190",
     "category": "Human Body",
     "question": "The lungs digest food in the stomach.",
     "answer": false,
-    "explanation": "Actually, The lungs bring oxygen from the air into the body."
+    "explanation": "Actually, The lungs bring oxygen from the air into the body.",
+    "factGroup": "F095"
   },
   {
     "id": "TF191",
     "category": "Human Body",
     "question": "Skin is the body's largest organ by surface area.",
     "answer": true,
-    "explanation": "Skin is the body's largest organ by surface area."
+    "explanation": "Skin is the body's largest organ by surface area.",
+    "factGroup": "F096"
   },
   {
     "id": "TF192",
     "category": "Human Body",
     "question": "The stomach is the body's largest organ by surface area.",
     "answer": false,
-    "explanation": "Actually, Skin is the body's largest organ by surface area."
+    "explanation": "Actually, Skin is the body's largest organ by surface area.",
+    "factGroup": "F096"
   },
   {
     "id": "TF193",
     "category": "Human Body",
     "question": "Your pupil gets smaller in bright light.",
     "answer": true,
-    "explanation": "Your pupil gets smaller in bright light."
+    "explanation": "Your pupil gets smaller in bright light.",
+    "factGroup": "F097"
   },
   {
     "id": "TF194",
     "category": "Human Body",
     "question": "Your pupil gets larger in bright light to let in more sunlight.",
     "answer": false,
-    "explanation": "Actually, Your pupil gets smaller in bright light."
+    "explanation": "Actually, Your pupil gets smaller in bright light.",
+    "factGroup": "F097"
   },
   {
     "id": "TF195",
     "category": "Human Body",
     "question": "The brain is protected by the skull.",
     "answer": true,
-    "explanation": "The brain is protected by the skull."
+    "explanation": "The brain is protected by the skull.",
+    "factGroup": "F098"
   },
   {
     "id": "TF196",
     "category": "Human Body",
     "question": "The brain is protected by the kneecap.",
     "answer": false,
-    "explanation": "Actually, The brain is protected by the skull."
+    "explanation": "Actually, The brain is protected by the skull.",
+    "factGroup": "F098"
   },
   {
     "id": "TF197",
     "category": "Human Body",
     "question": "Most people have five fingers on each hand, counting the thumb.",
     "answer": true,
-    "explanation": "Most people have five fingers on each hand, counting the thumb."
+    "explanation": "Most people have five fingers on each hand, counting the thumb.",
+    "factGroup": "F099"
   },
   {
     "id": "TF198",
     "category": "Human Body",
     "question": "Most people have six fingers on each hand, counting the thumb.",
     "answer": false,
-    "explanation": "Actually, Most people have five fingers on each hand, counting the thumb."
+    "explanation": "Actually, Most people have five fingers on each hand, counting the thumb.",
+    "factGroup": "F099"
   },
   {
     "id": "TF199",
     "category": "Human Body",
     "question": "You blink to help spread tears over your eyes.",
     "answer": true,
-    "explanation": "You blink to help spread tears over your eyes."
+    "explanation": "You blink to help spread tears over your eyes.",
+    "factGroup": "F100"
   },
   {
     "id": "TF200",
     "category": "Human Body",
     "question": "Blinking is how your ears detect sound.",
     "answer": false,
-    "explanation": "Actually, You blink to help spread tears over your eyes."
+    "explanation": "Actually, You blink to help spread tears over your eyes.",
+    "factGroup": "F100"
   }
 ]
