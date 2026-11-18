@@ -432,6 +432,28 @@
           </Border>
         </Grid>
       </Grid>
+      <!-- Noninteractive success popup; it never blocks gaze Back or tabs. -->
+      <Border x:Name="TherapistExportConfirmation"
+              Grid.Row="2" Panel.ZIndex="30"
+              Visibility="Collapsed" IsHitTestVisible="False"
+              HorizontalAlignment="Center" VerticalAlignment="Center"
+              MaxWidth="710" Margin="24"
+              Background="#173B52" BorderBrush="#6ED6AA"
+              BorderThickness="3" CornerRadius="16" Padding="32,26">
+        <StackPanel Spacing="13">
+          <TextBlock Text="REPORT SAVED" FontSize="34"
+                     FontWeight="Bold" Foreground="#B6F7D6"
+                     TextAlignment="Center"/>
+          <TextBlock Text="Your therapist report has been saved to your Downloads folder."
+                     Foreground="White" FontSize="25"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock x:Name="TherapistExportConfirmationFilename"
+                     Foreground="#D5EAFE" FontSize="17"
+                     TextAlignment="Center" TextWrapping="Wrap" MaxLines="2"/>
+          <TextBlock Text="This message will close automatically."
+                     Foreground="#D5EAFE" FontSize="17" TextAlignment="Center"/>
+        </StackPanel>
+      </Border>
     </Grid>
 
     <Grid x:Name="LevelsPanel" Background="#101827" Padding="24"
