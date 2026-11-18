@@ -58,6 +58,15 @@ namespace EyeGazeApiViability
         {
             new[]
             {
+                "Time to first gaze|Time until valid gaze is available after tutorial launch",
+                "Cursor screen coverage|Percent of coarse screen regions visited during free exploration",
+                "Stable corner visits|Corners reached with reliable repeated gaze samples",
+                "Horizontal and vertical range|Measured extent of gaze-controlled cursor exploration",
+                "Moving-target pursuit|Valid tracked time spent near the slow moving target",
+                "First selection|Started and completed dwells on the large Main Screen button"
+            },
+            new[]
+            {
                 "Target acquisition time|Average time from target appearance to first valid arrival",
                 "Target selection time|Average time from target appearance to completed selection",
                 "Acquisition success rate|Successful arrivals divided by comparable target attempts",
@@ -173,12 +182,12 @@ namespace EyeGazeApiViability
             diagnosticsButtons = new[] { DiagnosticsBackButton,
                 DiagnosticsOverviewTabButton, DiagnosticsSkillsTabButton,
                 DiagnosticsMapsTabButton, DiagnosticsSessionsTabButton };
-            skillCategoryButtons = new[] { SkillsTargetsButton, SkillsDwellButton,
+            skillCategoryButtons = new[] { SkillsIntroButton, SkillsTargetsButton, SkillsDwellButton,
                 SkillsTrackingButton, SkillsEnduranceButton, SkillsFunctionButton };
             diagnosticsSkillsButtons = new[] { DiagnosticsBackButton,
                 DiagnosticsOverviewTabButton, DiagnosticsSkillsTabButton,
                 DiagnosticsMapsTabButton, DiagnosticsSessionsTabButton,
-                SkillsTargetsButton, SkillsDwellButton, SkillsTrackingButton,
+                SkillsIntroButton, SkillsTargetsButton, SkillsDwellButton, SkillsTrackingButton,
                 SkillsEnduranceButton, SkillsFunctionButton };
             BuildDiagnosticGrids();
             BuildSkillsGrid();
@@ -436,7 +445,8 @@ namespace EyeGazeApiViability
                      target == DiagnosticsMapsTabButton ||
                      target == DiagnosticsSessionsTabButton)
                 SelectDiagnosticsTab(target);
-            else if (target == SkillsTargetsButton || target == SkillsDwellButton ||
+            else if (target == SkillsIntroButton || target == SkillsTargetsButton ||
+                     target == SkillsDwellButton ||
                      target == SkillsTrackingButton || target == SkillsEnduranceButton ||
                      target == SkillsFunctionButton)
                 SelectSkillsCategory(Array.IndexOf(skillCategoryButtons, target));
