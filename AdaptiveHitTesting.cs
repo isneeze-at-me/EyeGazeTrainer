@@ -6,7 +6,7 @@ namespace EyeGazeApiViability
     /// <summary>
     /// Shared target acquisition geometry using the current learner's
     /// assistance percentage. This does not change visible object sizes.
-    /// Do not use enlarged hit regions for safety controls such as Exit.
+    /// All gaze buttons use the shared hit region, including Exit. For safety,\n    /// Exit also accepts raw gaze when smoothing cannot keep up.
     /// </summary>
     internal static class AdaptiveHitTesting
     {
