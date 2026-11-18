@@ -42,6 +42,7 @@
     <Compile Include="DisplayScaleManager.cs" />
     <Compile Include="TrainingProgress.cs" />
     <Compile Include="SpatialAccuracyMap.cs" />
+    <Compile Include="SpatialJitterMap.cs" />
     <Compile Include="TriviaQuestionBank.cs" />
     <AppxManifest Include="Package.appxmanifest" />
     <ApplicationDefinition Include="App.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></ApplicationDefinition>
