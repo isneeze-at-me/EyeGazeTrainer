@@ -116,7 +116,7 @@
 
 The initial Level 0 free exploration has been revised to teach deliberate cursor movement in this order:
 
-1. **Discover movement:** Spoken welcome asks the learner to move their eyes around the screen. A stationary cursor is not praised or passed. A minimum of **one second of observed non-jitter cursor movement** and meaningful cumulative distance triggers the next step; if no valid gaze or movement is detected, offer a helpful spoken reminder.
+1. **Discover movement:** Spoken welcome asks the learner to move their eyes around the screen. A stationary cursor is not praised or passed. A minimum of **15 cumulative seconds of observed non-jitter cursor movement** and meaningful cumulative distance triggers the next step; if no valid gaze or movement is detected, offer a helpful spoken reminder.
 2. **Up and down:** Speak the up/down task. Remain in it for at least **15 seconds**, requiring multiple genuinely vertical movements, changes of direction and useful travel before advancement. If gaze moves predominantly horizontally or diagonally, describe what was observed and gently remind the learner to look up/down. Do not praise unrelated movement.
 3. **Left and right:** Celebrate completing vertical movement, then explain left/right. Remain for at least **15 seconds** with genuine horizontal direction reversals and travel. Coach specifically if the learner is practicing another direction.
 4. **Circles:** Celebrate left/right control, then explain how to trace a large circle with the eyes. Require at least **15 seconds**, measurable angular movement around screen center and coverage of multiple directions. Do not pass because of stationary jitter or elapsed time alone.
@@ -125,3 +125,5 @@ The initial Level 0 free exploration has been revised to teach deliberate cursor
 Coaching is triggered periodically when the requested task is not being observed. The detector samples stabilized cursor positions at up to 10 Hz, ignores tiny and implausibly large jumps, and does not mistake a timer for practice completion. The training state resets on replay. The voice system marshals native MediaPlayer completion back to the UWP UI dispatcher before revealing controls.
 
 **Status:** Implemented on `Test` but not compiled or tested with an actual PCEye 5. The detection thresholds are initial estimates and need device testing and accessibility tuning. No eye tracker acquisition, ownership, or staged cleanup was changed.
+
+**Step 1 revision (2026-11-18):** Require **15 seconds of cumulative actual free movement**, not 15 seconds elapsed on screen. No specific direction is prescribed in this phase. Each sampled interval contributes only when the stabilized cursor moves beyond the jitter threshold (and without a large invalid jump). Pauses do not count; the learner may take as long as needed. A minimum total normalized travel of 0.50 also applies. The next step provides the up/down instruction only after these criteria are met.
