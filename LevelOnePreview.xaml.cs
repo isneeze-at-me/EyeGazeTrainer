@@ -49,6 +49,8 @@ namespace EyeGazeApiViability
         private bool autoStartAttempted;
         private Button gazeControlTarget;
         private SharedButtonDwellWheel buttonDwellWheel;
+        private Button[] trainingButtons;
+        private Button[] displayButtons;
         private DateTimeOffset gazeControlEnteredAt;
         private DateTimeOffset lastGazeAt;
         private bool gazeControlTriggered;
@@ -58,6 +60,9 @@ namespace EyeGazeApiViability
         {
             InitializeComponent();
             buttonDwellWheel = new SharedButtonDwellWheel(CursorOverlay);
+            trainingButtons = new[] { ExitButton, DisplaySettingsButton };
+            displayButtons = new[] { ShorterButton, LongerButton, SaveDisplayButton,
+                                     CancelDisplayButton, SettingsExitButton };
             displayScale = new DisplayScaleManager();
             ApplyDisplaySizes();
             displayInformation = DisplayInformation.GetForCurrentView();
@@ -264,10 +269,8 @@ namespace EyeGazeApiViability
         // filters, geometry, or dwell timers.
         private Button[] GetGazeButtons()
         {
-            return displaySettingsVisible
-                ? new[] { ShorterButton, LongerButton, SaveDisplayButton,
-                          CancelDisplayButton, SettingsExitButton }
-                : new[] { ExitButton, DisplaySettingsButton };
+            // Reuse registered arrays; no allocations on gaze-move events.
+            return displaySettingsVisible ? displayButtons : trainingButtons;
         }
 
         private Button FindGazeButton(Point stabilizedPoint, Point rawPoint)
