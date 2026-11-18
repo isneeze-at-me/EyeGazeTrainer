@@ -27,11 +27,14 @@ namespace EyeGazeApiViability
         private double TargetDiameter { get { return targetDiameter; } }
         private readonly MasterCursorSmoothingFilter cursorFilter = new MasterCursorSmoothingFilter();
         private readonly AdaptiveGazeProfile gazeProfile = new AdaptiveGazeProfile();
-        private static readonly Point[] TargetFractions =
-        {
-            new Point(0.25, 0.50), new Point(0.75, 0.50),
-            new Point(0.50, 0.28), new Point(0.50, 0.72)
-        };
+        private const int TargetsPerLevel = 6;
+        private readonly Random placementRandom = new Random();
+        private readonly TrainingProgress trainingProgress = new TrainingProgress();
+        private Point targetPosition;
+        private Point previousTargetPosition;
+        private bool hasPreviousTargetPosition;
+        private enum AppScreen { Menu, Levels, Lesson, Settings }
+        private AppScreen currentScreen = AppScreen.Menu;
 
         private GazeDeviceWatcherPreview watcher;
         private GazeInputSourcePreview gazeSource;
@@ -49,8 +52,11 @@ namespace EyeGazeApiViability
         private bool autoStartAttempted;
         private Button gazeControlTarget;
         private SharedButtonDwellWheel buttonDwellWheel;
-        private Button[] trainingButtons;
+        private Button[] menuButtons;
+        private Button[] levelsButtons;
+        private Button[] lessonButtons;
         private Button[] displayButtons;
+        private Button[] allLevelButtons;
         private DateTimeOffset gazeControlEnteredAt;
         private DateTimeOffset lastGazeAt;
         private bool gazeControlTriggered;
@@ -60,7 +66,13 @@ namespace EyeGazeApiViability
         {
             InitializeComponent();
             buttonDwellWheel = new SharedButtonDwellWheel(CursorOverlay);
-            trainingButtons = new[] { ExitButton, DisplaySettingsButton };
+            menuButtons = new[] { LevelsMenuButton, SettingsMenuButton, ExitButton };
+            allLevelButtons = new[] { LevelOneButton, LevelTwoButton,
+                LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton };
+            levelsButtons = new[] { LevelOneButton, LevelTwoButton,
+                LevelThreeButton, LevelFourButton, LevelFiveButton,
+                LevelSixButton, LevelsBackButton };
+            lessonButtons = new[] { LessonBackButton };
             displayButtons = new[] { ShorterButton, LongerButton, SaveDisplayButton,
                                      CancelDisplayButton, SettingsExitButton };
             displayScale = new DisplayScaleManager();
@@ -69,6 +81,8 @@ namespace EyeGazeApiViability
             displayInformation.DpiChanged += OnDisplayDpiChanged;
             cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
             UpdateAccuracyDisplay();
+            UpdateLevelBadges();
+            ShowScreen(AppScreen.Menu);
             Loaded += OnPageLoaded;
         }
 
@@ -81,7 +95,7 @@ namespace EyeGazeApiViability
 
         private void OnEnableLive(object sender, RoutedEventArgs e)
         {
-            if (live || stopping) return;
+            if (live || stopping || currentScreen != AppScreen.Lesson) return;
             try
             {
                 tracePath = Path.Combine(ApplicationData.Current.LocalFolder.Path,
@@ -161,8 +175,7 @@ namespace EyeGazeApiViability
                 gazeSource.GazeMoved += OnGazeMoved;
                 gazeSubscribed = true;
                 Trace("END gaze source subscription");
-                LiveStatusText.Text = "Eye tracking ready. Look at the yellow circles.";
-                ResetLesson();
+                LiveStatusText.Text = "Eye tracking ready. Look at LEVELS to start.";
             }
             catch (Exception ex)
             {
@@ -202,7 +215,7 @@ namespace EyeGazeApiViability
             UpdateCursor(stabilized);
             Point canvasOrigin = TrainingCanvas.TransformToVisual(this)
                                   .TransformPoint(new Point(0, 0));
-            if (!displaySettingsVisible)
+            if (currentScreen == AppScreen.Lesson)
                 ProcessPosition(new Point(stabilized.X - canvasOrigin.X,
                                           stabilized.Y - canvasOrigin.Y),
                                 new Point(p.X - canvasOrigin.X,
@@ -248,12 +261,23 @@ namespace EyeGazeApiViability
             if (progress < 1.0) return;
             gazeControlTriggered = true;
             buttonDwellWheel.Hide();
-            // Re-arm only after looking away to avoid accidental repeats.
-            gazeControlTriggered = true;
+            // No new control activates until gaze leaves this hit region.
             if (target == ExitButton || target == SettingsExitButton)
                 OnExitRequested(null, null);
-            else if (target == DisplaySettingsButton)
+            else if (target == LevelsMenuButton)
+                OnOpenLevels(null, null);
+            else if (target == SettingsMenuButton)
                 OnDisplaySettingsRequested(null, null);
+            else if (target == LevelsBackButton)
+                OnBackToMenu(null, null);
+            else if (target == LessonBackButton)
+                OnBackToLevels(null, null);
+            else if (target == LevelOneButton)
+                OnLevelOne(null, null);
+            else if (target == LevelTwoButton || target == LevelThreeButton ||
+                     target == LevelFourButton || target == LevelFiveButton ||
+                     target == LevelSixButton)
+                OnPlaceholderLevel(target, null);
             else if (target == ShorterButton)
                 OnReferenceShorter(null, null);
             else if (target == LongerButton)
@@ -270,7 +294,13 @@ namespace EyeGazeApiViability
         private Button[] GetGazeButtons()
         {
             // Reuse registered arrays; no allocations on gaze-move events.
-            return displaySettingsVisible ? displayButtons : trainingButtons;
+            switch (currentScreen)
+            {
+                case AppScreen.Levels: return levelsButtons;
+                case AppScreen.Lesson: return lessonButtons;
+                case AppScreen.Settings: return displayButtons;
+                default: return menuButtons;
+            }
         }
 
         private Button FindGazeButton(Point stabilizedPoint, Point rawPoint)
@@ -301,6 +331,73 @@ namespace EyeGazeApiViability
                                   button.ActualHeight);
             return AdaptiveHitTesting.ContainsRectangle(
                 gaze, bounds, gazeProfile.HitBoxScale);
+        }
+
+        private void ShowScreen(AppScreen screen)
+        {
+            currentScreen = screen;
+            displaySettingsVisible = screen == AppScreen.Settings;
+            HomePanel.Visibility = screen == AppScreen.Menu ? Visibility.Visible : Visibility.Collapsed;
+            LevelsPanel.Visibility = screen == AppScreen.Levels ? Visibility.Visible : Visibility.Collapsed;
+            LessonPanel.Visibility = screen == AppScreen.Lesson ? Visibility.Visible : Visibility.Collapsed;
+            DisplaySettingsPanel.Visibility = screen == AppScreen.Settings ? Visibility.Visible : Visibility.Collapsed;
+            targetMeasurement.CancelHold();
+            buttonDwellWheel.Hide();
+            TargetRing.Visibility = Visibility.Collapsed;
+            TargetBullseye.Visibility = Visibility.Collapsed;
+            // Keep triggered gaze locked until the next look-away event.
+            // This prevents entering another screen while still gazing at
+            // the same coordinates from the previous screen's button.
+            if (screen != AppScreen.Lesson) UpdateAccuracyDisplay();
+        }
+
+        private void OnOpenLevels(object sender, RoutedEventArgs e)
+        {
+            if (stopping || exitRequested) return;
+            UpdateLevelBadges();
+            LevelsNoticeText.Text = "";
+            ShowScreen(AppScreen.Levels);
+        }
+
+        private void OnBackToMenu(object sender, RoutedEventArgs e)
+        {
+            if (stopping || exitRequested) return;
+            ShowScreen(AppScreen.Menu);
+        }
+
+        private void OnBackToLevels(object sender, RoutedEventArgs e)
+        {
+            if (stopping || exitRequested) return;
+            // An unfinished lesson does not mark the level completed.
+            completed = false;
+            UpdateLevelBadges();
+            LevelsNoticeText.Text = "";
+            ShowScreen(AppScreen.Levels);
+        }
+
+        private void OnLevelOne(object sender, RoutedEventArgs e)
+        {
+            if (stopping || exitRequested) return;
+            ShowScreen(AppScreen.Lesson);
+            ResetLesson();
+        }
+
+        private void OnPlaceholderLevel(object sender, RoutedEventArgs e)
+        {
+            if (stopping || exitRequested || currentScreen != AppScreen.Levels) return;
+            var button = sender as Button;
+            LevelsNoticeText.Text = (button != null ? button.Content.ToString() : "This level") +
+                " is coming soon.";
+        }
+
+        private void UpdateLevelBadges()
+        {
+            for (int i = 0; i < allLevelButtons.Length; i++)
+            {
+                bool done = trainingProgress.IsCompleted(i + 1);
+                allLevelButtons[i].Content = "LEVEL " + (i + 1) +
+                    (done ? "  ✓ COMPLETED" : i == 0 ? "" : "  · SOON");
+            }
         }
 
         private void OnCanvasSized(object sender, SizeChangedEventArgs e)
@@ -337,7 +434,8 @@ namespace EyeGazeApiViability
             // Preserve generous minimum gaze-button sizes on small screens.
             double buttonHeight = Math.Max(76, displayScale.ToViewUnits(20));
             ExitButton.MinHeight = Math.Max(88, buttonHeight);
-            DisplaySettingsButton.MinHeight = buttonHeight;
+            LevelsMenuButton.MinHeight = Math.Max(100, buttonHeight);
+            SettingsMenuButton.MinHeight = Math.Max(100, buttonHeight);
         }
 
         private void ResetReferencePreview()
@@ -359,14 +457,8 @@ namespace EyeGazeApiViability
 
         private void OnDisplaySettingsRequested(object sender, RoutedEventArgs e)
         {
-            if (stopping || exitRequested || displaySettingsVisible) return;
-            displaySettingsVisible = true;
-            targetMeasurement.CancelHold();
-            TargetRing.StrokeThickness = 8;
-            buttonDwellWheel.Hide();
-            gazeControlTarget = null;
-            gazeControlTriggered = false;
-            DisplaySettingsPanel.Visibility = Visibility.Visible;
+            if (stopping || exitRequested || currentScreen != AppScreen.Menu) return;
+            ShowScreen(AppScreen.Settings);
             ResetReferencePreview();
         }
 
@@ -409,15 +501,7 @@ namespace EyeGazeApiViability
 
         private void CloseDisplaySettings()
         {
-            displaySettingsVisible = false;
-            DisplaySettingsPanel.Visibility = Visibility.Collapsed;
-            buttonDwellWheel.Hide();
-            gazeControlTarget = null;
-            gazeControlTriggered = false;
-            // Restart target timing after settings; editing scale is not
-            // counted against speed or stability.
-            if (!completed && targetIndex >= 0)
-                targetMeasurement.BeginTarget(DateTimeOffset.UtcNow);
+            ShowScreen(AppScreen.Menu);
         }
 
         private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
