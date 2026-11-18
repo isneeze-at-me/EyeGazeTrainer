@@ -4,699 +4,799 @@
     "category": "Simple Science",
     "question": "A magnet can attract many objects made of iron.",
     "answer": true,
-    "explanation": "A magnet can attract many objects made of iron."
+    "explanation": "A magnet can attract many objects made of iron.",
+    "factGroup": "F101"
   },
   {
     "id": "TF202",
     "category": "Simple Science",
     "question": "A magnet attracts every kind of wood.",
     "answer": false,
-    "explanation": "Actually, A magnet can attract many objects made of iron."
+    "explanation": "Actually, A magnet can attract many objects made of iron.",
+    "factGroup": "F101"
   },
   {
     "id": "TF203",
     "category": "Simple Science",
     "question": "Ice melts into liquid water when warmed enough.",
     "answer": true,
-    "explanation": "Ice melts into liquid water when warmed enough."
+    "explanation": "Ice melts into liquid water when warmed enough.",
+    "factGroup": "F102"
   },
   {
     "id": "TF204",
     "category": "Simple Science",
     "question": "Ice melts into solid rock when warmed.",
     "answer": false,
-    "explanation": "Actually, Ice melts into liquid water when warmed enough."
+    "explanation": "Actually, Ice melts into liquid water when warmed enough.",
+    "factGroup": "F102"
   },
   {
     "id": "TF205",
     "category": "Simple Science",
     "question": "Sound travels as vibrations.",
     "answer": true,
-    "explanation": "Sound travels as vibrations."
+    "explanation": "Sound travels as vibrations.",
+    "factGroup": "F103"
   },
   {
     "id": "TF206",
     "category": "Simple Science",
     "question": "Sound travels only as flashes of light.",
     "answer": false,
-    "explanation": "Actually, Sound travels as vibrations."
+    "explanation": "Actually, Sound travels as vibrations.",
+    "factGroup": "F103"
   },
   {
     "id": "TF207",
     "category": "Simple Science",
     "question": "Water boils at about 100 degrees Celsius at sea level.",
     "answer": true,
-    "explanation": "Water boils at about 100 degrees Celsius at sea level."
+    "explanation": "Water boils at about 100 degrees Celsius at sea level.",
+    "factGroup": "F104"
   },
   {
     "id": "TF208",
     "category": "Simple Science",
     "question": "Water boils at about 10 degrees Celsius at sea level.",
     "answer": false,
-    "explanation": "Actually, Water boils at about 100 degrees Celsius at sea level."
+    "explanation": "Actually, Water boils at about 100 degrees Celsius at sea level.",
+    "factGroup": "F104"
   },
   {
     "id": "TF209",
     "category": "Simple Science",
     "question": "A shadow forms when something blocks light.",
     "answer": true,
-    "explanation": "A shadow forms when something blocks light."
+    "explanation": "A shadow forms when something blocks light.",
+    "factGroup": "F105"
   },
   {
     "id": "TF210",
     "category": "Simple Science",
     "question": "A shadow forms because an object makes extra light.",
     "answer": false,
-    "explanation": "Actually, A shadow forms when something blocks light."
+    "explanation": "Actually, A shadow forms when something blocks light.",
+    "factGroup": "F105"
   },
   {
     "id": "TF211",
     "category": "Simple Science",
     "question": "Air takes up space even though you cannot see it.",
     "answer": true,
-    "explanation": "Air takes up space even though you cannot see it."
+    "explanation": "Air takes up space even though you cannot see it.",
+    "factGroup": "F106"
   },
   {
     "id": "TF212",
     "category": "Simple Science",
     "question": "Air takes up no space at all.",
     "answer": false,
-    "explanation": "Actually, Air takes up space even though you cannot see it."
+    "explanation": "Actually, Air takes up space even though you cannot see it.",
+    "factGroup": "F106"
   },
   {
     "id": "TF213",
     "category": "Simple Science",
     "question": "A solid usually keeps its own shape when placed in a container.",
     "answer": true,
-    "explanation": "A solid usually keeps its own shape when placed in a container."
+    "explanation": "A solid usually keeps its own shape when placed in a container.",
+    "factGroup": "F107"
   },
   {
     "id": "TF214",
     "category": "Simple Science",
     "question": "A solid always takes the exact shape of its container like a liquid.",
     "answer": false,
-    "explanation": "Actually, A solid usually keeps its own shape when placed in a container."
+    "explanation": "Actually, A solid usually keeps its own shape when placed in a container.",
+    "factGroup": "F107"
   },
   {
     "id": "TF215",
     "category": "Simple Science",
     "question": "A lever is a simple machine.",
     "answer": true,
-    "explanation": "A lever is a simple machine."
+    "explanation": "A lever is a simple machine.",
+    "factGroup": "F108"
   },
   {
     "id": "TF216",
     "category": "Simple Science",
     "question": "A lever is a type of cloud.",
     "answer": false,
-    "explanation": "Actually, A lever is a simple machine."
+    "explanation": "Actually, A lever is a simple machine.",
+    "factGroup": "F108"
   },
   {
     "id": "TF217",
     "category": "Simple Science",
     "question": "Friction can slow down moving objects.",
     "answer": true,
-    "explanation": "Friction can slow down moving objects."
+    "explanation": "Friction can slow down moving objects.",
+    "factGroup": "F109"
   },
   {
     "id": "TF218",
     "category": "Simple Science",
     "question": "Friction always makes moving objects speed up.",
     "answer": false,
-    "explanation": "Actually, Friction can slow down moving objects."
+    "explanation": "Actually, Friction can slow down moving objects.",
+    "factGroup": "F109"
   },
   {
     "id": "TF219",
     "category": "Simple Science",
     "question": "An electrical circuit needs a complete conducting path for current to flow.",
     "answer": true,
-    "explanation": "An electrical circuit needs a complete conducting path for current to flow."
+    "explanation": "An electrical circuit needs a complete conducting path for current to flow.",
+    "factGroup": "F110"
   },
   {
     "id": "TF220",
     "category": "Simple Science",
     "question": "Electric current normally flows through a broken wire gap without crossing it.",
     "answer": false,
-    "explanation": "Actually, An electrical circuit needs a complete conducting path for current to flow."
+    "explanation": "Actually, An electrical circuit needs a complete conducting path for current to flow.",
+    "factGroup": "F110"
   },
   {
     "id": "TF221",
     "category": "Math & Shapes",
     "question": "A triangle has three sides.",
     "answer": true,
-    "explanation": "A triangle has three sides."
+    "explanation": "A triangle has three sides.",
+    "factGroup": "F111"
   },
   {
     "id": "TF222",
     "category": "Math & Shapes",
     "question": "A triangle has four sides.",
     "answer": false,
-    "explanation": "Actually, A triangle has three sides."
+    "explanation": "Actually, A triangle has three sides.",
+    "factGroup": "F111"
   },
   {
     "id": "TF223",
     "category": "Math & Shapes",
     "question": "A square has four equal sides.",
     "answer": true,
-    "explanation": "A square has four equal sides."
+    "explanation": "A square has four equal sides.",
+    "factGroup": "F112"
   },
   {
     "id": "TF224",
     "category": "Math & Shapes",
     "question": "A square must have five equal sides.",
     "answer": false,
-    "explanation": "Actually, A square has four equal sides."
+    "explanation": "Actually, A square has four equal sides.",
+    "factGroup": "F112"
   },
   {
     "id": "TF225",
     "category": "Math & Shapes",
     "question": "Ten times ten equals one hundred.",
     "answer": true,
-    "explanation": "Ten times ten equals one hundred."
+    "explanation": "Ten times ten equals one hundred.",
+    "factGroup": "F113"
   },
   {
     "id": "TF226",
     "category": "Math & Shapes",
     "question": "Ten times ten equals one thousand.",
     "answer": false,
-    "explanation": "Actually, Ten times ten equals one hundred."
+    "explanation": "Actually, Ten times ten equals one hundred.",
+    "factGroup": "F113"
   },
   {
     "id": "TF227",
     "category": "Math & Shapes",
     "question": "A dozen means twelve.",
     "answer": true,
-    "explanation": "A dozen means twelve."
+    "explanation": "A dozen means twelve.",
+    "factGroup": "F114"
   },
   {
     "id": "TF228",
     "category": "Math & Shapes",
     "question": "A dozen means ten.",
     "answer": false,
-    "explanation": "Actually, A dozen means twelve."
+    "explanation": "Actually, A dozen means twelve.",
+    "factGroup": "F114"
   },
   {
     "id": "TF229",
     "category": "Math & Shapes",
     "question": "A right angle measures 90 degrees.",
     "answer": true,
-    "explanation": "A right angle measures 90 degrees."
+    "explanation": "A right angle measures 90 degrees.",
+    "factGroup": "F115"
   },
   {
     "id": "TF230",
     "category": "Math & Shapes",
     "question": "A right angle measures 45 degrees.",
     "answer": false,
-    "explanation": "Actually, A right angle measures 90 degrees."
+    "explanation": "Actually, A right angle measures 90 degrees.",
+    "factGroup": "F115"
   },
   {
     "id": "TF231",
     "category": "Math & Shapes",
     "question": "A hexagon has six sides.",
     "answer": true,
-    "explanation": "A hexagon has six sides."
+    "explanation": "A hexagon has six sides.",
+    "factGroup": "F116"
   },
   {
     "id": "TF232",
     "category": "Math & Shapes",
     "question": "A hexagon has eight sides.",
     "answer": false,
-    "explanation": "Actually, A hexagon has six sides."
+    "explanation": "Actually, A hexagon has six sides.",
+    "factGroup": "F116"
   },
   {
     "id": "TF233",
     "category": "Math & Shapes",
     "question": "Half of twenty is ten.",
     "answer": true,
-    "explanation": "Half of twenty is ten."
+    "explanation": "Half of twenty is ten.",
+    "factGroup": "F117"
   },
   {
     "id": "TF234",
     "category": "Math & Shapes",
     "question": "Half of twenty is five.",
     "answer": false,
-    "explanation": "Actually, Half of twenty is ten."
+    "explanation": "Actually, Half of twenty is ten.",
+    "factGroup": "F117"
   },
   {
     "id": "TF235",
     "category": "Math & Shapes",
     "question": "A circle has no corners.",
     "answer": true,
-    "explanation": "A circle has no corners."
+    "explanation": "A circle has no corners.",
+    "factGroup": "F118"
   },
   {
     "id": "TF236",
     "category": "Math & Shapes",
     "question": "A circle has four corners.",
     "answer": false,
-    "explanation": "Actually, A circle has no corners."
+    "explanation": "Actually, A circle has no corners.",
+    "factGroup": "F118"
   },
   {
     "id": "TF237",
     "category": "Math & Shapes",
     "question": "An even whole number is divisible by two.",
     "answer": true,
-    "explanation": "An even whole number is divisible by two."
+    "explanation": "An even whole number is divisible by two.",
+    "factGroup": "F119"
   },
   {
     "id": "TF238",
     "category": "Math & Shapes",
     "question": "Every odd whole number is divisible by two.",
     "answer": false,
-    "explanation": "Actually, An even whole number is divisible by two."
+    "explanation": "Actually, An even whole number is divisible by two.",
+    "factGroup": "F119"
   },
   {
     "id": "TF239",
     "category": "Math & Shapes",
     "question": "The Roman numeral X represents ten.",
     "answer": true,
-    "explanation": "The Roman numeral X represents ten."
+    "explanation": "The Roman numeral X represents ten.",
+    "factGroup": "F120"
   },
   {
     "id": "TF240",
     "category": "Math & Shapes",
     "question": "The Roman numeral X represents fifty.",
     "answer": false,
-    "explanation": "Actually, The Roman numeral X represents ten."
+    "explanation": "Actually, The Roman numeral X represents ten.",
+    "factGroup": "F120"
   },
   {
     "id": "TF241",
     "category": "Colors & Light",
     "question": "Red and blue light combine to make magenta light.",
     "answer": true,
-    "explanation": "Red and blue light combine to make magenta light."
+    "explanation": "Red and blue light combine to make magenta light.",
+    "factGroup": "F121"
   },
   {
     "id": "TF242",
     "category": "Colors & Light",
     "question": "Red and blue light combine to make yellow light.",
     "answer": false,
-    "explanation": "Actually, Red and blue light combine to make magenta light."
+    "explanation": "Actually, Red and blue light combine to make magenta light.",
+    "factGroup": "F121"
   },
   {
     "id": "TF243",
     "category": "Colors & Light",
     "question": "White light can be separated into a spectrum of colors.",
     "answer": true,
-    "explanation": "White light can be separated into a spectrum of colors."
+    "explanation": "White light can be separated into a spectrum of colors.",
+    "factGroup": "F122"
   },
   {
     "id": "TF244",
     "category": "Colors & Light",
     "question": "White light contains no colors.",
     "answer": false,
-    "explanation": "Actually, White light can be separated into a spectrum of colors."
+    "explanation": "Actually, White light can be separated into a spectrum of colors.",
+    "factGroup": "F122"
   },
   {
     "id": "TF245",
     "category": "Colors & Light",
     "question": "A prism can bend and separate light.",
     "answer": true,
-    "explanation": "A prism can bend and separate light."
+    "explanation": "A prism can bend and separate light.",
+    "factGroup": "F123"
   },
   {
     "id": "TF246",
     "category": "Colors & Light",
     "question": "A prism turns ordinary light into sound.",
     "answer": false,
-    "explanation": "Actually, A prism can bend and separate light."
+    "explanation": "Actually, A prism can bend and separate light.",
+    "factGroup": "F123"
   },
   {
     "id": "TF247",
     "category": "Colors & Light",
     "question": "A mirror reflects light.",
     "answer": true,
-    "explanation": "A mirror reflects light."
+    "explanation": "A mirror reflects light.",
+    "factGroup": "F124"
   },
   {
     "id": "TF248",
     "category": "Colors & Light",
     "question": "A mirror creates all the light it reflects.",
     "answer": false,
-    "explanation": "Actually, A mirror reflects light."
+    "explanation": "Actually, A mirror reflects light.",
+    "factGroup": "F124"
   },
   {
     "id": "TF249",
     "category": "Colors & Light",
     "question": "A rainbow is commonly described using seven colors.",
     "answer": true,
-    "explanation": "A rainbow is commonly described using seven colors."
+    "explanation": "A rainbow is commonly described using seven colors.",
+    "factGroup": "F125"
   },
   {
     "id": "TF250",
     "category": "Colors & Light",
     "question": "A rainbow is commonly described using exactly two colors.",
     "answer": false,
-    "explanation": "Actually, A rainbow is commonly described using seven colors."
+    "explanation": "Actually, A rainbow is commonly described using seven colors.",
+    "factGroup": "F125"
   },
   {
     "id": "TF251",
     "category": "Colors & Light",
     "question": "The sky often looks blue because of sunlight scattering in the atmosphere.",
     "answer": true,
-    "explanation": "The sky often looks blue because of sunlight scattering in the atmosphere."
+    "explanation": "The sky often looks blue because of sunlight scattering in the atmosphere.",
+    "factGroup": "F126"
   },
   {
     "id": "TF252",
     "category": "Colors & Light",
     "question": "The sky often looks blue because oceans paint the air blue.",
     "answer": false,
-    "explanation": "Actually, The sky often looks blue because of sunlight scattering in the atmosphere."
+    "explanation": "Actually, The sky often looks blue because of sunlight scattering in the atmosphere.",
+    "factGroup": "F126"
   },
   {
     "id": "TF253",
     "category": "Colors & Light",
     "question": "Black paper usually absorbs more sunlight than white paper.",
     "answer": true,
-    "explanation": "Black paper usually absorbs more sunlight than white paper."
+    "explanation": "Black paper usually absorbs more sunlight than white paper.",
+    "factGroup": "F127"
   },
   {
     "id": "TF254",
     "category": "Colors & Light",
     "question": "Black paper usually reflects more sunlight than white paper.",
     "answer": false,
-    "explanation": "Actually, Black paper usually absorbs more sunlight than white paper."
+    "explanation": "Actually, Black paper usually absorbs more sunlight than white paper.",
+    "factGroup": "F127"
   },
   {
     "id": "TF255",
     "category": "Colors & Light",
     "question": "A magnifying glass can make a small object look bigger.",
     "answer": true,
-    "explanation": "A magnifying glass can make a small object look bigger."
+    "explanation": "A magnifying glass can make a small object look bigger.",
+    "factGroup": "F128"
   },
   {
     "id": "TF256",
     "category": "Colors & Light",
     "question": "A magnifying glass always makes a small object look smaller.",
     "answer": false,
-    "explanation": "Actually, A magnifying glass can make a small object look bigger."
+    "explanation": "Actually, A magnifying glass can make a small object look bigger.",
+    "factGroup": "F128"
   },
   {
     "id": "TF257",
     "category": "Colors & Light",
     "question": "A flashlight usually needs a power source to shine.",
     "answer": true,
-    "explanation": "A flashlight usually needs a power source to shine."
+    "explanation": "A flashlight usually needs a power source to shine.",
+    "factGroup": "F129"
   },
   {
     "id": "TF258",
     "category": "Colors & Light",
     "question": "A flashlight works without any source of energy.",
     "answer": false,
-    "explanation": "Actually, A flashlight usually needs a power source to shine."
+    "explanation": "Actually, A flashlight usually needs a power source to shine.",
+    "factGroup": "F129"
   },
   {
     "id": "TF259",
     "category": "Colors & Light",
     "question": "A solar eclipse can happen when the Moon moves between Earth and the Sun.",
     "answer": true,
-    "explanation": "A solar eclipse can happen when the Moon moves between Earth and the Sun."
+    "explanation": "A solar eclipse can happen when the Moon moves between Earth and the Sun.",
+    "factGroup": "F130"
   },
   {
     "id": "TF260",
     "category": "Colors & Light",
     "question": "A solar eclipse happens when Mars moves between Earth and the Sun.",
     "answer": false,
-    "explanation": "Actually, A solar eclipse can happen when the Moon moves between Earth and the Sun."
+    "explanation": "Actually, A solar eclipse can happen when the Moon moves between Earth and the Sun.",
+    "factGroup": "F130"
   },
   {
     "id": "TF261",
     "category": "Music",
     "question": "A piano has keys that can play high and low notes.",
     "answer": true,
-    "explanation": "A piano has keys that can play high and low notes."
+    "explanation": "A piano has keys that can play high and low notes.",
+    "factGroup": "F131"
   },
   {
     "id": "TF262",
     "category": "Music",
     "question": "A piano can only play one note.",
     "answer": false,
-    "explanation": "Actually, A piano has keys that can play high and low notes."
+    "explanation": "Actually, A piano has keys that can play high and low notes.",
+    "factGroup": "F131"
   },
   {
     "id": "TF263",
     "category": "Music",
     "question": "A violin is usually played with a bow.",
     "answer": true,
-    "explanation": "A violin is usually played with a bow."
+    "explanation": "A violin is usually played with a bow.",
+    "factGroup": "F132"
   },
   {
     "id": "TF264",
     "category": "Music",
     "question": "A violin is normally played by blowing into a mouthpiece.",
     "answer": false,
-    "explanation": "Actually, A violin is usually played with a bow."
+    "explanation": "Actually, A violin is usually played with a bow.",
+    "factGroup": "F132"
   },
   {
     "id": "TF265",
     "category": "Music",
     "question": "A drummer can use sticks to play a drum.",
     "answer": true,
-    "explanation": "A drummer can use sticks to play a drum."
+    "explanation": "A drummer can use sticks to play a drum.",
+    "factGroup": "F133"
   },
   {
     "id": "TF266",
     "category": "Music",
     "question": "A drummer must use a paintbrush to play a drum.",
     "answer": false,
-    "explanation": "Actually, A drummer can use sticks to play a drum."
+    "explanation": "Actually, A drummer can use sticks to play a drum.",
+    "factGroup": "F133"
   },
   {
     "id": "TF267",
     "category": "Music",
     "question": "A trumpet is a brass instrument.",
     "answer": true,
-    "explanation": "A trumpet is a brass instrument."
+    "explanation": "A trumpet is a brass instrument.",
+    "factGroup": "F134"
   },
   {
     "id": "TF268",
     "category": "Music",
     "question": "A trumpet is a string instrument.",
     "answer": false,
-    "explanation": "Actually, A trumpet is a brass instrument."
+    "explanation": "Actually, A trumpet is a brass instrument.",
+    "factGroup": "F134"
   },
   {
     "id": "TF269",
     "category": "Music",
     "question": "A choir is a group of singers.",
     "answer": true,
-    "explanation": "A choir is a group of singers."
+    "explanation": "A choir is a group of singers.",
+    "factGroup": "F135"
   },
   {
     "id": "TF270",
     "category": "Music",
     "question": "A choir is a collection of paintbrushes.",
     "answer": false,
-    "explanation": "Actually, A choir is a group of singers."
+    "explanation": "Actually, A choir is a group of singers.",
+    "factGroup": "F135"
   },
   {
     "id": "TF271",
     "category": "Music",
     "question": "A flute is a wind instrument.",
     "answer": true,
-    "explanation": "A flute is a wind instrument."
+    "explanation": "A flute is a wind instrument.",
+    "factGroup": "F136"
   },
   {
     "id": "TF272",
     "category": "Music",
     "question": "A flute is played by plucking strings.",
     "answer": false,
-    "explanation": "Actually, A flute is a wind instrument."
+    "explanation": "Actually, A flute is a wind instrument.",
+    "factGroup": "F136"
   },
   {
     "id": "TF273",
     "category": "Music",
     "question": "A xylophone has bars that are struck to make notes.",
     "answer": true,
-    "explanation": "A xylophone has bars that are struck to make notes."
+    "explanation": "A xylophone has bars that are struck to make notes.",
+    "factGroup": "F137"
   },
   {
     "id": "TF274",
     "category": "Music",
     "question": "A xylophone makes notes by blowing through a reed.",
     "answer": false,
-    "explanation": "Actually, A xylophone has bars that are struck to make notes."
+    "explanation": "Actually, A xylophone has bars that are struck to make notes.",
+    "factGroup": "F137"
   },
   {
     "id": "TF275",
     "category": "Music",
     "question": "A guitar commonly has six strings.",
     "answer": true,
-    "explanation": "A guitar commonly has six strings."
+    "explanation": "A guitar commonly has six strings.",
+    "factGroup": "F138"
   },
   {
     "id": "TF276",
     "category": "Music",
     "question": "A standard guitar commonly has twelve piano keys.",
     "answer": false,
-    "explanation": "Actually, A guitar commonly has six strings."
+    "explanation": "Actually, A guitar commonly has six strings.",
+    "factGroup": "F138"
   },
   {
     "id": "TF277",
     "category": "Music",
     "question": "Music can be written using notes on a staff.",
     "answer": true,
-    "explanation": "Music can be written using notes on a staff."
+    "explanation": "Music can be written using notes on a staff.",
+    "factGroup": "F139"
   },
   {
     "id": "TF278",
     "category": "Music",
     "question": "Music is written only using pictures of animals.",
     "answer": false,
-    "explanation": "Actually, Music can be written using notes on a staff."
+    "explanation": "Actually, Music can be written using notes on a staff.",
+    "factGroup": "F139"
   },
   {
     "id": "TF279",
     "category": "Music",
     "question": "A metronome helps musicians keep a steady beat.",
     "answer": true,
-    "explanation": "A metronome helps musicians keep a steady beat."
+    "explanation": "A metronome helps musicians keep a steady beat.",
+    "factGroup": "F140"
   },
   {
     "id": "TF280",
     "category": "Music",
     "question": "A metronome is used to change a guitar's string material.",
     "answer": false,
-    "explanation": "Actually, A metronome helps musicians keep a steady beat."
+    "explanation": "Actually, A metronome helps musicians keep a steady beat.",
+    "factGroup": "F140"
   },
   {
     "id": "TF281",
     "category": "Art & Crafts",
     "question": "Watercolor paint can be thinned with water.",
     "answer": true,
-    "explanation": "Watercolor paint can be thinned with water."
+    "explanation": "Watercolor paint can be thinned with water.",
+    "factGroup": "F141"
   },
   {
     "id": "TF282",
     "category": "Art & Crafts",
     "question": "Watercolor paint is thinned only with sand.",
     "answer": false,
-    "explanation": "Actually, Watercolor paint can be thinned with water."
+    "explanation": "Actually, Watercolor paint can be thinned with water.",
+    "factGroup": "F141"
   },
   {
     "id": "TF283",
     "category": "Art & Crafts",
     "question": "Origami is the art of folding paper.",
     "answer": true,
-    "explanation": "Origami is the art of folding paper."
+    "explanation": "Origami is the art of folding paper.",
+    "factGroup": "F142"
   },
   {
     "id": "TF284",
     "category": "Art & Crafts",
     "question": "Origami is the art of carving stone.",
     "answer": false,
-    "explanation": "Actually, Origami is the art of folding paper."
+    "explanation": "Actually, Origami is the art of folding paper.",
+    "factGroup": "F142"
   },
   {
     "id": "TF285",
     "category": "Art & Crafts",
     "question": "A sculpture is a three-dimensional work of art.",
     "answer": true,
-    "explanation": "A sculpture is a three-dimensional work of art."
+    "explanation": "A sculpture is a three-dimensional work of art.",
+    "factGroup": "F143"
   },
   {
     "id": "TF286",
     "category": "Art & Crafts",
     "question": "A sculpture must be a flat drawing on paper.",
     "answer": false,
-    "explanation": "Actually, A sculpture is a three-dimensional work of art."
+    "explanation": "Actually, A sculpture is a three-dimensional work of art.",
+    "factGroup": "F143"
   },
   {
     "id": "TF287",
     "category": "Art & Crafts",
     "question": "A collage can be made by arranging cut pieces of paper.",
     "answer": true,
-    "explanation": "A collage can be made by arranging cut pieces of paper."
+    "explanation": "A collage can be made by arranging cut pieces of paper.",
+    "factGroup": "F144"
   },
   {
     "id": "TF288",
     "category": "Art & Crafts",
     "question": "A collage can only be made using a single pencil line.",
     "answer": false,
-    "explanation": "Actually, A collage can be made by arranging cut pieces of paper."
+    "explanation": "Actually, A collage can be made by arranging cut pieces of paper.",
+    "factGroup": "F144"
   },
   {
     "id": "TF289",
     "category": "Art & Crafts",
     "question": "Clay can be shaped before it hardens.",
     "answer": true,
-    "explanation": "Clay can be shaped before it hardens."
+    "explanation": "Clay can be shaped before it hardens.",
+    "factGroup": "F145"
   },
   {
     "id": "TF290",
     "category": "Art & Crafts",
     "question": "Clay cannot be shaped by hand before it hardens.",
     "answer": false,
-    "explanation": "Actually, Clay can be shaped before it hardens."
+    "explanation": "Actually, Clay can be shaped before it hardens.",
+    "factGroup": "F145"
   },
   {
     "id": "TF291",
     "category": "Art & Crafts",
     "question": "A portrait often shows a person.",
     "answer": true,
-    "explanation": "A portrait often shows a person."
+    "explanation": "A portrait often shows a person.",
+    "factGroup": "F146"
   },
   {
     "id": "TF292",
     "category": "Art & Crafts",
     "question": "A portrait must show only a landscape without people.",
     "answer": false,
-    "explanation": "Actually, A portrait often shows a person."
+    "explanation": "Actually, A portrait often shows a person.",
+    "factGroup": "F146"
   },
   {
     "id": "TF293",
     "category": "Art & Crafts",
     "question": "A mosaic can be made from many small pieces of tile.",
     "answer": true,
-    "explanation": "A mosaic can be made from many small pieces of tile."
+    "explanation": "A mosaic can be made from many small pieces of tile.",
+    "factGroup": "F147"
   },
   {
     "id": "TF294",
     "category": "Art & Crafts",
     "question": "A mosaic is made from one uncut piece of glass only.",
     "answer": false,
-    "explanation": "Actually, A mosaic can be made from many small pieces of tile."
+    "explanation": "Actually, A mosaic can be made from many small pieces of tile.",
+    "factGroup": "F147"
   },
   {
     "id": "TF295",
     "category": "Art & Crafts",
     "question": "A paintbrush has bristles used for painting.",
     "answer": true,
-    "explanation": "A paintbrush has bristles used for painting."
+    "explanation": "A paintbrush has bristles used for painting.",
+    "factGroup": "F148"
   },
   {
     "id": "TF296",
     "category": "Art & Crafts",
     "question": "A paintbrush is designed with wheels instead of bristles.",
     "answer": false,
-    "explanation": "Actually, A paintbrush has bristles used for painting."
+    "explanation": "Actually, A paintbrush has bristles used for painting.",
+    "factGroup": "F148"
   },
   {
     "id": "TF297",
     "category": "Art & Crafts",
     "question": "A sketch is often a quick drawing.",
     "answer": true,
-    "explanation": "A sketch is often a quick drawing."
+    "explanation": "A sketch is often a quick drawing.",
+    "factGroup": "F149"
   },
   {
     "id": "TF298",
     "category": "Art & Crafts",
     "question": "A sketch is always a fully carved statue.",
     "answer": false,
-    "explanation": "Actually, A sketch is often a quick drawing."
+    "explanation": "Actually, A sketch is often a quick drawing.",
+    "factGroup": "F149"
   },
   {
     "id": "TF299",
     "category": "Art & Crafts",
     "question": "A loom is used for weaving.",
     "answer": true,
-    "explanation": "A loom is used for weaving."
+    "explanation": "A loom is used for weaving.",
+    "factGroup": "F150"
   },
   {
     "id": "TF300",
     "category": "Art & Crafts",
     "question": "A loom is used for baking cookies.",
     "answer": false,
-    "explanation": "Actually, A loom is used for weaving."
+    "explanation": "Actually, A loom is used for weaving.",
+    "factGroup": "F150"
   }
 ]
