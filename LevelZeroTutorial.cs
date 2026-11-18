@@ -157,24 +157,55 @@ namespace EyeGazeApiViability
                   args.ErrorMessage);
         }
 
-        private async void SpeakLevelZero(string text, bool essential = false)
+        private void OnLevelZeroMediaEnded(MediaPlayer sender, object args)
+        {
+            // MediaEnded is raised on a media thread; signal only.
+            var completion = levelZeroPlaybackCompletion;
+            if (completion != null) completion.TrySetResult(true);
+        }
+
+        // Important stage directions take precedence over ordinary praise.
+        // Keep at most one queued feedback phrase to avoid nonstop chatter.
+        private void SpeakLevelZero(string words, bool essential = false)
         {
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested ||
                 levelZeroSpeechUnavailable) return;
-            if (levelZeroSpeechBusy)
+            if (essential)
             {
-                if (essential) levelZeroPendingInstruction = text;
-                return;
+                levelZeroFeedbackQueue.Clear();
+                if (levelZeroSpeechBusy)
+                {
+                    levelZeroPendingInstruction = words;
+                    return;
+                }
             }
-            DateTimeOffset now = DateTimeOffset.UtcNow;
-            if (!essential && (now - levelZeroLastPrompt).TotalSeconds < 15) return;
-            levelZeroLastPrompt = now;
+            else
+            {
+                if (levelZeroSpeechBusy)
+                {
+                    if (levelZeroFeedbackQueue.Count == 0 &&
+                        string.IsNullOrEmpty(levelZeroPendingInstruction))
+                        levelZeroFeedbackQueue.Enqueue(words);
+                    return;
+                }
+                if ((DateTimeOffset.UtcNow - levelZeroLastPrompt).TotalSeconds < 10)
+                    return;
+            }
+            _ = PlayLevelZeroSpeechAsync(words);
+        }
+
+        private async Task PlayLevelZeroSpeechAsync(string words)
+        {
+            if (levelZeroSpeechBusy || currentScreen != AppScreen.LevelZero) return;
+            int version = levelZeroNarrationVersion;
             levelZeroSpeechBusy = true;
+            levelZeroLastPrompt = DateTimeOffset.UtcNow;
             try
             {
                 if (levelZeroSynth == null) levelZeroSynth = new SpeechSynthesizer();
-                var stream = await levelZeroSynth.SynthesizeTextToStreamAsync(text);
-                if (currentScreen != AppScreen.LevelZero || exitRequested)
+                var stream = await levelZeroSynth.SynthesizeTextToStreamAsync(words);
+                if (version != levelZeroNarrationVersion ||
+                    currentScreen != AppScreen.LevelZero || exitRequested)
                 {
                     stream.Dispose();
                     return;
@@ -183,6 +214,7 @@ namespace EyeGazeApiViability
                 {
                     levelZeroAudioPlayer = new MediaPlayer();
                     levelZeroAudioPlayer.MediaFailed += OnLevelZeroMediaPlayerFailed;
+                    levelZeroAudioPlayer.MediaEnded += OnLevelZeroMediaEnded;
                 }
                 levelZeroAudioPlayer.Pause();
                 levelZeroAudioPlayer.Source = null;
@@ -191,29 +223,41 @@ namespace EyeGazeApiViability
                 levelZeroActiveSpeechStream = stream;
                 levelZeroAudioPlayer.Volume = 1.0;
                 levelZeroAudioPlayer.IsMuted = false;
+                levelZeroPlaybackCompletion = new TaskCompletionSource<bool>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
                 levelZeroAudioPlayer.Source =
                     MediaSource.CreateFromStream(stream, stream.ContentType);
                 levelZeroAudioPlayer.Play();
-                Trace("Level 0 speech playback started.");
-                // Retain the stream, even after this quiet period.
-                // It is disposed on the next prompt or tutorial exit.
-                await Task.Delay(Math.Max(3500, Math.Min(9000, text.Length * 100)));
+                Trace("Level 0 speaking: " + words);
+                await Task.WhenAny(levelZeroPlaybackCompletion.Task,
+                                   Task.Delay(18000));
             }
             catch (Exception ex)
             {
                 levelZeroSpeechUnavailable = true;
-                Trace("Level 0 speech unavailable: " + ex.GetType().Name);
-                // A speech failure never terminates training or gaze input.
+                Trace("Level 0 voice failed: " + ex);
             }
             finally
             {
+                if (version != levelZeroNarrationVersion) return;
+                levelZeroPlaybackCompletion = null;
                 levelZeroSpeechBusy = false;
-                if (currentScreen == AppScreen.LevelZero &&
-                    !string.IsNullOrEmpty(levelZeroPendingInstruction))
+                if (currentScreen != AppScreen.LevelZero || exitRequested) return;
+                if (!string.IsNullOrEmpty(levelZeroPendingInstruction))
                 {
                     string next = levelZeroPendingInstruction;
                     levelZeroPendingInstruction = null;
-                    SpeakLevelZero(next, true);
+                    _ = PlayLevelZeroSpeechAsync(next);
+                }
+                else if (levelZeroButtonExplanationPending &&
+                         levelZeroStage == LevelZeroStage.Continue)
+                {
+                    levelZeroButtonExplanationPending = false;
+                    LevelZeroContinueButton.Visibility = Visibility.Visible;
+                }
+                else if (levelZeroFeedbackQueue.Count > 0)
+                {
+                    _ = PlayLevelZeroSpeechAsync(levelZeroFeedbackQueue.Dequeue());
                 }
             }
         }
