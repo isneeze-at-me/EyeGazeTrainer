@@ -24,7 +24,7 @@ namespace EyeGazeApiViability
     /// </summary>
     internal sealed class TriviaQuestionBank
     {
-        private const string UsedKey = "EyeGazeTrainer.Trivia.UsedIds.V1";
+        private const string UsedKey = "EyeGazeTrainer.Trivia.UsedIds.V2";
         private readonly Random random = new Random();
         private readonly List<TriviaQuestion> questions = new List<TriviaQuestion>();
         private readonly HashSet<string> usedIds = new HashSet<string>(StringComparer.Ordinal);
