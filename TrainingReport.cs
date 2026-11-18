@@ -17,6 +17,7 @@ namespace EyeGazeApiViability
         private readonly List<double> overall = new List<double>();
         private readonly List<double> accuracy = new List<double>();
         private readonly List<double> jitter = new List<double>();
+        private readonly List<double> smoothing = new List<double>();
         private double practiceSeconds;
         private int completedRuns;
 
@@ -33,6 +34,7 @@ namespace EyeGazeApiViability
                 Load(overall, "Overall", 100);
                 Load(accuracy, "Accuracy", 100);
                 Load(jitter, "Jitter", 1000);
+                Load(smoothing, "Smoothing", 99);
             }
             catch (Exception) { /* Invalid settings do not prevent training. */ }
         }
@@ -58,11 +60,18 @@ namespace EyeGazeApiViability
         public void RecordOverall(double value) { Add(overall, "Overall", value, 100); }
         public void RecordAccuracy(double value) { Add(accuracy, "Accuracy", value, 100); }
         public void RecordJitter(double millimeters) { Add(jitter, "Jitter", millimeters, 1000); }
+        public void RecordSmoothing(int percent)
+        {
+            if (percent < 0 || percent > 99) return;
+            Add(smoothing, "Smoothing", percent, 99);
+        }
 
         public int OverallTrend { get { return Trend(overall, false, 0.5); } }
         public int AccuracyTrend { get { return Trend(accuracy, false, 1.0); } }
         // Smaller spatial spread indicates steadier observed gaze.
         public int JitterTrend { get { return Trend(jitter, true, 0.15); } }
+        // Direction is numeric: +1 means more filtering, -1 means less.
+        public int SmoothingTrend { get { return Trend(smoothing, false, 0.5); } }
 
         private static double? Last(List<double> items)
         {
