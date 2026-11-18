@@ -36,7 +36,7 @@ namespace EyeGazeApiViability
         private DispatcherTimer cleanupTimer;
         private string tracePath;
         private int targetIndex = -1;
-        private bool insideTarget;
+        private readonly TrainingTargetMeasurement targetMeasurement = new TrainingTargetMeasurement();
         private bool completed;
         private bool exitRequested;
         private bool autoStartAttempted;
@@ -316,71 +316,78 @@ namespace EyeGazeApiViability
 
         private void ProcessPosition(Point p, Point rawPoint)
         {
+            if (completed || exitRequested || stopping) return;
             if (TrainingCanvas.ActualWidth <= DotDiameter ||
                 TrainingCanvas.ActualHeight <= DotDiameter ||
                 p.X < 0 || p.Y < 0 ||
                 p.X > TrainingCanvas.ActualWidth ||
-                p.Y > TrainingCanvas.ActualHeight) return;
+                p.Y > TrainingCanvas.ActualHeight)
+            {
+                // Losing sight of the target cancels only its brief hold,
+                // not the overall search time for speed scoring.
+                targetMeasurement.CancelHold();
+                return;
+            }
 
-            if (completed) return;
+            DateTimeOffset now = DateTimeOffset.UtcNow;
             if (targetIndex < 0)
             {
                 targetIndex = 0;
-                InstructionText.Text = live
-                    ? "Look at the yellow ring. No click or dwell is needed."
-                    : "Move the green circle into the yellow ring. No click is needed.";
+                InstructionText.Text = "Look at the yellow ring and hold briefly.";
                 ProgressText.Text = "Target 1 of 4";
                 RepositionTarget();
+                targetMeasurement.BeginTarget(now);
                 return;
             }
 
             Point target = TargetCenter();
-            // One shared hitbox rule applies to all training objects.
-            // The visible target remains 116 units in diameter.
             bool inRing = AdaptiveHitTesting.ContainsCircle(
                 p, target, TargetDiameter, gazeProfile.HitBoxScale);
-            if (inRing && !insideTarget)
-            {
-                insideTarget = true;
-                if (live)
-                {
-                    double rawDx = rawPoint.X - target.X;
-                    double rawDy = rawPoint.Y - target.Y;
-                    gazeProfile.RecordTargetAcquisition(
-                        Math.Sqrt(rawDx * rawDx + rawDy * rawDy),
-                        TargetDiameter * 0.5);
-                    // One level and hitbox scale apply to every subsequent
-                    // target; no per-target difficulty overrides.
-                    cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
-                    UpdateAccuracyDisplay();
-                }
-                targetIndex++;
-                if (targetIndex >= TargetFractions.Length)
-                {
-                    completed = true;
-                    TargetRing.Visibility = Visibility.Collapsed;
-                    InstructionText.Text = "All four targets activated without clicking.";
-                    ProgressText.Text = live
-                        ? "Great job! You found all four circles."
-                        : "Great job! You found all four circles.";
-                    Trace("Lesson completed; source=" + (live ? "live gaze" : "mouse"));
-                    return;
-                }
 
-                ProgressText.Text = "Target " + (targetIndex + 1) +
-                                    " of " + TargetFractions.Length;
-                RepositionTarget();
-                insideTarget = false;
+            // Border entry alone is NEVER a success. Only an uninterrupted
+            // 500ms target hold completes acquisition. Precision and stability
+            // use the last 300ms of RAW gaze samples, not smoothed samples.
+            if (!targetMeasurement.Observe(rawPoint, now, inRing))
+            {
+                TargetRing.StrokeThickness = inRing
+                    ? 8 + 5 * targetMeasurement.HoldProgress : 8;
+                return;
             }
-            else if (!inRing) insideTarget = false;
+
+            TargetRing.StrokeThickness = 8;
+            if (live)
+            {
+                TargetPerformance result = targetMeasurement.Measure(
+                    target, TargetDiameter * 0.5, now);
+                gazeProfile.RecordTargetPerformance(result);
+                cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
+                UpdateAccuracyDisplay();
+            }
+
+            targetIndex++;
+            if (targetIndex >= TargetFractions.Length)
+            {
+                completed = true;
+                TargetRing.Visibility = Visibility.Collapsed;
+                InstructionText.Text = "All four targets completed!";
+                ProgressText.Text = "Great job! You found all four circles.";
+                Trace("Lesson completed; source=" + (live ? "live gaze" : "mouse"));
+                return;
+            }
+
+            ProgressText.Text = "Target " + (targetIndex + 1) +
+                                " of " + TargetFractions.Length;
+            RepositionTarget();
+            targetMeasurement.BeginTarget(now);
         }
 
         private void ResetLesson()
         {
             targetIndex = -1;
-            insideTarget = false;
             completed = false;
             TargetRing.Visibility = Visibility.Collapsed;
+            TargetRing.StrokeThickness = 8;
+            targetMeasurement.CancelHold();
             PreviewDot.Visibility = Visibility.Collapsed;
             cursorFilter.Reset();
             cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
@@ -393,7 +400,10 @@ namespace EyeGazeApiViability
         {
             AccuracyText.Text = gazeProfile.Acquisitions == 0
                 ? "Accuracy: getting started"
-                : "Accuracy: " + Math.Round(gazeProfile.AccuracyScore) + "%";
+                : "Training score: " + Math.Round(gazeProfile.AccuracyScore) + "%  ·  Aim " +
+                  Math.Round(gazeProfile.PrecisionScore) + "%  ·  Speed " +
+                  Math.Round(gazeProfile.SpeedScore) + "%  ·  Steadiness " +
+                  Math.Round(gazeProfile.StabilityScore) + "%";
         }
 
         private Point TargetCenter()
@@ -426,6 +436,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            targetMeasurement.CancelHold();
             cursorFilter.Reset();
             buttonDwellWheel.Hide();
             ExitButton.IsEnabled = false;
