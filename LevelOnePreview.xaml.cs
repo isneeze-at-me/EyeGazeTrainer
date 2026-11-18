@@ -63,6 +63,7 @@ namespace EyeGazeApiViability
         private bool gazeControlTriggered;
         private bool requireLookAwayAfterNavigation;
         private Point lastActivatedGazePosition;
+        private Point mostRecentRawGazePosition;
         // A deliberate movement avoids requiring a tiny gap between
         // buttons that consume almost the entire screen.
         private const double NavigationRearmDistance = 65.0;
@@ -208,6 +209,7 @@ namespace EyeGazeApiViability
             var p = screenPoint.Value;
             if (double.IsNaN(p.X) || double.IsNaN(p.Y) ||
                 double.IsInfinity(p.X) || double.IsInfinity(p.Y)) return;
+            mostRecentRawGazePosition = p;
 
             // UWP gaze points are in application-view coordinates, not
             // coordinates local to the canvas.
@@ -375,9 +377,12 @@ namespace EyeGazeApiViability
         private void ShowScreen(AppScreen screen)
         {
             currentScreen = screen;
-            // Only gaze-activated navigation needs a transition guard.
-            // Mouse navigation and initial app startup do not.
-            requireLookAwayAfterNavigation = gazeControlTriggered;
+            // Any live-gaze screen transition (including automatic lesson
+            // completion) needs a deliberate movement before another
+            // button can activate. Startup and mouse-only use do not.
+            requireLookAwayAfterNavigation = live && currentScreen != screen;
+            if (requireLookAwayAfterNavigation)
+                lastActivatedGazePosition = mostRecentRawGazePosition;
             gazeControlTarget = null;
             gazeControlTriggered = false;
             lastGazeAt = default(DateTimeOffset);
