@@ -30,11 +30,6 @@ namespace EyeGazeApiViability
         private DateTimeOffset levelZeroCornerEntered;
         private int levelZeroCornerCandidateSamples;
         private DateTimeOffset levelZeroLastPursuitSample;
-        private DateTimeOffset levelZeroEscapeStarted;
-        private DateTimeOffset levelZeroLastEscapePosition;
-        private int levelZeroEscapeStep;
-        private int levelZeroEscapeLastRegion = -1;
-        private bool levelZeroEscapePrompted;
         private string levelZeroPendingInstruction;
         private int levelZeroPursuitSamples, levelZeroCloseSamples;
         private int levelZeroDwellAttempts;
@@ -77,9 +72,6 @@ namespace EyeGazeApiViability
             levelZeroCornerCandidateSamples = 0;
             levelZeroLastPursuitSample = DateTimeOffset.MinValue;
             levelZeroPendingInstruction = null;
-            levelZeroEscapeStep = 0;
-            levelZeroEscapeLastRegion = -1;
-            levelZeroEscapePrompted = false;
             levelZeroCornerMask = 0;
             levelZeroMinX = levelZeroMinY = double.MaxValue;
             levelZeroMaxX = levelZeroMaxY = 0;
@@ -119,6 +111,13 @@ namespace EyeGazeApiViability
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
             LevelZeroContinueButton.Visibility = Visibility.Collapsed;
             LevelZeroEyeCursor.Visibility = Visibility.Collapsed;
+        }
+
+        private void OnLevelZeroMediaFailed(object sender, ExceptionRoutedEventArgs e)
+        {
+            Trace("Level 0 media playback error: " +
+                (e.ErrorMessage ?? "unknown"));
+            // Retain tutorial access if the default audio device is unavailable.
         }
 
         private async void SpeakLevelZero(string text, bool essential = false)
@@ -383,7 +382,7 @@ namespace EyeGazeApiViability
         {
             SaveLevelZeroMeasurements();
             try { ApplicationData.Current.LocalSettings.Values[LevelZeroDoneKey] = true; }
-            catch (Exception) { /* A storage error never prevents access to home. */ }
+            catch (Exception) { /* A storage error never prevents access to Levels. */ }
             StopLevelZero();
             UpdateLevelBadges();
             LevelsNoticeText.Text = "";
