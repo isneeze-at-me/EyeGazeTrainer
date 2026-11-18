@@ -7,33 +7,124 @@
       <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
-    <StackPanel Grid.Row="0" Margin="28,22,28,12" Spacing="10">
+    <StackPanel Grid.Row="0" Margin="28,14,28,8" Spacing="6">
       <TextBlock Text="EyeGazeTrainer" FontSize="30" FontWeight="Bold" Foreground="White"/>
-      <TextBlock Text="Look at each circle and hold your gaze briefly. Use the large Exit button to return to your computer."
-                 TextWrapping="Wrap" FontSize="18" Foreground="#FCA5A5"/>
       <TextBlock x:Name="InstructionText"
-                 Text="Look at each yellow target and hold for half a second."
-                 FontSize="23" TextWrapping="Wrap" Foreground="#E2E8F0"/>
-      <Button x:Name="ExitButton" Content="EXIT"
-              Click="OnExitRequested" HorizontalAlignment="Stretch"
-              HorizontalContentAlignment="Center" MinHeight="96"
-              Padding="24,22" FontSize="27" FontWeight="Bold"/>
-      <TextBlock x:Name="LiveStatusText" Text="Connecting to eye tracker…" TextWrapping="Wrap" FontSize="17" Foreground="#FBBF24"/>
-      <TextBlock x:Name="ProgressText" Text="Look at the colored circles to begin" FontSize="18" Foreground="#93C5FD"/>
-      <TextBlock x:Name="AccuracyText" Text="Training score: getting started" FontSize="18" Foreground="#86EFAC"/>
+                 Text="Look at the center dot and hold for half a second."
+                 FontSize="22" TextWrapping="Wrap" Foreground="#E2E8F0"/>
+      <Grid ColumnSpacing="12">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Button x:Name="ExitButton" Grid.Column="0" Content="EXIT"
+                Click="OnExitRequested" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" MinHeight="88"
+                Padding="18,15" FontSize="25" FontWeight="Bold"/>
+        <Button x:Name="DisplaySettingsButton" Grid.Column="1" Content="DISPLAY SIZE"
+                Click="OnDisplaySettingsRequested" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" MinHeight="88"
+                Padding="12,12" FontSize="20" FontWeight="Bold"/>
+      </Grid>
+      <TextBlock x:Name="LiveStatusText" Text="Connecting to eye tracker…"
+                 TextWrapping="Wrap" FontSize="17" Foreground="#FBBF24"/>
+      <TextBlock x:Name="ProgressText" Text="Look at the colored circles to begin"
+                 FontSize="18" Foreground="#93C5FD"/>
+      <TextBlock x:Name="AccuracyText" Text="Training score: getting started"
+                 FontSize="17" TextWrapping="Wrap" Foreground="#86EFAC"/>
     </StackPanel>
-    <Canvas Grid.Row="1" x:Name="TrainingCanvas" Margin="24" Background="#17253D"
-            PointerMoved="OnPointerMoved" PointerEntered="OnPointerMoved" SizeChanged="OnCanvasSized">
+
+    <Canvas Grid.Row="1" x:Name="TrainingCanvas" Margin="20" Background="#17253D"
+            PointerMoved="OnPointerMoved" PointerEntered="OnPointerMoved"
+            SizeChanged="OnCanvasSized">
       <Ellipse x:Name="TargetRing" Width="116" Height="116"
-               Stroke="#FBBF24" StrokeThickness="8" Fill="#344358" Visibility="Collapsed"/>
+               Stroke="#FBBF24" StrokeThickness="8" Fill="#344358"
+               Visibility="Collapsed"/>
+      <Ellipse x:Name="TargetBullseye" Width="14" Height="14"
+               Fill="#FFFFFF" Stroke="#0D253B" StrokeThickness="2"
+               IsHitTestVisible="False" Visibility="Collapsed"/>
     </Canvas>
-    <TextBlock Grid.Row="2" Margin="28,12,28,22"
-               Text="To exit, look at EXIT for 1.5 seconds."
-               TextWrapping="Wrap" FontSize="18" Foreground="#CBD5E1"/>
-    <!-- Overlay spans all content rows, including Exit; never captures clicks. -->
+
+    <TextBlock Grid.Row="2" Margin="28,8,28,16"
+               Text="Look at EXIT for 1.5 seconds to close."
+               TextWrapping="Wrap" FontSize="17" Foreground="#CBD5E1"/>
+
+    <!-- Optional in-page overlay preserves the existing live gaze subscription. -->
+    <Grid x:Name="DisplaySettingsPanel" Grid.RowSpan="3" Background="#101827"
+          Canvas.ZIndex="20" Visibility="Collapsed">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <StackPanel Grid.Row="0" Spacing="8" Margin="24,16,24,8">
+        <TextBlock Text="Display Size Adjustment" FontSize="30" FontWeight="Bold"
+                   HorizontalAlignment="Center" Foreground="White"/>
+        <TextBlock Text="Match the blue line to the width of the middle camera glass on your PCEye 5."
+                   TextWrapping="Wrap" TextAlignment="Center" FontSize="21" Foreground="#E2E8F0"/>
+        <!-- Crisp self-contained instructional illustration; no remote image. -->
+        <Border Background="#1C3049" CornerRadius="12" Padding="8" MaxHeight="165">
+          <Viewbox Stretch="Uniform" HorizontalAlignment="Center" MaxWidth="620">
+            <Canvas Width="580" Height="150">
+              <Rectangle Canvas.Left="125" Canvas.Top="8" Width="330" Height="96"
+                         RadiusX="9" RadiusY="9" Fill="#0D1626" Stroke="#9EB1C6" StrokeThickness="4"/>
+              <Rectangle Canvas.Left="135" Canvas.Top="18" Width="310" Height="77"
+                         Fill="#20354F"/>
+              <Rectangle Canvas.Left="248" Canvas.Top="82" Width="84" Height="7"
+                         RadiusX="3" RadiusY="3" Fill="#60BDFB"/>
+              <Rectangle Canvas.Left="207" Canvas.Top="113" Width="166" Height="25"
+                         RadiusX="8" RadiusY="8" Fill="#141B26" Stroke="#8D9CAA" StrokeThickness="2"/>
+              <Rectangle Canvas.Left="248" Canvas.Top="120" Width="84" Height="11"
+                         RadiusX="4" RadiusY="4" Fill="#5C7386"/>
+              <Ellipse Canvas.Left="282" Canvas.Top="122" Width="16" Height="7" Fill="#2B3D52"/>
+              <TextBlock Canvas.Left="10" Canvas.Top="52" Text="On-screen line"
+                         FontSize="17" Foreground="#D4E7FA"/>
+              <Line X1="130" Y1="67" X2="248" Y2="86" Stroke="#60BDFB" StrokeThickness="2"/>
+              <TextBlock Canvas.Left="395" Canvas.Top="117" Text="Center glass"
+                         FontSize="17" Foreground="#D4E7FA"/>
+              <Line X1="375" Y1="126" X2="395" Y2="126" Stroke="#E4F1FF" StrokeThickness="2"/>
+            </Canvas>
+          </Viewbox>
+        </Border>
+        <TextBlock Text="Make the line below the same physical width as the center glass. The 85 mm reference is temporary."
+                   FontSize="16" TextWrapping="Wrap" TextAlignment="Center" Foreground="#CAD5E5"/>
+      </StackPanel>
+      <Grid Grid.Row="1" Margin="20,6,20,8" Background="#17253D" MinHeight="65">
+        <Rectangle x:Name="CalibrationReferenceBar" Height="12" Width="230"
+                   HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                   Margin="0,0,0,16" RadiusX="6" RadiusY="6" Fill="#60BDFB"/>
+      </Grid>
+      <StackPanel Grid.Row="2" Margin="20,4,20,16" Spacing="8">
+        <TextBlock x:Name="CalibrationStatusText"
+                   Text="Adjust the length, then save."
+                   TextAlignment="Center" FontSize="18" Foreground="#E2E8F0"/>
+        <Grid ColumnSpacing="12">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <Button x:Name="ShorterButton" Grid.Column="0" Content="−  SHORTER"
+                  Click="OnReferenceShorter" MinHeight="82" FontWeight="Bold"
+                  FontSize="22" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+          <Button x:Name="LongerButton" Grid.Column="1" Content="+  LONGER"
+                  Click="OnReferenceLonger" MinHeight="82" FontWeight="Bold"
+                  FontSize="22" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        </Grid>
+        <Grid ColumnSpacing="10">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <Button x:Name="SaveDisplayButton" Grid.Column="0" Content="SAVE"
+                  Click="OnSaveDisplay" MinHeight="76" FontSize="21" FontWeight="Bold"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+          <Button x:Name="CancelDisplayButton" Grid.Column="1" Content="CANCEL"
+                  Click="OnCancelDisplay" MinHeight="76" FontSize="21" FontWeight="Bold"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+          <Button x:Name="SettingsExitButton" Grid.Column="2" Content="EXIT"
+                  Click="OnExitRequested" MinHeight="76" FontSize="21" FontWeight="Bold"
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        </Grid>
+      </StackPanel>
+    </Grid>
+
+    <!-- Shared circular button dwell overlay remains at the highest layer. -->
     <Canvas x:Name="CursorOverlay" Grid.RowSpan="3" IsHitTestVisible="False"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-            Canvas.ZIndex="10">
+            Canvas.ZIndex="30">
       <Ellipse x:Name="PreviewDot" Width="44" Height="44" Fill="#34D399"
                Visibility="Collapsed" IsHitTestVisible="False"/>
     </Canvas>
