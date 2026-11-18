@@ -47,6 +47,61 @@ namespace EyeGazeApiViability
         private readonly Border[,] jitterCellBorders =
             new Border[SpatialJitterMap.Rows, SpatialJitterMap.Columns];
         private Button[] diagnosticsButtons;
+        private Button[] diagnosticsSkillsButtons;
+        private Button[] skillCategoryButtons;
+        private int selectedSkillCategory;
+        private readonly TextBlock[] skillMetricNames = new TextBlock[6];
+        private readonly TextBlock[] skillMetricDetails = new TextBlock[6];
+        // These are explicitly NOT measured yet. Values must remain NA
+        // until validated event-based statistics are implemented.
+        private static readonly string[][] SkillMetrics =
+        {
+            new[]
+            {
+                "Target acquisition time|Average time from target appearance to first valid arrival",
+                "Target selection time|Average time from target appearance to completed selection",
+                "Acquisition success rate|Successful arrivals divided by comparable target attempts",
+                "Directional access|Left, right, up, down and diagonal success and latency",
+                "Spatial reach and edges|Screen coverage, corners, edges and difficult regions",
+                "Target precision|Gaze offset from intended target center and trial count"
+            },
+            new[]
+            {
+                "Dwell success rate|Completed deliberate dwell attempts divided by attempts",
+                "Interrupted dwell attempts|Intentional holds ended before activation",
+                "Accidental activations|Explicit no-select trials and documented unintentional choices",
+                "Dwell completion time|Elapsed time from deliberate dwell onset to selection",
+                "Look-away rearm|Successful release and reactivation after selecting a control",
+                "Neighboring selection errors|Incorrect neighboring targets and required corrections"
+            },
+            new[]
+            {
+                "Tracking availability|Percent of requested practice time with valid gaze data",
+                "Tracking interruptions|Distinct valid-to-invalid tracking transitions",
+                "Longest tracking gap|Longest interval without valid gaze data",
+                "Tracking recovery time|Time from detected loss until reliable tracking resumes",
+                "Lost tracking by region|Locations associated with repeated tracking interruptions",
+                "Tracker response latency|Measured delay to first reliable gaze signal"
+            },
+            new[]
+            {
+                "Early versus late accuracy|Comparable task accuracy at start and end of session",
+                "Early versus late speed|Comparable target acquisition times during the session",
+                "Early versus late jitter|Change in raw-gaze spread during equivalent tasks",
+                "Rest breaks|Rest frequency, timing and time spent resting",
+                "User-reported fatigue|Optional self-rating, never inferred from tracker jitter",
+                "Best session conditions|Comparisons by posture, lighting and screen placement"
+            },
+            new[]
+            {
+                "Minimum reliable target size|Smallest consistently selectable target with trial counts",
+                "Minimum reliable spacing|Closest reliably selectable adjacent targets",
+                "Effective selections per minute|Correct useful selections accounting for corrections",
+                "Functional task completion|Independent completion of practical communication tasks",
+                "Independent navigation|Successful Back, menu, recovery and exit use",
+                "Configuration and effort|Dwell duration, smoothing, hitbox size and effort rating"
+            }
+        };
         private Point targetPosition;
         private Point previousTargetPosition;
         private bool hasPreviousTargetPosition;
@@ -118,7 +173,16 @@ namespace EyeGazeApiViability
             diagnosticsButtons = new[] { DiagnosticsBackButton,
                 DiagnosticsOverviewTabButton, DiagnosticsSkillsTabButton,
                 DiagnosticsMapsTabButton, DiagnosticsSessionsTabButton };
+            skillCategoryButtons = new[] { SkillsTargetsButton, SkillsDwellButton,
+                SkillsTrackingButton, SkillsEnduranceButton, SkillsFunctionButton };
+            diagnosticsSkillsButtons = new[] { DiagnosticsBackButton,
+                DiagnosticsOverviewTabButton, DiagnosticsSkillsTabButton,
+                DiagnosticsMapsTabButton, DiagnosticsSessionsTabButton,
+                SkillsTargetsButton, SkillsDwellButton, SkillsTrackingButton,
+                SkillsEnduranceButton, SkillsFunctionButton };
             BuildDiagnosticGrids();
+            BuildSkillsGrid();
+            SelectSkillsCategory(0);
             allLevelButtons = new[] { LevelOneButton, LevelTwoButton,
                 LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton };
             levelsButtons = new[] { LevelOneButton, LevelTwoButton,
@@ -372,6 +436,10 @@ namespace EyeGazeApiViability
                      target == DiagnosticsMapsTabButton ||
                      target == DiagnosticsSessionsTabButton)
                 SelectDiagnosticsTab(target);
+            else if (target == SkillsTargetsButton || target == SkillsDwellButton ||
+                     target == SkillsTrackingButton || target == SkillsEnduranceButton ||
+                     target == SkillsFunctionButton)
+                SelectSkillsCategory(Array.IndexOf(skillCategoryButtons, target));
             else if (target == SettingsMenuButton)
                 OnDisplaySettingsRequested(null, null);
             else if (target == LevelsBackButton)
@@ -410,7 +478,9 @@ namespace EyeGazeApiViability
                     return bonusIntroActive ? noGazeButtons :
                            triviaAwaitingAnswer ? bonusButtons : bonusBackOnlyButtons;
                 case AppScreen.Settings: return displayButtons;
-                case AppScreen.Diagnostics: return diagnosticsButtons;
+                case AppScreen.Diagnostics:
+                    return selectedDiagnosticsTab == DiagnosticsTab.Skills
+                        ? diagnosticsSkillsButtons : diagnosticsButtons;
                 default: return menuButtons;
             }
         }
@@ -658,6 +728,100 @@ namespace EyeGazeApiViability
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Menu) return;
             HomeNoticeText.Text = "TD Control Trainer is coming soon.";
+        }
+
+        private void BuildSkillsGrid()
+        {
+            for (int i = 0; i < 3; i++)
+                SkillsMetricsGrid.RowDefinitions.Add(new RowDefinition
+                { Height = new GridLength(1, GridUnitType.Star) });
+            for (int i = 0; i < 2; i++)
+                SkillsMetricsGrid.ColumnDefinitions.Add(new ColumnDefinition
+                { Width = new GridLength(1, GridUnitType.Star) });
+
+            for (int i = 0; i < 6; i++)
+            {
+                var card = new Border
+                {
+                    Background = new SolidColorBrush(Color.FromArgb(255, 33, 78, 131)),
+                    BorderBrush = new SolidColorBrush(Color.FromArgb(255, 118, 185, 243)),
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(10),
+                    Padding = new Thickness(15),
+                    IsHitTestVisible = false
+                };
+                var content = new StackPanel
+                {
+                    Spacing = 7,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                var heading = new TextBlock
+                {
+                    Foreground = WhiteTextBrush,
+                    FontSize = 21,
+                    FontWeight = Windows.UI.Text.FontWeights.SemiBold,
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap
+                };
+                var value = new TextBlock
+                {
+                    Text = "NA",
+                    Foreground = WhiteTextBrush,
+                    FontSize = 30,
+                    FontWeight = Windows.UI.Text.FontWeights.Bold,
+                    TextAlignment = TextAlignment.Center
+                };
+                var detail = new TextBlock
+                {
+                    Foreground = new SolidColorBrush(
+                        Color.FromArgb(255, 222, 233, 248)),
+                    FontSize = 16,
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap
+                };
+                var status = new TextBlock
+                {
+                    Text = "NOT YET RECORDED",
+                    Foreground = new SolidColorBrush(
+                        Color.FromArgb(255, 174, 200, 230)),
+                    FontSize = 13,
+                    FontWeight = Windows.UI.Text.FontWeights.SemiBold,
+                    TextAlignment = TextAlignment.Center
+                };
+                content.Children.Add(heading);
+                content.Children.Add(value);
+                content.Children.Add(detail);
+                content.Children.Add(status);
+                card.Child = content;
+                Grid.SetRow(card, i / 2);
+                Grid.SetColumn(card, i % 2);
+                SkillsMetricsGrid.Children.Add(card);
+                skillMetricNames[i] = heading;
+                skillMetricDetails[i] = detail;
+            }
+        }
+
+        private void OnSkillsCategoryClicked(object sender, RoutedEventArgs e)
+        {
+            if (currentScreen != AppScreen.Diagnostics ||
+                selectedDiagnosticsTab != DiagnosticsTab.Skills ||
+                stopping || exitRequested) return;
+            SelectSkillsCategory(Array.IndexOf(skillCategoryButtons, sender as Button));
+        }
+
+        private void SelectSkillsCategory(int category)
+        {
+            if (category < 0 || category >= SkillMetrics.Length) return;
+            selectedSkillCategory = category;
+            for (int i = 0; i < 6; i++)
+            {
+                string[] parts = SkillMetrics[category][i].Split('|');
+                skillMetricNames[i].Text = parts[0];
+                skillMetricDetails[i].Text = parts[1];
+            }
+            for (int i = 0; i < skillCategoryButtons.Length; i++)
+                skillCategoryButtons[i].Style = (Style)Resources[
+                    i == category ? "PrimaryGazeButton" : "SecondaryGazeButton"];
         }
 
         private void OnDiagnosticsTabClicked(object sender, RoutedEventArgs e)
