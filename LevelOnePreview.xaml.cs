@@ -119,7 +119,7 @@ namespace EyeGazeApiViability
         private Point targetPosition;
         private Point previousTargetPosition;
         private bool hasPreviousTargetPosition;
-        private enum AppScreen { Menu, Levels, Lesson, Bonus, Settings, Diagnostics }
+        private enum AppScreen { Menu, Levels, Lesson, Bonus, Settings, Diagnostics, LevelZero }
         private enum DiagnosticsTab { Overview, Skills, Maps, Sessions }
         private DiagnosticsTab selectedDiagnosticsTab = DiagnosticsTab.Overview;
         private AppScreen currentScreen = AppScreen.Menu;
@@ -162,6 +162,7 @@ namespace EyeGazeApiViability
         private Button[] bonusButtons;
         private Button[] bonusBackOnlyButtons;
         private readonly Button[] noGazeButtons = new Button[0];
+        private Button[] levelZeroContinueButtons;
         private Button[] displayButtons;
         private Button[] allLevelButtons;
         private DateTimeOffset gazeControlEnteredAt;
@@ -207,6 +208,7 @@ namespace EyeGazeApiViability
                 LevelThreeButton, LevelFourButton, LevelFiveButton,
                 LevelSixButton, LevelsBackButton };
             lessonButtons = new[] { LessonBackButton };
+            levelZeroContinueButtons = new[] { LevelZeroContinueButton };
             bonusButtons = new[] { BonusBackButton, BonusTrueButton, BonusFalseButton };
             bonusBackOnlyButtons = new[] { BonusBackButton };
             displayButtons = new[] { ShorterButton, LongerButton, SaveDisplayButton,
@@ -218,7 +220,8 @@ namespace EyeGazeApiViability
             cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
             UpdateAccuracyDisplay();
             UpdateLevelBadges();
-            ShowScreen(AppScreen.Menu);
+            ShowScreen(ShouldStartLevelZero() ? AppScreen.LevelZero : AppScreen.Menu);
+            if (currentScreen == AppScreen.LevelZero) StartLevelZero();
             practiceTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             practiceTimer.Tick += OnPracticeTimerTick;
             lastPracticeTick = DateTimeOffset.UtcNow;
@@ -364,6 +367,8 @@ namespace EyeGazeApiViability
 
             Point stabilized = cursorFilter.Update(p, DateTimeOffset.UtcNow);
             UpdateCursor(stabilized);
+            if (currentScreen == AppScreen.LevelZero)
+                ProcessLevelZeroGaze(p, stabilized);
             if (currentScreen == AppScreen.Lesson)
             {
                 Point canvasOrigin = TrainingCanvas.TransformToVisual(this)
@@ -456,6 +461,8 @@ namespace EyeGazeApiViability
                 SelectDiagnosticsTab(target);
             else if (target == TherapistExportButton)
                 OnExportTherapistReport(null, null);
+            else if (target == LevelZeroContinueButton)
+                OnLevelZeroContinue(null, null);
             else if (target == SkillsIntroButton || target == SkillsTargetsButton ||
                      target == SkillsDwellButton ||
                      target == SkillsTrackingButton || target == SkillsEnduranceButton ||
@@ -499,6 +506,9 @@ namespace EyeGazeApiViability
                     return bonusIntroActive ? noGazeButtons :
                            triviaAwaitingAnswer ? bonusButtons : bonusBackOnlyButtons;
                 case AppScreen.Settings: return displayButtons;
+                case AppScreen.LevelZero:
+                    return levelZeroStage == LevelZeroStage.Continue
+                        ? levelZeroContinueButtons : noGazeButtons;
                 case AppScreen.Diagnostics:
                     return selectedDiagnosticsTab == DiagnosticsTab.Skills
                         ? diagnosticsSkillsButtons :
@@ -542,6 +552,8 @@ namespace EyeGazeApiViability
         {
             if (screen != AppScreen.Diagnostics)
                 HideTherapistExportConfirmation();
+            if (screen != AppScreen.LevelZero && levelZeroClock != null)
+                StopLevelZero();
             // Navigating away from the celebration must not fire a stale transition.
             if (screen != AppScreen.Lesson) CancelBonusTransition();
             if (screen != AppScreen.Bonus) CancelBonusQuestionTimer();
@@ -565,6 +577,12 @@ namespace EyeGazeApiViability
             // Gaze device lifetime and controlled Exit are untouched.
             cursorFilter.Reset();
             displaySettingsVisible = screen == AppScreen.Settings;
+            LevelZeroPanel.Visibility = screen == AppScreen.LevelZero
+                ? Visibility.Visible : Visibility.Collapsed;
+            LevelZeroEyeCursor.Visibility = screen == AppScreen.LevelZero
+                ? Visibility.Visible : Visibility.Collapsed;
+            PreviewDot.Visibility = screen == AppScreen.LevelZero
+                ? Visibility.Collapsed : PreviewDot.Visibility;
             HomePanel.Visibility = screen == AppScreen.Menu ? Visibility.Visible : Visibility.Collapsed;
             LevelsPanel.Visibility = screen == AppScreen.Levels ? Visibility.Visible : Visibility.Collapsed;
             LessonPanel.Visibility = screen == AppScreen.Lesson ? Visibility.Visible : Visibility.Collapsed;
@@ -1204,6 +1222,17 @@ namespace EyeGazeApiViability
                 return;
             }
 
+            if (currentScreen == AppScreen.LevelZero)
+            {
+                PreviewDot.Visibility = Visibility.Collapsed;
+                LevelZeroEyeCursor.Visibility = Visibility.Visible;
+                Canvas.SetLeft(LevelZeroEyeCursor, Clamp(x - 56, 0,
+                    CursorOverlay.ActualWidth - 112));
+                Canvas.SetTop(LevelZeroEyeCursor, Clamp(y - 32.5, 0,
+                    CursorOverlay.ActualHeight - 65));
+                return;
+            }
+            LevelZeroEyeCursor.Visibility = Visibility.Collapsed;
             PreviewDot.Visibility = Visibility.Visible;
             Canvas.SetLeft(PreviewDot, Clamp(x - DotDiameter / 2, 0,
                 CursorOverlay.ActualWidth - DotDiameter));
@@ -1714,6 +1743,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            StopLevelZero();
             HideTherapistExportConfirmation();
             if (practiceTimer != null)
             {
@@ -1878,6 +1908,7 @@ namespace EyeGazeApiViability
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            StopLevelZero();
             HideTherapistExportConfirmation();
             if (practiceTimer != null)
             {
