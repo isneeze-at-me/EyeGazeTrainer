@@ -48,6 +48,10 @@ namespace EyeGazeApiViability
             new Border[SpatialJitterMap.Rows, SpatialJitterMap.Columns];
         private Button[] diagnosticsButtons;
         private Button[] diagnosticsSkillsButtons;
+        private Button[] diagnosticsSessionsButtons;
+        private bool therapistExportInProgress;
+        private static readonly string[] TherapistSkillCategoryNames =
+            { "Level 0", "Targets", "Dwell", "Tracking", "Endurance", "Function" };
         private Button[] skillCategoryButtons;
         private int selectedSkillCategory;
         private readonly TextBlock[] skillMetricNames = new TextBlock[6];
@@ -182,6 +186,10 @@ namespace EyeGazeApiViability
             diagnosticsButtons = new[] { DiagnosticsBackButton,
                 DiagnosticsOverviewTabButton, DiagnosticsSkillsTabButton,
                 DiagnosticsMapsTabButton, DiagnosticsSessionsTabButton };
+            diagnosticsSessionsButtons = new[] { DiagnosticsBackButton,
+                DiagnosticsOverviewTabButton, DiagnosticsSkillsTabButton,
+                DiagnosticsMapsTabButton, DiagnosticsSessionsTabButton,
+                TherapistExportButton };
             skillCategoryButtons = new[] { SkillsIntroButton, SkillsTargetsButton, SkillsDwellButton,
                 SkillsTrackingButton, SkillsEnduranceButton, SkillsFunctionButton };
             diagnosticsSkillsButtons = new[] { DiagnosticsBackButton,
@@ -445,6 +453,8 @@ namespace EyeGazeApiViability
                      target == DiagnosticsMapsTabButton ||
                      target == DiagnosticsSessionsTabButton)
                 SelectDiagnosticsTab(target);
+            else if (target == TherapistExportButton)
+                OnExportTherapistReport(null, null);
             else if (target == SkillsIntroButton || target == SkillsTargetsButton ||
                      target == SkillsDwellButton ||
                      target == SkillsTrackingButton || target == SkillsEnduranceButton ||
@@ -490,7 +500,9 @@ namespace EyeGazeApiViability
                 case AppScreen.Settings: return displayButtons;
                 case AppScreen.Diagnostics:
                     return selectedDiagnosticsTab == DiagnosticsTab.Skills
-                        ? diagnosticsSkillsButtons : diagnosticsButtons;
+                        ? diagnosticsSkillsButtons :
+                        selectedDiagnosticsTab == DiagnosticsTab.Sessions
+                            ? diagnosticsSessionsButtons : diagnosticsButtons;
                 default: return menuButtons;
             }
         }
@@ -878,6 +890,56 @@ namespace EyeGazeApiViability
             DiagnosticsSessionsTabButton.Style = (Style)Resources[
                 selectedDiagnosticsTab == DiagnosticsTab.Sessions
                     ? "PrimaryGazeButton" : "SecondaryGazeButton"];
+        }
+
+        // Uses the existing gaze-button dwell and saves with no modal picker.
+        // Export is strictly opt-in and does not send data anywhere.
+        private async void OnExportTherapistReport(object sender, RoutedEventArgs e)
+        {
+            if (therapistExportInProgress || stopping || exitRequested ||
+                currentScreen != AppScreen.Diagnostics ||
+                selectedDiagnosticsTab != DiagnosticsTab.Sessions) return;
+
+            therapistExportInProgress = true;
+            TherapistExportButton.IsEnabled = false;
+            TherapistExportStatusText.Text = "Preparing your text report...";
+            Windows.Storage.StorageFile createdFile = null;
+            try
+            {
+                DateTimeOffset now = DateTimeOffset.Now;
+                string contents = TherapistTextReport.Build(
+                    now, trainingProgress, trainingReport, gazeProfile,
+                    spatialAccuracy, spatialJitter, cursorFilter.SmoothingLevel,
+                    gazeProfile.HitBoxScale, TrainingTargetMeasurement.TargetHoldMilliseconds,
+                    (int)ControlDwell.TotalMilliseconds,
+                    SkillMetrics, TherapistSkillCategoryNames);
+
+                string name = "EyeGazeTrainer_TherapistReport_" +
+                    now.ToString("yyyyMMdd_HHmmss") + ".txt";
+                createdFile = await Windows.Storage.DownloadsFolder.CreateFileAsync(
+                    name, Windows.Storage.CreationCollisionOption.GenerateUniqueName);
+                await Windows.Storage.FileIO.WriteTextAsync(createdFile, contents,
+                    Windows.Storage.Streams.UnicodeEncoding.Utf8);
+
+                TherapistExportStatusText.Text =
+                    "Saved to Downloads: " + createdFile.Name;
+            }
+            catch (Exception)
+            {
+                // Never claim success if creating or writing the file failed.
+                TherapistExportStatusText.Text =
+                    "Export could not be saved. Please try again.";
+                if (createdFile != null)
+                {
+                    try { await createdFile.DeleteAsync(); }
+                    catch (Exception) { /* Ignore cleanup failure. */ }
+                }
+            }
+            finally
+            {
+                therapistExportInProgress = false;
+                TherapistExportButton.IsEnabled = true;
+            }
         }
 
         private void OnOpenDiagnostics(object sender, RoutedEventArgs e)
