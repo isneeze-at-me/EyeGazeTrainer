@@ -1,0 +1,82 @@
+# Level 0 — Audio-Guided Eye Cursor (Adult First-Run Experience)
+
+**Status:** Design specification, not implemented yet. This is a separate first-launch tutorial before the existing Level 1; do not change Level 1, its trivia, or eye-tracker shutdown lifecycle in this task.
+
+## Core experience
+
+- **No written instructional text.** All directions, feedback and encouragement are spoken using locally available Windows speech (SAPI); no internet, microphone or ElevenLabs key is required. The only essential visual controls are a cursor, a target, and finally a large accessible main-screen icon/button.
+- The **cursor itself looks like a pair of eyeballs**. Their position follows the user's gaze using the existing smoothing filter. Do not display separate eyes that follow the cursor or look toward the user; that creates a competing fixation point.
+- Visually adult: neutral black/slate background, restrained blue accents, simple professional eye shapes rather than cartoon/googly eyes, one softly glowing moving geometric target. No progress text, stickers, childlike music or childish congratulations.
+- No button, dwell, hold or reading required in Stages A and B. Each skill is taught before it becomes a required control. User must be able to independently recover or exit before selection is taught; design and hardware-test this non-dwell safety route first.
+
+## Stage A: free exploration
+
+1. Once valid gaze is detected, say: **“Your eyes move the cursor. Take a moment to look around the screen.”**
+2. Let the learner move the eyeball cursor freely without selecting anything. Spend at least approximately 10–15 seconds but **never advance solely on a timer**.
+3. Detect genuine horizontal/vertical exploration and visits to coarse screen regions. Corner visits require multiple valid samples across approximately 250ms, not a single noisy event, and must be possible without reaching the extreme edge.
+4. Use brief, contingent spoken feedback. Examples:
+   - After horizontal movement: **“Nice. You've moved the cursor from side to side.”**
+   - After vertical movement: **“Good. Now try looking toward a corner.”**
+   - On an actual stable corner-region visit: **“Good job looking toward the corner.”**
+   - After broad exploration: **“Excellent. You've explored much of the screen.”**
+   - After a long pause with valid tracking: **“Take your time. Try looking to the left or right.”**
+5. Do not require all four corners; adapt to observed accessible range and avoid trapping a person with limited movement. Give no false praise for unseen motion.
+
+## Stage B: pursuit
+
+1. After meaningful exploration, say: **“Now follow the moving target with your eye cursor.”**
+2. Introduce one large slowly moving circle/ring, inset away from the screen edges. Start left-to-right, then gentle vertical arcs. No jumps, sharp changes or timed penalties.
+3. Keep the cursor as eyeballs throughout.
+4. Use raw gaze positions to measure proximity to the moving target, fraction of valid tracked time near it, continuous pursuit duration and interruptions, with generous tolerances. Do not assume tracking loss means the learner failed.
+5. If observable following is consistent: **“You're following it well.”** If there is sustained difficulty: **“Try keeping your eyes near the moving circle.”** Pause speech while the learner is actively pursuing.
+6. Continue until there is meaningful participation and observed progress, with individualized relaxed progress conditions rather than a rigid pass/fail timer.
+
+## Stage C: first intentional selection
+
+1. Remove the moving target and present one **very large Main Screen icon/button**. The label may be conveyed entirely by an icon and spoken audio; no instructions are written on screen.
+2. Say: **“Now look at the large button to open the main screen.”** Then explain the new interaction before demanding it: **“Keep looking until the circle fills.”**
+3. Use the app's existing shared dwell wheel, generous hit area, and an introductory forgiving activation period. Do not make simply crossing the button trigger navigation.
+4. On success, say: **“You did it. Opening the main screen.”** Persist first-run completion and navigate to the normal home screen.
+5. On repeated incomplete intentional holds, after cooldown say: **“Almost there. Keep looking until the circle fills.”** Provide a gaze-only non-dwell recovery mechanism during any stage.
+
+## Spoken feedback selection
+
+- **Speech is triggered by observed activity**, not a narration schedule. Favor meaningful coaching over constant praise. Do not repeat a corner greeting every time a gaze cursor re-enters the same corner.
+- Maintain a single speech queue and deduplicate events. Prioritize safety/recovery, new-stage instructions, difficulty coaching, then achievement feedback.
+- Allow a **12–20 second cooldown** between ordinary feedback prompts. Short mandatory stage instructions may be spoken when previous speech has stopped. Never overlap spoken phrases.
+- Avoid a stream of prompts following each eye movement. Silence is a feature when the user is engaging successfully.
+- Tracking unavailable: avoid guessing or blaming the learner. After confirmed sustained loss, optionally say **“I can't see your eye movement right now. Try looking toward the center of the screen.”** Don't speak it repeatedly.
+- Use a calm, respectful adult voice at a comfortable rate and volume; no childlike voice or childish praise. Future audio settings must be accessible without requiring reading or a skill not taught yet.
+- No listening/microphone processing needed.
+
+## Reportable Level 0 observations
+
+- Time to first valid gaze and ratio of valid tracked time; explicit unknown for unavailable validity.
+- Raw gaze extent along both axes and screen regions visited, including genuine stable corner visits.
+- Moving-target pursuit: time close to target, sustained-follow duration, lost-tracking intervals, and movement-path complexity.
+- Final selection: started dwells, canceled dwells, successful selection and time to activate.
+- Aggregate measurements only, stored locally; do not retain raw time-stamped gaze positions or audio of the user. These are training observations, **not clinical diagnoses**.
+- Mark measurements unavailable until adequate samples exist; use confidence/sample counts to prevent false conclusions.
+
+## First-run and safety rules
+
+- Run Level 0 on an actual first launch; skip for returning learners who completed it. Provide an accessible Replay Introduction option on the home/levels menu after implementation.
+- Never force a novice to use the 1.5-second regular menu dwell before Level 0 has taught selection. After Stage C, transfer to the existing Level 1 without changing its ten-target exercise.
+- Do not time out of the tutorial merely because the gaze tracker is slow; ensure a previously learned gaze-only way to rest, recover and leave.
+- The existing PCEye 5 / TD Control coexistence issue must be tested under supervision before claiming independent use. Do not modify gaze watcher activation/cleanup based solely on this design.
+- Keep speech nonblocking so gaze controls and safe Exit are responsive even during announcements.
+
+## Acceptance checklist
+
+- [ ] On first launch, audio instruction plays once when gaze is ready; no written instructional text appears.
+- [ ] Only the **eye-shaped cursor** follows gaze (not two stationary tracked eyes).
+- [ ] Stage A and B need no dwell or keyboard/mouse input.
+- [ ] Stable, correctly observed corner visits trigger occasional accurate spoken feedback; no repetitive speech.
+- [ ] Slow moving target is followable and does not enter unsafe edge zones.
+- [ ] Stage C verbally teaches first dwell, uses the existing visual dwell wheel and goes to home on success.
+- [ ] Progression never relies solely on elapsed time or requires all four corners.
+- [ ] Level 0 completion is persisted; subsequent launches open home and accessible replay is available.
+- [ ] Local reports store aggregate data, with NA for insufficient observations.
+- [ ] Gaze-only safety/back/recovery and TD Control handoff are supervised and verified.
+
+**Implementation sequence:** first-run routing and voice service; eye cursor; free movement/feedback classifier; slow pursuit and measurements; first large selection; persistence and replay; guided hardware/accessibility tests.
