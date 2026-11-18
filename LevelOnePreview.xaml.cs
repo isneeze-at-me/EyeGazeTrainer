@@ -95,7 +95,7 @@ namespace EyeGazeApiViability
 
         private void OnEnableLive(object sender, RoutedEventArgs e)
         {
-            if (live || stopping || currentScreen != AppScreen.Lesson) return;
+            if (live || stopping) return;
             try
             {
                 tracePath = Path.Combine(ApplicationData.Current.LocalFolder.Path,
@@ -507,7 +507,7 @@ namespace EyeGazeApiViability
         private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
         {
             // Mouse preview remains available only when hardware is not engaged.
-            if (live || stopping) return;
+            if (live || stopping || currentScreen != AppScreen.Lesson) return;
             Point canvasPoint = e.GetCurrentPoint(TrainingCanvas).Position;
             Point canvasOrigin = TrainingCanvas.TransformToVisual(this)
                                   .TransformPoint(new Point(0, 0));
@@ -543,16 +543,16 @@ namespace EyeGazeApiViability
         private void ProcessPosition(Point p, Point rawPoint)
         {
             if (completed || exitRequested || stopping ||
-                displaySettingsVisible) return;
-            if (TrainingCanvas.ActualWidth <= DotDiameter ||
-                TrainingCanvas.ActualHeight <= DotDiameter ||
+                currentScreen != AppScreen.Lesson) return;
+
+            if (TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
+                TrainingCanvas.ActualHeight < TargetDiameter + 24 ||
                 p.X < 0 || p.Y < 0 ||
                 p.X > TrainingCanvas.ActualWidth ||
                 p.Y > TrainingCanvas.ActualHeight)
             {
-                // Losing sight of the target cancels only its brief hold,
-                // not the overall search time for speed scoring.
                 targetMeasurement.CancelHold();
+                TargetRing.StrokeThickness = 8;
                 return;
             }
 
@@ -560,20 +560,16 @@ namespace EyeGazeApiViability
             if (targetIndex < 0)
             {
                 targetIndex = 0;
-                InstructionText.Text = "Look at the yellow ring and hold briefly.";
-                ProgressText.Text = "Target 1 of 4";
-                RepositionTarget();
+                PickRandomTarget();
                 targetMeasurement.BeginTarget(now);
                 return;
             }
 
-            Point target = TargetCenter();
+            Point center = TargetCenter();
             bool inRing = AdaptiveHitTesting.ContainsCircle(
-                p, target, TargetDiameter, gazeProfile.HitBoxScale);
+                p, center, TargetDiameter, gazeProfile.HitBoxScale);
 
-            // Border entry alone is NEVER a success. Only an uninterrupted
-            // 500ms target hold completes acquisition. Precision and stability
-            // use the last 300ms of RAW gaze samples, not smoothed samples.
+            // Touching the border is NOT success: a full 500ms hold is needed.
             if (!targetMeasurement.Observe(rawPoint, now, inRing))
             {
                 TargetRing.StrokeThickness = inRing
@@ -585,27 +581,25 @@ namespace EyeGazeApiViability
             if (live)
             {
                 TargetPerformance result = targetMeasurement.Measure(
-                    target, TargetDiameter * 0.5, now);
+                    center, TargetDiameter * 0.5, now);
                 gazeProfile.RecordTargetPerformance(result);
                 cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
                 UpdateAccuracyDisplay();
             }
 
             targetIndex++;
-            if (targetIndex >= TargetFractions.Length)
+            if (targetIndex >= TargetsPerLevel)
             {
                 completed = true;
-                TargetRing.Visibility = Visibility.Collapsed;
-                TargetBullseye.Visibility = Visibility.Collapsed;
-                InstructionText.Text = "All four targets completed!";
-                ProgressText.Text = "Great job! You found all four circles.";
-                Trace("Lesson completed; source=" + (live ? "live gaze" : "mouse"));
+                trainingProgress.MarkCompleted(1);
+                Trace("Level 1 completed: six targets; source=" +
+                      (live ? "live gaze" : "mouse"));
+                UpdateLevelBadges();
+                LevelsNoticeText.Text = "Level 1 completed! Great work.";
+                ShowScreen(AppScreen.Levels);
                 return;
             }
-
-            ProgressText.Text = "Target " + (targetIndex + 1) +
-                                " of " + TargetFractions.Length;
-            RepositionTarget();
+            PickRandomTarget();
             targetMeasurement.BeginTarget(now);
         }
 
@@ -613,48 +607,88 @@ namespace EyeGazeApiViability
         {
             targetIndex = -1;
             completed = false;
+            hasPreviousTargetPosition = false;
+            targetMeasurement.CancelHold();
+            TargetRing.StrokeThickness = 8;
             TargetRing.Visibility = Visibility.Collapsed;
             TargetBullseye.Visibility = Visibility.Collapsed;
-            TargetRing.StrokeThickness = 8;
-            targetMeasurement.CancelHold();
-            PreviewDot.Visibility = Visibility.Collapsed;
             cursorFilter.Reset();
             cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
-            UpdateAccuracyDisplay();
-            ProgressText.Text = "Look at the blue area to begin";
-            InstructionText.Text = "Look at each yellow ring. No dwell or click is needed.";
+            if (TrainingCanvas.ActualWidth >= TargetDiameter + 24 &&
+                TrainingCanvas.ActualHeight >= TargetDiameter + 24)
+            {
+                targetIndex = 0;
+                PickRandomTarget();
+                targetMeasurement.BeginTarget(DateTimeOffset.UtcNow);
+            }
         }
 
         private void UpdateAccuracyDisplay()
         {
             AccuracyText.Text = gazeProfile.Acquisitions == 0
-                ? "Accuracy: getting started"
-                : "Training score: " + Math.Round(gazeProfile.AccuracyScore) + "%  ·  Aim " +
-                  Math.Round(gazeProfile.PrecisionScore) + "%  ·  Speed " +
-                  Math.Round(gazeProfile.SpeedScore) + "%  ·  Steadiness " +
-                  Math.Round(gazeProfile.StabilityScore) + "%";
+                ? "TRAINING ACCURACY · GETTING STARTED"
+                : "ACCURACY " + Math.Round(gazeProfile.AccuracyScore) +
+                  "%  ·  AIM " + Math.Round(gazeProfile.PrecisionScore) +
+                  "%  ·  SPEED " + Math.Round(gazeProfile.SpeedScore) +
+                  "%  ·  STABILITY " + Math.Round(gazeProfile.StabilityScore) + "%";
         }
 
         private Point TargetCenter()
         {
-            Point fraction = TargetFractions[Math.Max(0,
-                Math.Min(targetIndex, TargetFractions.Length - 1))];
-            double margin = TargetDiameter / 2;
+            double margin = TargetDiameter * 0.5 + 18;
+            double width = TrainingCanvas.ActualWidth;
+            double height = TrainingCanvas.ActualHeight;
             return new Point(
-                margin + Math.Max(0, TrainingCanvas.ActualWidth - TargetDiameter) * fraction.X,
-                margin + Math.Max(0, TrainingCanvas.ActualHeight - TargetDiameter) * fraction.Y);
+                margin + Math.Max(0, width - margin * 2) * targetPosition.X,
+                margin + Math.Max(0, height - margin * 2) * targetPosition.Y);
+        }
+
+        private void PickRandomTarget()
+        {
+            if (TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
+                TrainingCanvas.ActualHeight < TargetDiameter + 24) return;
+
+            Point chosen = new Point(0.5, 0.5);
+            // Avoid targets under the always-visible BACK escape button, and
+            // prefer a clear change in position after each successful dwell.
+            for (int attempt = 0; attempt < 60; attempt++)
+            {
+                chosen = new Point(placementRandom.NextDouble(),
+                                   placementRandom.NextDouble());
+                Point center = new Point(
+                    TargetDiameter * 0.5 + 18 +
+                    Math.Max(0, TrainingCanvas.ActualWidth - TargetDiameter - 36) * chosen.X,
+                    TargetDiameter * 0.5 + 18 +
+                    Math.Max(0, TrainingCanvas.ActualHeight - TargetDiameter - 36) * chosen.Y);
+                bool overlapsBack = center.X - TargetDiameter / 2 < 205 &&
+                                    center.Y - TargetDiameter / 2 < 125;
+                bool tooClose = hasPreviousTargetPosition &&
+                    Math.Sqrt(Math.Pow(chosen.X - previousTargetPosition.X, 2) +
+                              Math.Pow(chosen.Y - previousTargetPosition.Y, 2)) < 0.28;
+                if (!overlapsBack && !tooClose) break;
+            }
+            targetPosition = chosen;
+            previousTargetPosition = chosen;
+            hasPreviousTargetPosition = true;
+            RepositionTarget();
         }
 
         private void RepositionTarget()
         {
-            if (targetIndex < 0 || completed ||
-                TrainingCanvas.ActualWidth < TargetDiameter ||
-                TrainingCanvas.ActualHeight < TargetDiameter) return;
-            Point p = TargetCenter();
-            Canvas.SetLeft(TargetRing, p.X - TargetDiameter / 2);
-            Canvas.SetTop(TargetRing, p.Y - TargetDiameter / 2);
-            Canvas.SetLeft(TargetBullseye, p.X - bullseyeDiameter / 2);
-            Canvas.SetTop(TargetBullseye, p.Y - bullseyeDiameter / 2);
+            if (currentScreen != AppScreen.Lesson || targetIndex < 0 ||
+                completed || TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
+                TrainingCanvas.ActualHeight < TargetDiameter + 24)
+            {
+                TargetRing.Visibility = Visibility.Collapsed;
+                TargetBullseye.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            Point center = TargetCenter();
+            Canvas.SetLeft(TargetRing, center.X - TargetDiameter / 2);
+            Canvas.SetTop(TargetRing, center.Y - TargetDiameter / 2);
+            Canvas.SetLeft(TargetBullseye, center.X - bullseyeDiameter / 2);
+            Canvas.SetTop(TargetBullseye, center.Y - bullseyeDiameter / 2);
             TargetRing.Visibility = Visibility.Visible;
             TargetBullseye.Visibility = Visibility.Visible;
         }
@@ -673,6 +707,7 @@ namespace EyeGazeApiViability
             cursorFilter.Reset();
             buttonDwellWheel.Hide();
             ExitButton.IsEnabled = false;
+            SettingsExitButton.IsEnabled = false;
             Trace("EXIT requested; source active=" + live);
             if (live) BeginCleanup();
             else NavigateToCleanExit();
@@ -683,6 +718,7 @@ namespace EyeGazeApiViability
             if (!live || stopping) return;
             stopping = true;
             ExitButton.IsEnabled = false;
+            SettingsExitButton.IsEnabled = false;
             LiveStatusText.Text = "Closing EyeGazeTrainer…";
             cleanupStage = 0;
             cleanupTimer = new DispatcherTimer();
@@ -769,6 +805,7 @@ namespace EyeGazeApiViability
                 // Do not navigate or exit after a failed cleanup.
                 exitRequested = false;
                 ExitButton.IsEnabled = true;
+                SettingsExitButton.IsEnabled = true;
             }
         }
 
