@@ -33,13 +33,30 @@
   <ItemGroup>
     <Compile Include="App.xaml.cs"><DependentUpon>App.xaml</DependentUpon></Compile>
     <Compile Include="MainPage.xaml.cs"><DependentUpon>MainPage.xaml</DependentUpon></Compile>
+    <Compile Include="LevelOnePreview.xaml.cs"><DependentUpon>LevelOnePreview.xaml</DependentUpon></Compile>
+    <Compile Include="SharedButtonDwellWheel.cs" />
     <AppxManifest Include="Package.appxmanifest" />
     <ApplicationDefinition Include="App.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></ApplicationDefinition>
     <Page Include="MainPage.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></Page>
+    <Page Include="LevelOnePreview.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></Page>
     <Content Include="Assets\*.png" />
+    <!-- Build the separately packaged full-trust helper from source. -->
+    <Content Include="OverlayCompanion\bin\$(Configuration)\OverlayCompanion.exe">
+      <Link>OverlayCompanion.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.14" />
+    <!-- FullTrustProcessLauncher lives in the Windows Desktop UWP extension contract. -->
+    <SDKReference Include="WindowsDesktop, Version=10.0.19041.0">
+      <Name>Windows Desktop Extensions for the UWP</Name>
+    </SDKReference>
   </ItemGroup>
+  <Target Name="BuildOverlayCompanion" BeforeTargets="PrepareForBuild">
+    <MSBuild Projects="$(MSBuildProjectDirectory)\OverlayCompanion\OverlayCompanion.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);Platform=x64" />
+  </Target>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
 </Project>

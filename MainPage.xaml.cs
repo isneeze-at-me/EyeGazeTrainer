@@ -1,162 +1,96 @@
 using System;
-using System.Diagnostics;
-using Windows.Devices.Input.Preview;
-using Windows.Foundation;
-using Windows.UI.Core;
+using System.IO;
+using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
-using Windows.ApplicationModel.Core;
 
 namespace EyeGazeApiViability
 {
+    // Gaze-free intermediary. Retains the proven navigation-before-exit
+    // ordering; this is not a user-facing developer diagnostics page.
     public sealed partial class MainPage : Page
     {
-        private const int TestSeconds = 60;
-        private readonly Stopwatch clock = new Stopwatch();
-        private readonly DispatcherTimer ticker = new DispatcherTimer();
-        private GazeDeviceWatcherPreview watcher;
-        private GazeInputSourcePreview source;
-        private bool started;
-        private bool finished;
-        private int validSamples;
-        private int coordinateChanges;
-        private Point? previous;
-        private string state = "Waiting for device";
+        private bool exitScheduled;
+        private DispatcherTimer exitTimer;
 
         public MainPage()
         {
             InitializeComponent();
-            Loaded += OnLoaded;
             Unloaded += OnUnloaded;
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e)
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            // Start timer before requesting gaze permission. A first-run Windows
-            // permission dialog might still postpone execution: see README.
-            clock.Start();
-            ticker.Interval = TimeSpan.FromMilliseconds(100);
-            ticker.Tick += Tick;
-            ticker.Start();
-            try
+            base.OnNavigatedTo(e);
+            string route = e.Parameter as string;
+            bool afterGazeCleanup = route == "EXIT_AFTER_GAZE_CLEANUP";
+            bool hardwareFreeExitTest = route == "EXIT_NO_GAZE_DIAGNOSTIC";
+            LogLifecycle("Gaze-free closing page entered; requestedExit=" +
+                         afterGazeCleanup + "; hardwareFreeExitTest=" +
+                         hardwareFreeExitTest);
+
+            if (afterGazeCleanup || hardwareFreeExitTest)
             {
-                watcher = GazeInputSourcePreview.CreateWatcher();
-                watcher.Added += DeviceAdded;
-                watcher.Updated += DeviceUpdated;
-                watcher.Removed += DeviceRemoved;
-                watcher.Start();
+                // Do not keep the previous gaze-enabled page in the back stack.
+                Frame.BackStack.Clear();
+                Frame.ForwardStack.Clear();
+                ScheduleExit(hardwareFreeExitTest
+                    ? "HARDWARE FREE: no gaze APIs opened"
+                    : "after gaze-page navigation");
             }
-            catch (Exception ex)
+            else
             {
-                state = "Watcher error: " + ex.GetType().Name;
-                DeviceText.Text = state;
-                ResultText.Text = "FAIL: Windows gaze watcher unavailable";
+                // MainPage is no longer a destination. If reached directly,
+                // leave the app on its gaze-free closing page instead of
+                // accidentally starting a new gaze session.
+                LogLifecycle("Gaze-free closing page reached without exit route");
             }
         }
 
-        private void DeviceAdded(GazeDeviceWatcherPreview sender, GazeDeviceWatcherAddedPreviewEventArgs args)
+        private void ScheduleExit(string reason)
         {
-            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UseDevice(args.Device));
-        }
-        private void DeviceUpdated(GazeDeviceWatcherPreview sender, GazeDeviceWatcherUpdatedPreviewEventArgs args)
-        {
-            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => UseDevice(args.Device));
-        }
-        private void DeviceRemoved(GazeDeviceWatcherPreview sender, GazeDeviceWatcherRemovedPreviewEventArgs args)
-        {
-            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-            {
-                if (finished) return;
-                state = "Eye tracker removed";
-                DeviceText.Text = state;
-                StopSource();
-            });
+            if (exitScheduled) return;
+            exitScheduled = true;
+            LogLifecycle("EXIT scheduled: " + reason);
+            exitTimer = new DispatcherTimer();
+            exitTimer.Interval = TimeSpan.FromSeconds(2);
+            exitTimer.Tick += OnExitTimer;
+            exitTimer.Start();
         }
 
-        private void UseDevice(GazeDevicePreview device)
+        private void OnExitTimer(object sender, object e)
         {
-            if (finished) return;
-            state = "Device found | CanTrackEyes=" + device.CanTrackEyes +
-                    " | State=" + device.ConfigurationState;
-            DeviceText.Text = state;
-            if (!device.CanTrackEyes || device.ConfigurationState != GazeDeviceConfigurationStatePreview.Ready)
-            {
-                ResultText.Text = "Device found but not ready for gaze streaming";
-                return;
-            }
-            if (started) return;
-            try
-            {
-                // Must be invoked from UWP UI thread; triggers Windows consent on first use.
-                source = GazeInputSourcePreview.GetForCurrentView();
-                source.GazeMoved += GazeMoved;
-                started = true;
-                ResultText.Text = "Gaze source opened; waiting for live samples";
-            }
-            catch (Exception ex)
-            {
-                state = "Gaze source error: " + ex.GetType().Name + " (0x" + ex.HResult.ToString("X8") + ")";
-                DeviceText.Text = state;
-                ResultText.Text = "FAIL: Unable to open gaze source";
-            }
+            exitTimer.Stop();
+            exitTimer.Tick -= OnExitTimer;
+            exitTimer = null;
+            LogLifecycle("CALL Application.Current.Exit() from gaze-free closing page");
+            Application.Current.Exit();
         }
 
-        private void GazeMoved(GazeInputSourcePreview sender, GazeMovedPreviewEventArgs args)
-        {
-            if (finished) return;
-            var position = args.CurrentPoint?.EyeGazePosition;
-            if (!position.HasValue) return;
-            var p = position.Value;
-            if (double.IsNaN(p.X) || double.IsNaN(p.Y)) return;
-            validSamples++;
-            if (previous.HasValue &&
-                (Math.Abs(p.X - previous.Value.X) > 2 || Math.Abs(p.Y - previous.Value.Y) > 2))
-                coordinateChanges++;
-            previous = p;
-            DataText.Text = $"LIVE EYE GAZE: X={p.X:F1}  Y={p.Y:F1}";
-            CountText.Text = $"Valid samples: {validSamples} | Coordinate changes: {coordinateChanges}";
-            GazeDot.Visibility = Visibility.Visible;
-            // Coordinates are DIP relative to application view. Canvas starts in row 1.
-            var canvasTop = GazeCanvas.TransformToVisual(this).TransformPoint(new Point(0, 0)).Y;
-            var canvasLeft = GazeCanvas.TransformToVisual(this).TransformPoint(new Point(0, 0)).X;
-            Canvas.SetLeft(GazeDot, Math.Max(0, Math.Min(GazeCanvas.ActualWidth - 35, p.X - canvasLeft - 17.5)));
-            Canvas.SetTop(GazeDot, Math.Max(0, Math.Min(GazeCanvas.ActualHeight - 35, p.Y - canvasTop - 17.5)));
-            ResultText.Text = coordinateChanges >= 5 ? "PASS: Independent gaze coordinates are changing" : "Receiving gaze samples; move your eyes around";
-            args.Handled = true;
-        }
-
-        private void Tick(object sender, object e)
-        {
-            var remaining = Math.Max(0, TestSeconds - clock.Elapsed.TotalSeconds);
-            CountdownText.Text = $"Automatic exit in {Math.Ceiling(remaining):0} seconds";
-            if (remaining <= 0) Finish();
-        }
-        private void Finish()
-        {
-            if (finished) return;
-            finished = true;
-            ticker.Stop();
-            StopSource();
-            if (watcher != null)
-            {
-                watcher.Stop();
-                watcher.Added -= DeviceAdded;
-                watcher.Updated -= DeviceUpdated;
-                watcher.Removed -= DeviceRemoved;
-                watcher = null;
-            }
-            // Deliberately NO persistent gaze data storage or forced TD Control restart.
-            CoreApplication.Exit();
-        }
-        private void StopSource()
-        {
-            if (source != null) { source.GazeMoved -= GazeMoved; source = null; }
-            started = false;
-        }
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            if (!finished) Finish();
+            if (exitTimer != null)
+            {
+                exitTimer.Stop();
+                exitTimer.Tick -= OnExitTimer;
+                exitTimer = null;
+            }
+        }
+
+        private void LogLifecycle(string message)
+        {
+            try
+            {
+                string path = Path.Combine(ApplicationData.Current.LocalFolder.Path,
+                                           "gaze-lifecycle-trace.txt");
+                File.AppendAllText(path, DateTimeOffset.Now.ToString("O") +
+                                   " | " + message + "\r\n");
+            }
+            catch (Exception)
+            {
+                // Logging failure must never interfere with controlled exit.
+            }
         }
     }
 }

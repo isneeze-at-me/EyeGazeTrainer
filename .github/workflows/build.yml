@@ -25,6 +25,33 @@ jobs:
         run: nuget restore EyeGazeApiViability.csproj -NonInteractive
       - name: Build UWP diagnostic (Debug x64)
         run: msbuild EyeGazeApiViability.csproj /m /p:Configuration=Debug /p:Platform=x64 /p:AppxPackageSigningEnabled=false /p:GenerateAppxPackageOnBuild=false /v:minimal
+      - name: Verify packaged companion EXE exists
+        shell: pwsh
+        run: |
+          $exe = "OverlayCompanion/bin/Debug/OverlayCompanion.exe"
+          if (!(Test-Path $exe)) { throw "Full-trust overlay companion missing: $exe" }
+          Write-Host "Desktop overlay companion compiled from source: $exe"
+      - name: Validate UWP package generation with full-trust component
+        run: msbuild EyeGazeApiViability.csproj /m /p:Configuration=Debug /p:Platform=x64 /p:AppxPackageSigningEnabled=false /p:GenerateAppxPackageOnBuild=true /p:AppxBundle=Never /v:minimal
+      - name: Verify packaged full-trust companion payload
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.IO.Compression
+          $package = Get-ChildItem -Path AppPackages -Recurse -Filter '*.msix' |
+                     Select-Object -First 1
+          if (!$package) { throw "No .msix package generated" }
+          $zip = [System.IO.Compression.ZipFile]::OpenRead($package.FullName)
+          try {
+            $names = @($zip.Entries | ForEach-Object { $_.FullName })
+            if ($names -notcontains "OverlayCompanion.exe") {
+              throw "OverlayCompanion.exe missing from generated package"
+            }
+            if ($names -notcontains "AppxManifest.xml") {
+              throw "AppxManifest.xml missing from generated package"
+            }
+            Write-Host "Verified app package contains OverlayCompanion.exe and AppxManifest.xml"
+          }
+          finally { $zip.Dispose() }
 
 # CI is a compilation check, not a hardware or auto-exit test.
 # The legacy UWP toolchain may not be installed on every hosted image.

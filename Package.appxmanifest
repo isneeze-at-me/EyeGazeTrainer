@@ -2,7 +2,9 @@
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
          xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
          xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
-         IgnorableNamespaces="uap mp">
+         xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+         xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+         IgnorableNamespaces="uap mp desktop rescap">
   <Identity Name="EyeGazeApiViability" Publisher="CN=EyeGazeApiViability" Version="1.0.0.0" />
   <mp:PhoneIdentity PhoneProductId="8E31C3ED-B3E7-482F-899F-D8233F3EEDC4" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
@@ -21,9 +23,16 @@
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310.png" Square310x310Logo="Assets\Square310.png" />
         <uap:SplashScreen Image="Assets\Splash620.png" BackgroundColor="#101827" />
       </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="eyegazetrainer-exittest"/>
+        </uap:Extension>
+        <desktop:Extension Category="windows.fullTrustProcess" Executable="OverlayCompanion.exe" />
+      </Extensions>
     </Application>
   </Applications>
   <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
     <DeviceCapability Name="gazeInput" />
   </Capabilities>
 </Package>
