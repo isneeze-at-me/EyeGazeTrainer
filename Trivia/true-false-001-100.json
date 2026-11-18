@@ -4,699 +4,799 @@
     "category": "Animals",
     "question": "A group of lions is called a pride.",
     "answer": true,
-    "explanation": "A group of lions is called a pride."
+    "explanation": "A group of lions is called a pride.",
+    "factGroup": "F001"
   },
   {
     "id": "TF002",
     "category": "Animals",
     "question": "A group of lions is called a flock.",
     "answer": false,
-    "explanation": "Actually, A group of lions is called a pride."
+    "explanation": "Actually, A group of lions is called a pride.",
+    "factGroup": "F001"
   },
   {
     "id": "TF003",
     "category": "Animals",
     "question": "A giraffe has seven neck vertebrae.",
     "answer": true,
-    "explanation": "A giraffe has seven neck vertebrae."
+    "explanation": "A giraffe has seven neck vertebrae.",
+    "factGroup": "F002"
   },
   {
     "id": "TF004",
     "category": "Animals",
     "question": "A giraffe has twelve neck vertebrae.",
     "answer": false,
-    "explanation": "Actually, A giraffe has seven neck vertebrae."
+    "explanation": "Actually, A giraffe has seven neck vertebrae.",
+    "factGroup": "F002"
   },
   {
     "id": "TF005",
     "category": "Animals",
     "question": "Koalas are marsupials.",
     "answer": true,
-    "explanation": "Koalas are marsupials."
+    "explanation": "Koalas are marsupials.",
+    "factGroup": "F003"
   },
   {
     "id": "TF006",
     "category": "Animals",
     "question": "Koalas are a type of bear.",
     "answer": false,
-    "explanation": "Actually, Koalas are marsupials."
+    "explanation": "Actually, Koalas are marsupials.",
+    "factGroup": "F003"
   },
   {
     "id": "TF007",
     "category": "Animals",
     "question": "A cheetah can run faster than a horse over a short distance.",
     "answer": true,
-    "explanation": "A cheetah can run faster than a horse over a short distance."
+    "explanation": "A cheetah can run faster than a horse over a short distance.",
+    "factGroup": "F004"
   },
   {
     "id": "TF008",
     "category": "Animals",
     "question": "A cheetah's top running speed is slower than a house cat's.",
     "answer": false,
-    "explanation": "Actually, A cheetah can run faster than a horse over a short distance."
+    "explanation": "Actually, A cheetah can run faster than a horse over a short distance.",
+    "factGroup": "F004"
   },
   {
     "id": "TF009",
     "category": "Animals",
     "question": "An elephant's trunk is used for smelling and picking things up.",
     "answer": true,
-    "explanation": "An elephant's trunk is used for smelling and picking things up."
+    "explanation": "An elephant's trunk is used for smelling and picking things up.",
+    "factGroup": "F005"
   },
   {
     "id": "TF010",
     "category": "Animals",
     "question": "An elephant uses its trunk only for drinking.",
     "answer": false,
-    "explanation": "Actually, An elephant's trunk is used for smelling and picking things up."
+    "explanation": "Actually, An elephant's trunk is used for smelling and picking things up.",
+    "factGroup": "F005"
   },
   {
     "id": "TF011",
     "category": "Animals",
     "question": "Rabbits have continuously growing front teeth.",
     "answer": true,
-    "explanation": "Rabbits have continuously growing front teeth."
+    "explanation": "Rabbits have continuously growing front teeth.",
+    "factGroup": "F006"
   },
   {
     "id": "TF012",
     "category": "Animals",
     "question": "A rabbit's front teeth stop growing after its first year.",
     "answer": false,
-    "explanation": "Actually, Rabbits have continuously growing front teeth."
+    "explanation": "Actually, Rabbits have continuously growing front teeth.",
+    "factGroup": "F006"
   },
   {
     "id": "TF013",
     "category": "Animals",
     "question": "A baby kangaroo is called a joey.",
     "answer": true,
-    "explanation": "A baby kangaroo is called a joey."
+    "explanation": "A baby kangaroo is called a joey.",
+    "factGroup": "F007"
   },
   {
     "id": "TF014",
     "category": "Animals",
     "question": "A baby kangaroo is called a cub.",
     "answer": false,
-    "explanation": "Actually, A baby kangaroo is called a joey."
+    "explanation": "Actually, A baby kangaroo is called a joey.",
+    "factGroup": "F007"
   },
   {
     "id": "TF015",
     "category": "Animals",
     "question": "Most bats navigate in darkness using echolocation.",
     "answer": true,
-    "explanation": "Most bats navigate in darkness using echolocation."
+    "explanation": "Most bats navigate in darkness using echolocation.",
+    "factGroup": "F008"
   },
   {
     "id": "TF016",
     "category": "Animals",
     "question": "Most bats navigate in darkness by glowing.",
     "answer": false,
-    "explanation": "Actually, Most bats navigate in darkness using echolocation."
+    "explanation": "Actually, Most bats navigate in darkness using echolocation.",
+    "factGroup": "F008"
   },
   {
     "id": "TF017",
     "category": "Animals",
     "question": "An octopus has eight arms.",
     "answer": true,
-    "explanation": "An octopus has eight arms."
+    "explanation": "An octopus has eight arms.",
+    "factGroup": "F009"
   },
   {
     "id": "TF018",
     "category": "Animals",
     "question": "An octopus has six arms.",
     "answer": false,
-    "explanation": "Actually, An octopus has eight arms."
+    "explanation": "Actually, An octopus has eight arms.",
+    "factGroup": "F009"
   },
   {
     "id": "TF019",
     "category": "Animals",
     "question": "A sloth can hang upside down from branches.",
     "answer": true,
-    "explanation": "A sloth can hang upside down from branches."
+    "explanation": "A sloth can hang upside down from branches.",
+    "factGroup": "F010"
   },
   {
     "id": "TF020",
     "category": "Animals",
     "question": "A sloth must stay standing on the ground to sleep.",
     "answer": false,
-    "explanation": "Actually, A sloth can hang upside down from branches."
+    "explanation": "Actually, A sloth can hang upside down from branches.",
+    "factGroup": "F010"
   },
   {
     "id": "TF021",
     "category": "Ocean Life",
     "question": "A dolphin is a mammal.",
     "answer": true,
-    "explanation": "A dolphin is a mammal."
+    "explanation": "A dolphin is a mammal.",
+    "factGroup": "F011"
   },
   {
     "id": "TF022",
     "category": "Ocean Life",
     "question": "A dolphin is a fish.",
     "answer": false,
-    "explanation": "Actually, A dolphin is a mammal."
+    "explanation": "Actually, A dolphin is a mammal.",
+    "factGroup": "F011"
   },
   {
     "id": "TF023",
     "category": "Ocean Life",
     "question": "Sea stars can regrow some lost arms.",
     "answer": true,
-    "explanation": "Sea stars can regrow some lost arms."
+    "explanation": "Sea stars can regrow some lost arms.",
+    "factGroup": "F012"
   },
   {
     "id": "TF024",
     "category": "Ocean Life",
     "question": "Sea stars always have exactly eight arms.",
     "answer": false,
-    "explanation": "Actually, Sea stars can regrow some lost arms."
+    "explanation": "Actually, Sea stars can regrow some lost arms.",
+    "factGroup": "F012"
   },
   {
     "id": "TF025",
     "category": "Ocean Life",
     "question": "The largest animal alive today is the blue whale.",
     "answer": true,
-    "explanation": "The largest animal alive today is the blue whale."
+    "explanation": "The largest animal alive today is the blue whale.",
+    "factGroup": "F013"
   },
   {
     "id": "TF026",
     "category": "Ocean Life",
     "question": "The largest animal alive today is the great white shark.",
     "answer": false,
-    "explanation": "Actually, The largest animal alive today is the blue whale."
+    "explanation": "Actually, The largest animal alive today is the blue whale.",
+    "factGroup": "F013"
   },
   {
     "id": "TF027",
     "category": "Ocean Life",
     "question": "A sea turtle breathes air with lungs.",
     "answer": true,
-    "explanation": "A sea turtle breathes air with lungs."
+    "explanation": "A sea turtle breathes air with lungs.",
+    "factGroup": "F014"
   },
   {
     "id": "TF028",
     "category": "Ocean Life",
     "question": "A sea turtle breathes underwater through gills.",
     "answer": false,
-    "explanation": "Actually, A sea turtle breathes air with lungs."
+    "explanation": "Actually, A sea turtle breathes air with lungs.",
+    "factGroup": "F014"
   },
   {
     "id": "TF029",
     "category": "Ocean Life",
     "question": "Clownfish can live among sea anemones.",
     "answer": true,
-    "explanation": "Clownfish can live among sea anemones."
+    "explanation": "Clownfish can live among sea anemones.",
+    "factGroup": "F015"
   },
   {
     "id": "TF030",
     "category": "Ocean Life",
     "question": "Clownfish live only in freshwater lakes.",
     "answer": false,
-    "explanation": "Actually, Clownfish can live among sea anemones."
+    "explanation": "Actually, Clownfish can live among sea anemones.",
+    "factGroup": "F015"
   },
   {
     "id": "TF031",
     "category": "Ocean Life",
     "question": "Some jellyfish glow in the dark.",
     "answer": true,
-    "explanation": "Some jellyfish glow in the dark."
+    "explanation": "Some jellyfish glow in the dark.",
+    "factGroup": "F016"
   },
   {
     "id": "TF032",
     "category": "Ocean Life",
     "question": "Every jellyfish makes its own light.",
     "answer": false,
-    "explanation": "Actually, Some jellyfish glow in the dark."
+    "explanation": "Actually, Some jellyfish glow in the dark.",
+    "factGroup": "F016"
   },
   {
     "id": "TF033",
     "category": "Ocean Life",
     "question": "A seahorse swims upright.",
     "answer": true,
-    "explanation": "A seahorse swims upright."
+    "explanation": "A seahorse swims upright.",
+    "factGroup": "F017"
   },
   {
     "id": "TF034",
     "category": "Ocean Life",
     "question": "A seahorse normally swims belly-up.",
     "answer": false,
-    "explanation": "Actually, A seahorse swims upright."
+    "explanation": "Actually, A seahorse swims upright.",
+    "factGroup": "F017"
   },
   {
     "id": "TF035",
     "category": "Ocean Life",
     "question": "Coral reefs are built by tiny animals called coral polyps.",
     "answer": true,
-    "explanation": "Coral reefs are built by tiny animals called coral polyps."
+    "explanation": "Coral reefs are built by tiny animals called coral polyps.",
+    "factGroup": "F018"
   },
   {
     "id": "TF036",
     "category": "Ocean Life",
     "question": "Coral reefs are built by underwater trees.",
     "answer": false,
-    "explanation": "Actually, Coral reefs are built by tiny animals called coral polyps."
+    "explanation": "Actually, Coral reefs are built by tiny animals called coral polyps.",
+    "factGroup": "F018"
   },
   {
     "id": "TF037",
     "category": "Ocean Life",
     "question": "A crab has an external skeleton.",
     "answer": true,
-    "explanation": "A crab has an external skeleton."
+    "explanation": "A crab has an external skeleton.",
+    "factGroup": "F019"
   },
   {
     "id": "TF038",
     "category": "Ocean Life",
     "question": "A crab has a backbone like a human.",
     "answer": false,
-    "explanation": "Actually, A crab has an external skeleton."
+    "explanation": "Actually, A crab has an external skeleton.",
+    "factGroup": "F019"
   },
   {
     "id": "TF039",
     "category": "Ocean Life",
     "question": "A pufferfish can inflate its body when threatened.",
     "answer": true,
-    "explanation": "A pufferfish can inflate its body when threatened."
+    "explanation": "A pufferfish can inflate its body when threatened.",
+    "factGroup": "F020"
   },
   {
     "id": "TF040",
     "category": "Ocean Life",
     "question": "A pufferfish inflates its body by growing extra bones.",
     "answer": false,
-    "explanation": "Actually, A pufferfish can inflate its body when threatened."
+    "explanation": "Actually, A pufferfish can inflate its body when threatened.",
+    "factGroup": "F020"
   },
   {
     "id": "TF041",
     "category": "Birds",
     "question": "An ostrich is the world's largest living bird.",
     "answer": true,
-    "explanation": "An ostrich is the world's largest living bird."
+    "explanation": "An ostrich is the world's largest living bird.",
+    "factGroup": "F021"
   },
   {
     "id": "TF042",
     "category": "Birds",
     "question": "A sparrow is the world's largest living bird.",
     "answer": false,
-    "explanation": "Actually, An ostrich is the world's largest living bird."
+    "explanation": "Actually, An ostrich is the world's largest living bird.",
+    "factGroup": "F021"
   },
   {
     "id": "TF043",
     "category": "Birds",
     "question": "Hummingbirds can fly backward.",
     "answer": true,
-    "explanation": "Hummingbirds can fly backward."
+    "explanation": "Hummingbirds can fly backward.",
+    "factGroup": "F022"
   },
   {
     "id": "TF044",
     "category": "Birds",
     "question": "Hummingbirds can only fly forward.",
     "answer": false,
-    "explanation": "Actually, Hummingbirds can fly backward."
+    "explanation": "Actually, Hummingbirds can fly backward.",
+    "factGroup": "F022"
   },
   {
     "id": "TF045",
     "category": "Birds",
     "question": "Penguins are birds even though they cannot fly.",
     "answer": true,
-    "explanation": "Penguins are birds even though they cannot fly."
+    "explanation": "Penguins are birds even though they cannot fly.",
+    "factGroup": "F023"
   },
   {
     "id": "TF046",
     "category": "Birds",
     "question": "Penguins are mammals because they cannot fly.",
     "answer": false,
-    "explanation": "Actually, Penguins are birds even though they cannot fly."
+    "explanation": "Actually, Penguins are birds even though they cannot fly.",
+    "factGroup": "F023"
   },
   {
     "id": "TF047",
     "category": "Birds",
     "question": "An owl can turn its head much farther than a human can.",
     "answer": true,
-    "explanation": "An owl can turn its head much farther than a human can."
+    "explanation": "An owl can turn its head much farther than a human can.",
+    "factGroup": "F024"
   },
   {
     "id": "TF048",
     "category": "Birds",
     "question": "An owl can rotate its head a full 360 degrees.",
     "answer": false,
-    "explanation": "Actually, An owl can turn its head much farther than a human can."
+    "explanation": "Actually, An owl can turn its head much farther than a human can.",
+    "factGroup": "F024"
   },
   {
     "id": "TF049",
     "category": "Birds",
     "question": "Flamingos get their pink color from pigments in their food.",
     "answer": true,
-    "explanation": "Flamingos get their pink color from pigments in their food."
+    "explanation": "Flamingos get their pink color from pigments in their food.",
+    "factGroup": "F025"
   },
   {
     "id": "TF050",
     "category": "Birds",
     "question": "Flamingos are born with bright pink feathers.",
     "answer": false,
-    "explanation": "Actually, Flamingos get their pink color from pigments in their food."
+    "explanation": "Actually, Flamingos get their pink color from pigments in their food.",
+    "factGroup": "F025"
   },
   {
     "id": "TF051",
     "category": "Birds",
     "question": "A woodpecker uses its beak to peck into wood.",
     "answer": true,
-    "explanation": "A woodpecker uses its beak to peck into wood."
+    "explanation": "A woodpecker uses its beak to peck into wood.",
+    "factGroup": "F026"
   },
   {
     "id": "TF052",
     "category": "Birds",
     "question": "A woodpecker uses its feet to drill into wood.",
     "answer": false,
-    "explanation": "Actually, A woodpecker uses its beak to peck into wood."
+    "explanation": "Actually, A woodpecker uses its beak to peck into wood.",
+    "factGroup": "F026"
   },
   {
     "id": "TF053",
     "category": "Birds",
     "question": "A baby chicken is called a chick.",
     "answer": true,
-    "explanation": "A baby chicken is called a chick."
+    "explanation": "A baby chicken is called a chick.",
+    "factGroup": "F027"
   },
   {
     "id": "TF054",
     "category": "Birds",
     "question": "A baby chicken is called a calf.",
     "answer": false,
-    "explanation": "Actually, A baby chicken is called a chick."
+    "explanation": "Actually, A baby chicken is called a chick.",
+    "factGroup": "F027"
   },
   {
     "id": "TF055",
     "category": "Birds",
     "question": "Many birds have hollow bones that help reduce weight.",
     "answer": true,
-    "explanation": "Many birds have hollow bones that help reduce weight."
+    "explanation": "Many birds have hollow bones that help reduce weight.",
+    "factGroup": "F028"
   },
   {
     "id": "TF056",
     "category": "Birds",
     "question": "All bird bones are solid blocks with no air spaces.",
     "answer": false,
-    "explanation": "Actually, Many birds have hollow bones that help reduce weight."
+    "explanation": "Actually, Many birds have hollow bones that help reduce weight.",
+    "factGroup": "F028"
   },
   {
     "id": "TF057",
     "category": "Birds",
     "question": "A peacock is a male peafowl.",
     "answer": true,
-    "explanation": "A peacock is a male peafowl."
+    "explanation": "A peacock is a male peafowl.",
+    "factGroup": "F029"
   },
   {
     "id": "TF058",
     "category": "Birds",
     "question": "A peacock is a female peafowl.",
     "answer": false,
-    "explanation": "Actually, A peacock is a male peafowl."
+    "explanation": "Actually, A peacock is a male peafowl.",
+    "factGroup": "F029"
   },
   {
     "id": "TF059",
     "category": "Birds",
     "question": "A kiwi bird is native to New Zealand.",
     "answer": true,
-    "explanation": "A kiwi bird is native to New Zealand."
+    "explanation": "A kiwi bird is native to New Zealand.",
+    "factGroup": "F030"
   },
   {
     "id": "TF060",
     "category": "Birds",
     "question": "A kiwi bird is native to Antarctica.",
     "answer": false,
-    "explanation": "Actually, A kiwi bird is native to New Zealand."
+    "explanation": "Actually, A kiwi bird is native to New Zealand.",
+    "factGroup": "F030"
   },
   {
     "id": "TF061",
     "category": "Insects & Bugs",
     "question": "A butterfly begins life as an egg.",
     "answer": true,
-    "explanation": "A butterfly begins life as an egg."
+    "explanation": "A butterfly begins life as an egg.",
+    "factGroup": "F031"
   },
   {
     "id": "TF062",
     "category": "Insects & Bugs",
     "question": "A butterfly begins life as a fully grown butterfly.",
     "answer": false,
-    "explanation": "Actually, A butterfly begins life as an egg."
+    "explanation": "Actually, A butterfly begins life as an egg.",
+    "factGroup": "F031"
   },
   {
     "id": "TF063",
     "category": "Insects & Bugs",
     "question": "An adult insect has six legs.",
     "answer": true,
-    "explanation": "An adult insect has six legs."
+    "explanation": "An adult insect has six legs.",
+    "factGroup": "F032"
   },
   {
     "id": "TF064",
     "category": "Insects & Bugs",
     "question": "An adult insect has eight legs.",
     "answer": false,
-    "explanation": "Actually, An adult insect has six legs."
+    "explanation": "Actually, An adult insect has six legs.",
+    "factGroup": "F032"
   },
   {
     "id": "TF065",
     "category": "Insects & Bugs",
     "question": "A spider is an arachnid, not an insect.",
     "answer": true,
-    "explanation": "A spider is an arachnid, not an insect."
+    "explanation": "A spider is an arachnid, not an insect.",
+    "factGroup": "F033"
   },
   {
     "id": "TF066",
     "category": "Insects & Bugs",
     "question": "A spider is an insect with six legs.",
     "answer": false,
-    "explanation": "Actually, A spider is an arachnid, not an insect."
+    "explanation": "Actually, A spider is an arachnid, not an insect.",
+    "factGroup": "F033"
   },
   {
     "id": "TF067",
     "category": "Insects & Bugs",
     "question": "Honeybees can communicate food locations through a waggle dance.",
     "answer": true,
-    "explanation": "Honeybees can communicate food locations through a waggle dance."
+    "explanation": "Honeybees can communicate food locations through a waggle dance.",
+    "factGroup": "F034"
   },
   {
     "id": "TF068",
     "category": "Insects & Bugs",
     "question": "Honeybees communicate food locations by writing marks on leaves.",
     "answer": false,
-    "explanation": "Actually, Honeybees can communicate food locations through a waggle dance."
+    "explanation": "Actually, Honeybees can communicate food locations through a waggle dance.",
+    "factGroup": "F034"
   },
   {
     "id": "TF069",
     "category": "Insects & Bugs",
     "question": "A ladybug is a beetle.",
     "answer": true,
-    "explanation": "A ladybug is a beetle."
+    "explanation": "A ladybug is a beetle.",
+    "factGroup": "F035"
   },
   {
     "id": "TF070",
     "category": "Insects & Bugs",
     "question": "A ladybug is a tiny bird.",
     "answer": false,
-    "explanation": "Actually, A ladybug is a beetle."
+    "explanation": "Actually, A ladybug is a beetle.",
+    "factGroup": "F035"
   },
   {
     "id": "TF071",
     "category": "Insects & Bugs",
     "question": "A caterpillar can become a butterfly or moth.",
     "answer": true,
-    "explanation": "A caterpillar can become a butterfly or moth."
+    "explanation": "A caterpillar can become a butterfly or moth.",
+    "factGroup": "F036"
   },
   {
     "id": "TF072",
     "category": "Insects & Bugs",
     "question": "A caterpillar grows into a grasshopper.",
     "answer": false,
-    "explanation": "Actually, A caterpillar can become a butterfly or moth."
+    "explanation": "Actually, A caterpillar can become a butterfly or moth.",
+    "factGroup": "F036"
   },
   {
     "id": "TF073",
     "category": "Insects & Bugs",
     "question": "Ants use chemical trails to help find their way.",
     "answer": true,
-    "explanation": "Ants use chemical trails to help find their way."
+    "explanation": "Ants use chemical trails to help find their way.",
+    "factGroup": "F037"
   },
   {
     "id": "TF074",
     "category": "Insects & Bugs",
     "question": "Ants use tiny road signs to mark their trails.",
     "answer": false,
-    "explanation": "Actually, Ants use chemical trails to help find their way."
+    "explanation": "Actually, Ants use chemical trails to help find their way.",
+    "factGroup": "F037"
   },
   {
     "id": "TF075",
     "category": "Insects & Bugs",
     "question": "Dragonflies spend an early stage of life in water.",
     "answer": true,
-    "explanation": "Dragonflies spend an early stage of life in water."
+    "explanation": "Dragonflies spend an early stage of life in water.",
+    "factGroup": "F038"
   },
   {
     "id": "TF076",
     "category": "Insects & Bugs",
     "question": "Dragonflies begin life as baby birds.",
     "answer": false,
-    "explanation": "Actually, Dragonflies spend an early stage of life in water."
+    "explanation": "Actually, Dragonflies spend an early stage of life in water.",
+    "factGroup": "F038"
   },
   {
     "id": "TF077",
     "category": "Insects & Bugs",
     "question": "Fireflies make light through a chemical reaction.",
     "answer": true,
-    "explanation": "Fireflies make light through a chemical reaction."
+    "explanation": "Fireflies make light through a chemical reaction.",
+    "factGroup": "F039"
   },
   {
     "id": "TF078",
     "category": "Insects & Bugs",
     "question": "Fireflies glow because their wings reflect moonlight.",
     "answer": false,
-    "explanation": "Actually, Fireflies make light through a chemical reaction."
+    "explanation": "Actually, Fireflies make light through a chemical reaction.",
+    "factGroup": "F039"
   },
   {
     "id": "TF079",
     "category": "Insects & Bugs",
     "question": "A grasshopper can make a chirping sound by rubbing body parts.",
     "answer": true,
-    "explanation": "A grasshopper can make a chirping sound by rubbing body parts."
+    "explanation": "A grasshopper can make a chirping sound by rubbing body parts.",
+    "factGroup": "F040"
   },
   {
     "id": "TF080",
     "category": "Insects & Bugs",
     "question": "A grasshopper chirps using vocal cords like a person.",
     "answer": false,
-    "explanation": "Actually, A grasshopper can make a chirping sound by rubbing body parts."
+    "explanation": "Actually, A grasshopper can make a chirping sound by rubbing body parts.",
+    "factGroup": "F040"
   },
   {
     "id": "TF081",
     "category": "Dinosaurs & Fossils",
     "question": "Tyrannosaurus rex walked on two legs.",
     "answer": true,
-    "explanation": "Tyrannosaurus rex walked on two legs."
+    "explanation": "Tyrannosaurus rex walked on two legs.",
+    "factGroup": "F041"
   },
   {
     "id": "TF082",
     "category": "Dinosaurs & Fossils",
     "question": "Tyrannosaurus rex walked on six legs.",
     "answer": false,
-    "explanation": "Actually, Tyrannosaurus rex walked on two legs."
+    "explanation": "Actually, Tyrannosaurus rex walked on two legs.",
+    "factGroup": "F041"
   },
   {
     "id": "TF083",
     "category": "Dinosaurs & Fossils",
     "question": "Stegosaurus had plates along its back.",
     "answer": true,
-    "explanation": "Stegosaurus had plates along its back."
+    "explanation": "Stegosaurus had plates along its back.",
+    "factGroup": "F042"
   },
   {
     "id": "TF084",
     "category": "Dinosaurs & Fossils",
     "question": "Stegosaurus had a long horn on its nose like a rhinoceros.",
     "answer": false,
-    "explanation": "Actually, Stegosaurus had plates along its back."
+    "explanation": "Actually, Stegosaurus had plates along its back.",
+    "factGroup": "F042"
   },
   {
     "id": "TF085",
     "category": "Dinosaurs & Fossils",
     "question": "Triceratops had three facial horns.",
     "answer": true,
-    "explanation": "Triceratops had three facial horns."
+    "explanation": "Triceratops had three facial horns.",
+    "factGroup": "F043"
   },
   {
     "id": "TF086",
     "category": "Dinosaurs & Fossils",
     "question": "Triceratops had five facial horns.",
     "answer": false,
-    "explanation": "Actually, Triceratops had three facial horns."
+    "explanation": "Actually, Triceratops had three facial horns.",
+    "factGroup": "F043"
   },
   {
     "id": "TF087",
     "category": "Dinosaurs & Fossils",
     "question": "Fossils can preserve traces of ancient footprints.",
     "answer": true,
-    "explanation": "Fossils can preserve traces of ancient footprints."
+    "explanation": "Fossils can preserve traces of ancient footprints.",
+    "factGroup": "F044"
   },
   {
     "id": "TF088",
     "category": "Dinosaurs & Fossils",
     "question": "Fossils can only be made from bones.",
     "answer": false,
-    "explanation": "Actually, Fossils can preserve traces of ancient footprints."
+    "explanation": "Actually, Fossils can preserve traces of ancient footprints.",
+    "factGroup": "F044"
   },
   {
     "id": "TF089",
     "category": "Dinosaurs & Fossils",
     "question": "Some dinosaurs had feathers.",
     "answer": true,
-    "explanation": "Some dinosaurs had feathers."
+    "explanation": "Some dinosaurs had feathers.",
+    "factGroup": "F045"
   },
   {
     "id": "TF090",
     "category": "Dinosaurs & Fossils",
     "question": "Every dinosaur was covered in smooth, featherless skin.",
     "answer": false,
-    "explanation": "Actually, Some dinosaurs had feathers."
+    "explanation": "Actually, Some dinosaurs had feathers.",
+    "factGroup": "F045"
   },
   {
     "id": "TF091",
     "category": "Dinosaurs & Fossils",
     "question": "Paleontologists study fossils of ancient life.",
     "answer": true,
-    "explanation": "Paleontologists study fossils of ancient life."
+    "explanation": "Paleontologists study fossils of ancient life.",
+    "factGroup": "F046"
   },
   {
     "id": "TF092",
     "category": "Dinosaurs & Fossils",
     "question": "Paleontologists study only living pets.",
     "answer": false,
-    "explanation": "Actually, Paleontologists study fossils of ancient life."
+    "explanation": "Actually, Paleontologists study fossils of ancient life.",
+    "factGroup": "F046"
   },
   {
     "id": "TF093",
     "category": "Dinosaurs & Fossils",
     "question": "The word dinosaur means terrible lizard.",
     "answer": true,
-    "explanation": "The word dinosaur means terrible lizard."
+    "explanation": "The word dinosaur means terrible lizard.",
+    "factGroup": "F047"
   },
   {
     "id": "TF094",
     "category": "Dinosaurs & Fossils",
     "question": "The word dinosaur means giant bird.",
     "answer": false,
-    "explanation": "Actually, The word dinosaur means terrible lizard."
+    "explanation": "Actually, The word dinosaur means terrible lizard.",
+    "factGroup": "F047"
   },
   {
     "id": "TF095",
     "category": "Dinosaurs & Fossils",
     "question": "Brachiosaurus was a long-necked plant eater.",
     "answer": true,
-    "explanation": "Brachiosaurus was a long-necked plant eater."
+    "explanation": "Brachiosaurus was a long-necked plant eater.",
+    "factGroup": "F048"
   },
   {
     "id": "TF096",
     "category": "Dinosaurs & Fossils",
     "question": "Brachiosaurus was a small meat-eating flying reptile.",
     "answer": false,
-    "explanation": "Actually, Brachiosaurus was a long-necked plant eater."
+    "explanation": "Actually, Brachiosaurus was a long-necked plant eater.",
+    "factGroup": "F048"
   },
   {
     "id": "TF097",
     "category": "Dinosaurs & Fossils",
     "question": "Birds evolved from a group of theropod dinosaurs.",
     "answer": true,
-    "explanation": "Birds evolved from a group of theropod dinosaurs."
+    "explanation": "Birds evolved from a group of theropod dinosaurs.",
+    "factGroup": "F049"
   },
   {
     "id": "TF098",
     "category": "Dinosaurs & Fossils",
     "question": "Modern birds evolved from ancient fish without dinosaur ancestors.",
     "answer": false,
-    "explanation": "Actually, Birds evolved from a group of theropod dinosaurs."
+    "explanation": "Actually, Birds evolved from a group of theropod dinosaurs.",
+    "factGroup": "F049"
   },
   {
     "id": "TF099",
     "category": "Dinosaurs & Fossils",
     "question": "An ammonite was a shelled marine animal.",
     "answer": true,
-    "explanation": "An ammonite was a shelled marine animal."
+    "explanation": "An ammonite was a shelled marine animal.",
+    "factGroup": "F050"
   },
   {
     "id": "TF100",
     "category": "Dinosaurs & Fossils",
     "question": "An ammonite was a type of prehistoric tree.",
     "answer": false,
-    "explanation": "Actually, An ammonite was a shelled marine animal."
+    "explanation": "Actually, An ammonite was a shelled marine animal.",
+    "factGroup": "F050"
   }
 ]
