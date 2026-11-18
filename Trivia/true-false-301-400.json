@@ -4,699 +4,799 @@
     "category": "Books & Stories",
     "question": "A book's table of contents helps readers find chapters.",
     "answer": true,
-    "explanation": "A book's table of contents helps readers find chapters."
+    "explanation": "A book's table of contents helps readers find chapters.",
+    "factGroup": "F151"
   },
   {
     "id": "TF302",
     "category": "Books & Stories",
     "question": "A table of contents is used to sharpen pencils.",
     "answer": false,
-    "explanation": "Actually, A book's table of contents helps readers find chapters."
+    "explanation": "Actually, A book's table of contents helps readers find chapters.",
+    "factGroup": "F151"
   },
   {
     "id": "TF303",
     "category": "Books & Stories",
     "question": "An illustrator creates pictures for books.",
     "answer": true,
-    "explanation": "An illustrator creates pictures for books."
+    "explanation": "An illustrator creates pictures for books.",
+    "factGroup": "F152"
   },
   {
     "id": "TF304",
     "category": "Books & Stories",
     "question": "An illustrator is the person who binds every book by hand.",
     "answer": false,
-    "explanation": "Actually, An illustrator creates pictures for books."
+    "explanation": "Actually, An illustrator creates pictures for books.",
+    "factGroup": "F152"
   },
   {
     "id": "TF305",
     "category": "Books & Stories",
     "question": "A dictionary gives meanings of words.",
     "answer": true,
-    "explanation": "A dictionary gives meanings of words."
+    "explanation": "A dictionary gives meanings of words.",
+    "factGroup": "F153"
   },
   {
     "id": "TF306",
     "category": "Books & Stories",
     "question": "A dictionary is a book that lists only recipes.",
     "answer": false,
-    "explanation": "Actually, A dictionary gives meanings of words."
+    "explanation": "Actually, A dictionary gives meanings of words.",
+    "factGroup": "F153"
   },
   {
     "id": "TF307",
     "category": "Books & Stories",
     "question": "A bookmark helps you find your place in a book.",
     "answer": true,
-    "explanation": "A bookmark helps you find your place in a book."
+    "explanation": "A bookmark helps you find your place in a book.",
+    "factGroup": "F154"
   },
   {
     "id": "TF308",
     "category": "Books & Stories",
     "question": "A bookmark is used to change the ending of a story.",
     "answer": false,
-    "explanation": "Actually, A bookmark helps you find your place in a book."
+    "explanation": "Actually, A bookmark helps you find your place in a book.",
+    "factGroup": "F154"
   },
   {
     "id": "TF309",
     "category": "Books & Stories",
     "question": "A fable often teaches a lesson through a short story.",
     "answer": true,
-    "explanation": "A fable often teaches a lesson through a short story."
+    "explanation": "A fable often teaches a lesson through a short story.",
+    "factGroup": "F155"
   },
   {
     "id": "TF310",
     "category": "Books & Stories",
     "question": "A fable is always a book of weather forecasts.",
     "answer": false,
-    "explanation": "Actually, A fable often teaches a lesson through a short story."
+    "explanation": "Actually, A fable often teaches a lesson through a short story.",
+    "factGroup": "F155"
   },
   {
     "id": "TF311",
     "category": "Books & Stories",
     "question": "A comic strip usually tells a story through pictures and words.",
     "answer": true,
-    "explanation": "A comic strip usually tells a story through pictures and words."
+    "explanation": "A comic strip usually tells a story through pictures and words.",
+    "factGroup": "F156"
   },
   {
     "id": "TF312",
     "category": "Books & Stories",
     "question": "A comic strip never contains pictures.",
     "answer": false,
-    "explanation": "Actually, A comic strip usually tells a story through pictures and words."
+    "explanation": "Actually, A comic strip usually tells a story through pictures and words.",
+    "factGroup": "F156"
   },
   {
     "id": "TF313",
     "category": "Books & Stories",
     "question": "A library is a place where people can borrow books.",
     "answer": true,
-    "explanation": "A library is a place where people can borrow books."
+    "explanation": "A library is a place where people can borrow books.",
+    "factGroup": "F157"
   },
   {
     "id": "TF314",
     "category": "Books & Stories",
     "question": "A library is a place where all books must be purchased.",
     "answer": false,
-    "explanation": "Actually, A library is a place where people can borrow books."
+    "explanation": "Actually, A library is a place where people can borrow books.",
+    "factGroup": "F157"
   },
   {
     "id": "TF315",
     "category": "Books & Stories",
     "question": "A chapter is one section of a longer book.",
     "answer": true,
-    "explanation": "A chapter is one section of a longer book."
+    "explanation": "A chapter is one section of a longer book.",
+    "factGroup": "F158"
   },
   {
     "id": "TF316",
     "category": "Books & Stories",
     "question": "A chapter is the cover of a book.",
     "answer": false,
-    "explanation": "Actually, A chapter is one section of a longer book."
+    "explanation": "Actually, A chapter is one section of a longer book.",
+    "factGroup": "F158"
   },
   {
     "id": "TF317",
     "category": "Books & Stories",
     "question": "A fairy tale often includes magical or imaginary events.",
     "answer": true,
-    "explanation": "A fairy tale often includes magical or imaginary events."
+    "explanation": "A fairy tale often includes magical or imaginary events.",
+    "factGroup": "F159"
   },
   {
     "id": "TF318",
     "category": "Books & Stories",
     "question": "A fairy tale is always a true scientific report.",
     "answer": false,
-    "explanation": "Actually, A fairy tale often includes magical or imaginary events."
+    "explanation": "Actually, A fairy tale often includes magical or imaginary events.",
+    "factGroup": "F159"
   },
   {
     "id": "TF319",
     "category": "Books & Stories",
     "question": "An audiobook lets people listen to a book being read.",
     "answer": true,
-    "explanation": "An audiobook lets people listen to a book being read."
+    "explanation": "An audiobook lets people listen to a book being read.",
+    "factGroup": "F160"
   },
   {
     "id": "TF320",
     "category": "Books & Stories",
     "question": "An audiobook is a book printed only in invisible ink.",
     "answer": false,
-    "explanation": "Actually, An audiobook lets people listen to a book being read."
+    "explanation": "Actually, An audiobook lets people listen to a book being read.",
+    "factGroup": "F160"
   },
   {
     "id": "TF321",
     "category": "Sports & Games",
     "question": "A soccer team tries to score goals.",
     "answer": true,
-    "explanation": "A soccer team tries to score goals."
+    "explanation": "A soccer team tries to score goals.",
+    "factGroup": "F161"
   },
   {
     "id": "TF322",
     "category": "Sports & Games",
     "question": "A soccer team tries to score touchdowns through a hoop.",
     "answer": false,
-    "explanation": "Actually, A soccer team tries to score goals."
+    "explanation": "Actually, A soccer team tries to score goals.",
+    "factGroup": "F161"
   },
   {
     "id": "TF323",
     "category": "Sports & Games",
     "question": "A basketball hoop has a net beneath its rim.",
     "answer": true,
-    "explanation": "A basketball hoop has a net beneath its rim."
+    "explanation": "A basketball hoop has a net beneath its rim.",
+    "factGroup": "F162"
   },
   {
     "id": "TF324",
     "category": "Sports & Games",
     "question": "A basketball hoop has a wooden bat hanging from its rim.",
     "answer": false,
-    "explanation": "Actually, A basketball hoop has a net beneath its rim."
+    "explanation": "Actually, A basketball hoop has a net beneath its rim.",
+    "factGroup": "F162"
   },
   {
     "id": "TF325",
     "category": "Sports & Games",
     "question": "In tennis, players hit a ball over a net.",
     "answer": true,
-    "explanation": "In tennis, players hit a ball over a net."
+    "explanation": "In tennis, players hit a ball over a net.",
+    "factGroup": "F163"
   },
   {
     "id": "TF326",
     "category": "Sports & Games",
     "question": "In tennis, players kick a ball through a goal.",
     "answer": false,
-    "explanation": "Actually, In tennis, players hit a ball over a net."
+    "explanation": "Actually, In tennis, players hit a ball over a net.",
+    "factGroup": "F163"
   },
   {
     "id": "TF327",
     "category": "Sports & Games",
     "question": "A chessboard has 64 squares.",
     "answer": true,
-    "explanation": "A chessboard has 64 squares."
+    "explanation": "A chessboard has 64 squares.",
+    "factGroup": "F164"
   },
   {
     "id": "TF328",
     "category": "Sports & Games",
     "question": "A chessboard has 100 squares.",
     "answer": false,
-    "explanation": "Actually, A chessboard has 64 squares."
+    "explanation": "Actually, A chessboard has 64 squares.",
+    "factGroup": "F164"
   },
   {
     "id": "TF329",
     "category": "Sports & Games",
     "question": "In bowling, players try to knock down pins.",
     "answer": true,
-    "explanation": "In bowling, players try to knock down pins."
+    "explanation": "In bowling, players try to knock down pins.",
+    "factGroup": "F165"
   },
   {
     "id": "TF330",
     "category": "Sports & Games",
     "question": "In bowling, players try to jump over hurdles.",
     "answer": false,
-    "explanation": "Actually, In bowling, players try to knock down pins."
+    "explanation": "Actually, In bowling, players try to knock down pins.",
+    "factGroup": "F165"
   },
   {
     "id": "TF331",
     "category": "Sports & Games",
     "question": "A baseball team has nine players on the field during defense.",
     "answer": true,
-    "explanation": "A baseball team has nine players on the field during defense."
+    "explanation": "A baseball team has nine players on the field during defense.",
+    "factGroup": "F166"
   },
   {
     "id": "TF332",
     "category": "Sports & Games",
     "question": "A baseball team has five players on the field during defense.",
     "answer": false,
-    "explanation": "Actually, A baseball team has nine players on the field during defense."
+    "explanation": "Actually, A baseball team has nine players on the field during defense.",
+    "factGroup": "F166"
   },
   {
     "id": "TF333",
     "category": "Sports & Games",
     "question": "A badminton shuttlecock is hit with a racket.",
     "answer": true,
-    "explanation": "A badminton shuttlecock is hit with a racket."
+    "explanation": "A badminton shuttlecock is hit with a racket.",
+    "factGroup": "F167"
   },
   {
     "id": "TF334",
     "category": "Sports & Games",
     "question": "A badminton shuttlecock is kicked with a soccer cleat.",
     "answer": false,
-    "explanation": "Actually, A badminton shuttlecock is hit with a racket."
+    "explanation": "Actually, A badminton shuttlecock is hit with a racket.",
+    "factGroup": "F167"
   },
   {
     "id": "TF335",
     "category": "Sports & Games",
     "question": "A standard deck of playing cards has four suits.",
     "answer": true,
-    "explanation": "A standard deck of playing cards has four suits."
+    "explanation": "A standard deck of playing cards has four suits.",
+    "factGroup": "F168"
   },
   {
     "id": "TF336",
     "category": "Sports & Games",
     "question": "A standard deck of playing cards has six suits.",
     "answer": false,
-    "explanation": "Actually, A standard deck of playing cards has four suits."
+    "explanation": "Actually, A standard deck of playing cards has four suits.",
+    "factGroup": "F168"
   },
   {
     "id": "TF337",
     "category": "Sports & Games",
     "question": "In golf, players try to get a ball into a hole.",
     "answer": true,
-    "explanation": "In golf, players try to get a ball into a hole."
+    "explanation": "In golf, players try to get a ball into a hole.",
+    "factGroup": "F169"
   },
   {
     "id": "TF338",
     "category": "Sports & Games",
     "question": "In golf, players try to throw a ball into a basket.",
     "answer": false,
-    "explanation": "Actually, In golf, players try to get a ball into a hole."
+    "explanation": "Actually, In golf, players try to get a ball into a hole.",
+    "factGroup": "F169"
   },
   {
     "id": "TF339",
     "category": "Sports & Games",
     "question": "A standard six-sided die has faces numbered one to six.",
     "answer": true,
-    "explanation": "A standard six-sided die has faces numbered one to six."
+    "explanation": "A standard six-sided die has faces numbered one to six.",
+    "factGroup": "F170"
   },
   {
     "id": "TF340",
     "category": "Sports & Games",
     "question": "A standard six-sided die has faces numbered one to eight.",
     "answer": false,
-    "explanation": "Actually, A standard six-sided die has faces numbered one to six."
+    "explanation": "Actually, A standard six-sided die has faces numbered one to six.",
+    "factGroup": "F170"
   },
   {
     "id": "TF341",
     "category": "Food & Cooking",
     "question": "Popcorn pops when moisture inside a kernel heats up.",
     "answer": true,
-    "explanation": "Popcorn pops when moisture inside a kernel heats up."
+    "explanation": "Popcorn pops when moisture inside a kernel heats up.",
+    "factGroup": "F171"
   },
   {
     "id": "TF342",
     "category": "Food & Cooking",
     "question": "Popcorn pops because the kernel turns into ice.",
     "answer": false,
-    "explanation": "Actually, Popcorn pops when moisture inside a kernel heats up."
+    "explanation": "Actually, Popcorn pops when moisture inside a kernel heats up.",
+    "factGroup": "F171"
   },
   {
     "id": "TF343",
     "category": "Food & Cooking",
     "question": "Bread dough can rise when yeast produces gas.",
     "answer": true,
-    "explanation": "Bread dough can rise when yeast produces gas."
+    "explanation": "Bread dough can rise when yeast produces gas.",
+    "factGroup": "F172"
   },
   {
     "id": "TF344",
     "category": "Food & Cooking",
     "question": "Bread dough rises because yeast makes tiny pebbles.",
     "answer": false,
-    "explanation": "Actually, Bread dough can rise when yeast produces gas."
+    "explanation": "Actually, Bread dough can rise when yeast produces gas.",
+    "factGroup": "F172"
   },
   {
     "id": "TF345",
     "category": "Food & Cooking",
     "question": "Cheese is commonly made from milk.",
     "answer": true,
-    "explanation": "Cheese is commonly made from milk."
+    "explanation": "Cheese is commonly made from milk.",
+    "factGroup": "F173"
   },
   {
     "id": "TF346",
     "category": "Food & Cooking",
     "question": "Cheese is commonly made from tree bark.",
     "answer": false,
-    "explanation": "Actually, Cheese is commonly made from milk."
+    "explanation": "Actually, Cheese is commonly made from milk.",
+    "factGroup": "F173"
   },
   {
     "id": "TF347",
     "category": "Food & Cooking",
     "question": "Pasta is often made from wheat flour.",
     "answer": true,
-    "explanation": "Pasta is often made from wheat flour."
+    "explanation": "Pasta is often made from wheat flour.",
+    "factGroup": "F174"
   },
   {
     "id": "TF348",
     "category": "Food & Cooking",
     "question": "Pasta is normally made from shredded glass.",
     "answer": false,
-    "explanation": "Actually, Pasta is often made from wheat flour."
+    "explanation": "Actually, Pasta is often made from wheat flour.",
+    "factGroup": "F174"
   },
   {
     "id": "TF349",
     "category": "Food & Cooking",
     "question": "A whisk is used to mix or beat ingredients.",
     "answer": true,
-    "explanation": "A whisk is used to mix or beat ingredients."
+    "explanation": "A whisk is used to mix or beat ingredients.",
+    "factGroup": "F175"
   },
   {
     "id": "TF350",
     "category": "Food & Cooking",
     "question": "A whisk is used to measure the oven temperature.",
     "answer": false,
-    "explanation": "Actually, A whisk is used to mix or beat ingredients."
+    "explanation": "Actually, A whisk is used to mix or beat ingredients.",
+    "factGroup": "F175"
   },
   {
     "id": "TF351",
     "category": "Food & Cooking",
     "question": "Cinnamon is a spice made from tree bark.",
     "answer": true,
-    "explanation": "Cinnamon is a spice made from tree bark."
+    "explanation": "Cinnamon is a spice made from tree bark.",
+    "factGroup": "F176"
   },
   {
     "id": "TF352",
     "category": "Food & Cooking",
     "question": "Cinnamon is a spice made from flower petals only.",
     "answer": false,
-    "explanation": "Actually, Cinnamon is a spice made from tree bark."
+    "explanation": "Actually, Cinnamon is a spice made from tree bark.",
+    "factGroup": "F176"
   },
   {
     "id": "TF353",
     "category": "Food & Cooking",
     "question": "Maple syrup is made from the sap of maple trees.",
     "answer": true,
-    "explanation": "Maple syrup is made from the sap of maple trees."
+    "explanation": "Maple syrup is made from the sap of maple trees.",
+    "factGroup": "F177"
   },
   {
     "id": "TF354",
     "category": "Food & Cooking",
     "question": "Maple syrup is made from the roots of pine trees.",
     "answer": false,
-    "explanation": "Actually, Maple syrup is made from the sap of maple trees."
+    "explanation": "Actually, Maple syrup is made from the sap of maple trees.",
+    "factGroup": "F177"
   },
   {
     "id": "TF355",
     "category": "Food & Cooking",
     "question": "A waffle iron makes the grid pattern on waffles.",
     "answer": true,
-    "explanation": "A waffle iron makes the grid pattern on waffles."
+    "explanation": "A waffle iron makes the grid pattern on waffles.",
+    "factGroup": "F178"
   },
   {
     "id": "TF356",
     "category": "Food & Cooking",
     "question": "A waffle iron is used to peel apples.",
     "answer": false,
-    "explanation": "Actually, A waffle iron makes the grid pattern on waffles."
+    "explanation": "Actually, A waffle iron makes the grid pattern on waffles.",
+    "factGroup": "F178"
   },
   {
     "id": "TF357",
     "category": "Food & Cooking",
     "question": "Yogurt is made using bacteria that ferment milk.",
     "answer": true,
-    "explanation": "Yogurt is made using bacteria that ferment milk."
+    "explanation": "Yogurt is made using bacteria that ferment milk.",
+    "factGroup": "F179"
   },
   {
     "id": "TF358",
     "category": "Food & Cooking",
     "question": "Yogurt is made by freezing plain water with salt.",
     "answer": false,
-    "explanation": "Actually, Yogurt is made using bacteria that ferment milk."
+    "explanation": "Actually, Yogurt is made using bacteria that ferment milk.",
+    "factGroup": "F179"
   },
   {
     "id": "TF359",
     "category": "Food & Cooking",
     "question": "A rolling pin helps flatten dough.",
     "answer": true,
-    "explanation": "A rolling pin helps flatten dough."
+    "explanation": "A rolling pin helps flatten dough.",
+    "factGroup": "F180"
   },
   {
     "id": "TF360",
     "category": "Food & Cooking",
     "question": "A rolling pin helps turn flour into sugar.",
     "answer": false,
-    "explanation": "Actually, A rolling pin helps flatten dough."
+    "explanation": "Actually, A rolling pin helps flatten dough.",
+    "factGroup": "F180"
   },
   {
     "id": "TF361",
     "category": "World Geography",
     "question": "Africa is a continent.",
     "answer": true,
-    "explanation": "Africa is a continent."
+    "explanation": "Africa is a continent.",
+    "factGroup": "F181"
   },
   {
     "id": "TF362",
     "category": "World Geography",
     "question": "Africa is a single city.",
     "answer": false,
-    "explanation": "Actually, Africa is a continent."
+    "explanation": "Actually, Africa is a continent.",
+    "factGroup": "F181"
   },
   {
     "id": "TF363",
     "category": "World Geography",
     "question": "The Pacific is Earth's largest ocean.",
     "answer": true,
-    "explanation": "The Pacific is Earth's largest ocean."
+    "explanation": "The Pacific is Earth's largest ocean.",
+    "factGroup": "F182"
   },
   {
     "id": "TF364",
     "category": "World Geography",
     "question": "The Arctic is Earth's largest ocean.",
     "answer": false,
-    "explanation": "Actually, The Pacific is Earth's largest ocean."
+    "explanation": "Actually, The Pacific is Earth's largest ocean.",
+    "factGroup": "F182"
   },
   {
     "id": "TF365",
     "category": "World Geography",
     "question": "Japan is an island country.",
     "answer": true,
-    "explanation": "Japan is an island country."
+    "explanation": "Japan is an island country.",
+    "factGroup": "F183"
   },
   {
     "id": "TF366",
     "category": "World Geography",
     "question": "Japan is a landlocked country.",
     "answer": false,
-    "explanation": "Actually, Japan is an island country."
+    "explanation": "Actually, Japan is an island country.",
+    "factGroup": "F183"
   },
   {
     "id": "TF367",
     "category": "World Geography",
     "question": "The Nile is a river in Africa.",
     "answer": true,
-    "explanation": "The Nile is a river in Africa."
+    "explanation": "The Nile is a river in Africa.",
+    "factGroup": "F184"
   },
   {
     "id": "TF368",
     "category": "World Geography",
     "question": "The Nile is a mountain in Australia.",
     "answer": false,
-    "explanation": "Actually, The Nile is a river in Africa."
+    "explanation": "Actually, The Nile is a river in Africa.",
+    "factGroup": "F184"
   },
   {
     "id": "TF369",
     "category": "World Geography",
     "question": "The Sahara is a large desert in Africa.",
     "answer": true,
-    "explanation": "The Sahara is a large desert in Africa."
+    "explanation": "The Sahara is a large desert in Africa.",
+    "factGroup": "F185"
   },
   {
     "id": "TF370",
     "category": "World Geography",
     "question": "The Sahara is a rainforest in South America.",
     "answer": false,
-    "explanation": "Actually, The Sahara is a large desert in Africa."
+    "explanation": "Actually, The Sahara is a large desert in Africa.",
+    "factGroup": "F185"
   },
   {
     "id": "TF371",
     "category": "World Geography",
     "question": "Brazil is in South America.",
     "answer": true,
-    "explanation": "Brazil is in South America."
+    "explanation": "Brazil is in South America.",
+    "factGroup": "F186"
   },
   {
     "id": "TF372",
     "category": "World Geography",
     "question": "Brazil is in Europe.",
     "answer": false,
-    "explanation": "Actually, Brazil is in South America."
+    "explanation": "Actually, Brazil is in South America.",
+    "factGroup": "F186"
   },
   {
     "id": "TF373",
     "category": "World Geography",
     "question": "Mount Everest is part of the Himalayas.",
     "answer": true,
-    "explanation": "Mount Everest is part of the Himalayas."
+    "explanation": "Mount Everest is part of the Himalayas.",
+    "factGroup": "F187"
   },
   {
     "id": "TF374",
     "category": "World Geography",
     "question": "Mount Everest is part of the Andes.",
     "answer": false,
-    "explanation": "Actually, Mount Everest is part of the Himalayas."
+    "explanation": "Actually, Mount Everest is part of the Himalayas.",
+    "factGroup": "F187"
   },
   {
     "id": "TF375",
     "category": "World Geography",
     "question": "Australia is both a country and the name of a continent.",
     "answer": true,
-    "explanation": "Australia is both a country and the name of a continent."
+    "explanation": "Australia is both a country and the name of a continent.",
+    "factGroup": "F188"
   },
   {
     "id": "TF376",
     "category": "World Geography",
     "question": "Australia is the name of an ocean.",
     "answer": false,
-    "explanation": "Actually, Australia is both a country and the name of a continent."
+    "explanation": "Actually, Australia is both a country and the name of a continent.",
+    "factGroup": "F188"
   },
   {
     "id": "TF377",
     "category": "World Geography",
     "question": "The Amazon River flows through South America.",
     "answer": true,
-    "explanation": "The Amazon River flows through South America."
+    "explanation": "The Amazon River flows through South America.",
+    "factGroup": "F189"
   },
   {
     "id": "TF378",
     "category": "World Geography",
     "question": "The Amazon River flows through Antarctica.",
     "answer": false,
-    "explanation": "Actually, The Amazon River flows through South America."
+    "explanation": "Actually, The Amazon River flows through South America.",
+    "factGroup": "F189"
   },
   {
     "id": "TF379",
     "category": "World Geography",
     "question": "The Mediterranean Sea lies between Europe, Africa, and Asia.",
     "answer": true,
-    "explanation": "The Mediterranean Sea lies between Europe, Africa, and Asia."
+    "explanation": "The Mediterranean Sea lies between Europe, Africa, and Asia.",
+    "factGroup": "F190"
   },
   {
     "id": "TF380",
     "category": "World Geography",
     "question": "The Mediterranean Sea lies entirely inside North America.",
     "answer": false,
-    "explanation": "Actually, The Mediterranean Sea lies between Europe, Africa, and Asia."
+    "explanation": "Actually, The Mediterranean Sea lies between Europe, Africa, and Asia.",
+    "factGroup": "F190"
   },
   {
     "id": "TF381",
     "category": "Famous Landmarks",
     "question": "The Eiffel Tower stands in Paris, France.",
     "answer": true,
-    "explanation": "The Eiffel Tower stands in Paris, France."
+    "explanation": "The Eiffel Tower stands in Paris, France.",
+    "factGroup": "F191"
   },
   {
     "id": "TF382",
     "category": "Famous Landmarks",
     "question": "The Eiffel Tower stands in Rome, Italy.",
     "answer": false,
-    "explanation": "Actually, The Eiffel Tower stands in Paris, France."
+    "explanation": "Actually, The Eiffel Tower stands in Paris, France.",
+    "factGroup": "F191"
   },
   {
     "id": "TF383",
     "category": "Famous Landmarks",
     "question": "The Great Wall is in China.",
     "answer": true,
-    "explanation": "The Great Wall is in China."
+    "explanation": "The Great Wall is in China.",
+    "factGroup": "F192"
   },
   {
     "id": "TF384",
     "category": "Famous Landmarks",
     "question": "The Great Wall is in Canada.",
     "answer": false,
-    "explanation": "Actually, The Great Wall is in China."
+    "explanation": "Actually, The Great Wall is in China.",
+    "factGroup": "F192"
   },
   {
     "id": "TF385",
     "category": "Famous Landmarks",
     "question": "The Statue of Liberty stands in New York Harbor.",
     "answer": true,
-    "explanation": "The Statue of Liberty stands in New York Harbor."
+    "explanation": "The Statue of Liberty stands in New York Harbor.",
+    "factGroup": "F193"
   },
   {
     "id": "TF386",
     "category": "Famous Landmarks",
     "question": "The Statue of Liberty stands in the middle of the Sahara.",
     "answer": false,
-    "explanation": "Actually, The Statue of Liberty stands in New York Harbor."
+    "explanation": "Actually, The Statue of Liberty stands in New York Harbor.",
+    "factGroup": "F193"
   },
   {
     "id": "TF387",
     "category": "Famous Landmarks",
     "question": "The pyramids at Giza are in Egypt.",
     "answer": true,
-    "explanation": "The pyramids at Giza are in Egypt."
+    "explanation": "The pyramids at Giza are in Egypt.",
+    "factGroup": "F194"
   },
   {
     "id": "TF388",
     "category": "Famous Landmarks",
     "question": "The pyramids at Giza are in Mexico.",
     "answer": false,
-    "explanation": "Actually, The pyramids at Giza are in Egypt."
+    "explanation": "Actually, The pyramids at Giza are in Egypt.",
+    "factGroup": "F194"
   },
   {
     "id": "TF389",
     "category": "Famous Landmarks",
     "question": "The Leaning Tower of Pisa is famous for its tilt.",
     "answer": true,
-    "explanation": "The Leaning Tower of Pisa is famous for its tilt."
+    "explanation": "The Leaning Tower of Pisa is famous for its tilt.",
+    "factGroup": "F195"
   },
   {
     "id": "TF390",
     "category": "Famous Landmarks",
     "question": "The Leaning Tower of Pisa is famous for its moving wheels.",
     "answer": false,
-    "explanation": "Actually, The Leaning Tower of Pisa is famous for its tilt."
+    "explanation": "Actually, The Leaning Tower of Pisa is famous for its tilt.",
+    "factGroup": "F195"
   },
   {
     "id": "TF391",
     "category": "Famous Landmarks",
     "question": "Big Ben is the nickname of a large bell in London's Elizabeth Tower.",
     "answer": true,
-    "explanation": "Big Ben is the nickname of a large bell in London's Elizabeth Tower."
+    "explanation": "Big Ben is the nickname of a large bell in London's Elizabeth Tower.",
+    "factGroup": "F196"
   },
   {
     "id": "TF392",
     "category": "Famous Landmarks",
     "question": "Big Ben is the name of a famous bridge in London.",
     "answer": false,
-    "explanation": "Actually, Big Ben is the nickname of a large bell in London's Elizabeth Tower."
+    "explanation": "Actually, Big Ben is the nickname of a large bell in London's Elizabeth Tower.",
+    "factGroup": "F196"
   },
   {
     "id": "TF393",
     "category": "Famous Landmarks",
     "question": "The Taj Mahal is in India.",
     "answer": true,
-    "explanation": "The Taj Mahal is in India."
+    "explanation": "The Taj Mahal is in India.",
+    "factGroup": "F197"
   },
   {
     "id": "TF394",
     "category": "Famous Landmarks",
     "question": "The Taj Mahal is in Greece.",
     "answer": false,
-    "explanation": "Actually, The Taj Mahal is in India."
+    "explanation": "Actually, The Taj Mahal is in India.",
+    "factGroup": "F197"
   },
   {
     "id": "TF395",
     "category": "Famous Landmarks",
     "question": "The Colosseum is an ancient amphitheater in Rome.",
     "answer": true,
-    "explanation": "The Colosseum is an ancient amphitheater in Rome."
+    "explanation": "The Colosseum is an ancient amphitheater in Rome.",
+    "factGroup": "F198"
   },
   {
     "id": "TF396",
     "category": "Famous Landmarks",
     "question": "The Colosseum is an underwater stadium near Japan.",
     "answer": false,
-    "explanation": "Actually, The Colosseum is an ancient amphitheater in Rome."
+    "explanation": "Actually, The Colosseum is an ancient amphitheater in Rome.",
+    "factGroup": "F198"
   },
   {
     "id": "TF397",
     "category": "Famous Landmarks",
     "question": "Machu Picchu is an ancient site in Peru.",
     "answer": true,
-    "explanation": "Machu Picchu is an ancient site in Peru."
+    "explanation": "Machu Picchu is an ancient site in Peru.",
+    "factGroup": "F199"
   },
   {
     "id": "TF398",
     "category": "Famous Landmarks",
     "question": "Machu Picchu is an ancient site in Norway.",
     "answer": false,
-    "explanation": "Actually, Machu Picchu is an ancient site in Peru."
+    "explanation": "Actually, Machu Picchu is an ancient site in Peru.",
+    "factGroup": "F199"
   },
   {
     "id": "TF399",
     "category": "Famous Landmarks",
     "question": "The Golden Gate Bridge is in San Francisco.",
     "answer": true,
-    "explanation": "The Golden Gate Bridge is in San Francisco."
+    "explanation": "The Golden Gate Bridge is in San Francisco.",
+    "factGroup": "F200"
   },
   {
     "id": "TF400",
     "category": "Famous Landmarks",
     "question": "The Golden Gate Bridge crosses the River Thames in London.",
     "answer": false,
-    "explanation": "Actually, The Golden Gate Bridge is in San Francisco."
+    "explanation": "Actually, The Golden Gate Bridge is in San Francisco.",
+    "factGroup": "F200"
   }
 ]
