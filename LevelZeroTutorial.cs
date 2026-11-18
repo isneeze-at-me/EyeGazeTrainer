@@ -262,6 +262,76 @@ namespace EyeGazeApiViability
             }
         }
 
+        private void OnLevelZeroCoachTick(object sender, object args)
+        {
+            if (currentScreen != AppScreen.LevelZero || stopping || exitRequested)
+                return;
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            if (!levelZeroHadGaze) return;
+            if ((now - levelZeroLastValid).TotalSeconds > 8)
+            {
+                if ((now - levelZeroLastPrompt).TotalSeconds > 25)
+                    SpeakLevelZero("I'm not seeing your eye cursor move right now. Try looking toward the middle of the screen. Take your time.");
+                return;
+            }
+            double elapsed = (now - levelZeroStageStarted).TotalSeconds;
+            if (levelZeroStage == LevelZeroStage.Explore)
+            {
+                double w = RootLayout.ActualWidth, h = RootLayout.ActualHeight;
+                bool horizontal = levelZeroMaxX - levelZeroMinX >= w * .34;
+                bool vertical = levelZeroMaxY - levelZeroMinY >= h * .27;
+                if (elapsed >= 14 && !horizontal && !levelZeroCoachedHorizontal)
+                {
+                    levelZeroCoachedHorizontal = true;
+                    SpeakLevelZero("Let's try something. Look toward the left side of the screen, then slowly look to the right. Watch those two eyes travel with you.");
+                }
+                else if (elapsed >= 24 && horizontal && !vertical &&
+                         !levelZeroCoachedVertical)
+                {
+                    levelZeroCoachedVertical = true;
+                    SpeakLevelZero("You've got the side-to-side movement. Now try looking toward the top, then down toward the bottom.");
+                }
+                else if (elapsed >= 32 && horizontal && vertical &&
+                         CountBits(levelZeroRegionMask) < 4 &&
+                         !levelZeroCoachedCorner)
+                {
+                    levelZeroCoachedCorner = true;
+                    SpeakLevelZero("Looking good! Try another part of the screen, perhaps a corner. You don't need to reach the very edge.");
+                }
+            }
+            else if (levelZeroStage == LevelZeroStage.Pursue)
+            {
+                if (elapsed >= 14 && levelZeroCloseSamples < 5 &&
+                    !levelZeroCoachedPursuit)
+                {
+                    levelZeroCoachedPursuit = true;
+                    SpeakLevelZero("A little tip: watch the glowing circle, not your eye cursor. Your cursor will come along when you follow the circle.");
+                }
+                else if (elapsed >= 31 && levelZeroCloseSamples < 10 &&
+                         !levelZeroCoachedButton)
+                {
+                    levelZeroCoachedButton = true;
+                    SpeakLevelZero("It's okay to follow just part of the circle's path. Take your time. Every bit of control counts.");
+                }
+            }
+            else if (levelZeroStage == LevelZeroStage.Continue &&
+                     !levelZeroButtonExplanationPending)
+            {
+                if (elapsed >= 14 && levelZeroDwellAttempts == 0 &&
+                    !levelZeroCoachedPursuit)
+                {
+                    levelZeroCoachedPursuit = true;
+                    SpeakLevelZero("See that large house button? It opens your training levels. Look at its center and stay there until the ring fills.");
+                }
+                else if (elapsed >= 20 && levelZeroDwellAttempts > 0 &&
+                         !levelZeroCoachedButton)
+                {
+                    levelZeroCoachedButton = true;
+                    SpeakLevelZero("Almost! Keep your eyes on the house button just a little longer, until the circle completes.");
+                }
+            }
+        }
+
         // CompositionTarget.Rendering tracks display refresh instead of a
         // 50 ms dispatcher timer (which stepped the marker at only 20 Hz).
         private void StartLevelZeroRendering()
@@ -297,12 +367,7 @@ namespace EyeGazeApiViability
                 GoToLevelZeroSelection();
             else if (elapsed > 35 && levelZeroCloseSamples >= 6)
                 GoToLevelZeroSelection();
-            else if (elapsed > 26 && levelZeroCloseSamples < 6 &&
-                     !levelZeroFollowPrompted)
-            {
-                levelZeroFollowPrompted = true;
-                SpeakLevelZero("Try keeping your eye cursor near the moving circle.");
-            }
+
         }
 
         private void ProcessLevelZeroGaze(Point raw, Point stabilized)
@@ -320,7 +385,7 @@ namespace EyeGazeApiViability
             if (!levelZeroGuidanceStarted)
             {
                 levelZeroGuidanceStarted = true;
-                SpeakLevelZero("Your eyes move the cursor. Take a moment to look around the screen.", true);
+                SpeakLevelZero("Welcome to EyeGazeTrainer! I’m your guide. Those two eyes are your cursor. Look around the screen and watch them move with you. There’s nothing to select yet. Just explore.", true);
             }
 
             if (levelZeroStage == LevelZeroStage.Explore)
@@ -349,7 +414,7 @@ namespace EyeGazeApiViability
                     (levelZeroCornerMask & (1 << candidate)) == 0)
                 {
                     levelZeroCornerMask |= 1 << candidate;
-                    SpeakLevelZero("Good job looking toward the corner.");
+                    SpeakLevelZero("There you go! You found a corner of the screen. Nicely done.");
                 }
 
                 bool horizontal = levelZeroMaxX - levelZeroMinX >= w * .34;
@@ -358,23 +423,21 @@ namespace EyeGazeApiViability
                 if (horizontal && !levelZeroHorizontalPrompted && seconds >= 6)
                 {
                     levelZeroHorizontalPrompted = true;
-                    SpeakLevelZero("Nice. You've moved the cursor from side to side.");
+                    SpeakLevelZero("That’s it! You’ve moved your cursor from side to side. You’re in control.");
+                }
+                if (vertical && !levelZeroVerticalPraised)
+                {
+                    levelZeroVerticalPraised = true;
+                    SpeakLevelZero("Nice work! Now you're moving the cursor up and down, too.");
                 }
                 if (horizontal && vertical && !levelZeroCornerPrompted)
-                {
                     levelZeroCornerPrompted = true;
-                    SpeakLevelZero("Good. Now try looking toward a corner.");
-                }
                 int regions = CountBits(levelZeroRegionMask);
                 if (seconds >= 15 && horizontal && vertical && regions >= 4)
                     GoToLevelZeroPursuit();
                 else if (seconds >= 45 && regions >= 3 && (horizontal || vertical))
                     GoToLevelZeroPursuit();
-                else if (seconds >= 24 && !horizontal && !levelZeroHorizontalPrompted)
-                {
-                    levelZeroHorizontalPrompted = true;
-                    SpeakLevelZero("Take your time. Try looking to the left or right.");
-                }
+
             }
             else if (levelZeroStage == LevelZeroStage.Pursue)
             {
@@ -392,7 +455,7 @@ namespace EyeGazeApiViability
                     if (levelZeroCloseSamples == 18 && !levelZeroFollowPrompted)
                     {
                         levelZeroFollowPrompted = true;
-                        SpeakLevelZero("You're following it well.");
+                        SpeakLevelZero("That’s the idea! You’re keeping up with the moving circle. Nice work.");
                     }
                 }
             }
@@ -413,7 +476,8 @@ namespace EyeGazeApiViability
             StartLevelZeroRendering();
             LevelZeroPursuitTarget.Visibility = Visibility.Visible;
             LevelZeroPursuitCenter.Visibility = Visibility.Visible;
-            SpeakLevelZero("Now follow the moving target with your eye cursor.", true);
+            levelZeroFeedbackQueue.Clear();
+            SpeakLevelZero("Excellent! You’ve mastered moving your eye cursor around. Next up, a glowing circle will travel across the screen. Follow the circle with your eyes and keep your cursor nearby.", true);
         }
 
         private void GoToLevelZeroSelection()
@@ -424,8 +488,12 @@ namespace EyeGazeApiViability
             levelZeroStageStarted = DateTimeOffset.UtcNow;
             LevelZeroPursuitTarget.Visibility = Visibility.Collapsed;
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
-            LevelZeroContinueButton.Visibility = Visibility.Visible;
-            SpeakLevelZero("Look at the large button to open the levels screen. Keep looking until the circle fills.", true);
+            LevelZeroContinueButton.Visibility = Visibility.Collapsed;
+            levelZeroButtonExplanationPending = true;
+            levelZeroCoachedPursuit = false;
+            levelZeroCoachedButton = false;
+            levelZeroFeedbackQueue.Clear();
+            SpeakLevelZero("Fantastic! You've learned how to follow a moving target. One final step. A large house button will appear. It takes you to the Levels screen, where you can start Level One. Look at the button and keep looking until the circular ring fills. Give it a try!", true);
         }
 
         private void OnLevelZeroReplay(object sender, RoutedEventArgs e)
