@@ -30,9 +30,9 @@ The bank contains 500 unique statements, evenly split into 250 True and 250 Fals
 - The existing shared 1500 ms gaze-button dwell, radial progress wheel, global smoothing and adaptive button hitbox are reused. Mouse or touch Click works for developer tests.
 - Ten questions are selected randomly across available topics, with a preference for different topics and balanced truth values. No two questions from the same fact group appear in one round.
 - Dealt question IDs are saved to UWP LocalSettings across sessions; none repeats until the pool of 500 is exhausted. At exhaustion the deck replenishes.
-- After an answer, the answer and explanation replace the statement for five seconds, regardless of correctness.
+- After an answer, the answer and explanation replace the statement for five seconds, regardless of correctness. Timing pauses if live gaze samples stop arriving; preview mode proceeds normally.
 - The separate trivia score is the count correct. Incorrect answers leave the existing gaze accuracy score untouched; correct answers from a valid live-gaze dwell can update it using the measured button selection. Mouse clicks do not impersonate gaze accuracy measurements.
-- After the tenth explanation, show the result for three seconds and return to the level-selection screen.
+- After the tenth explanation, show the result for three seconds and return to the level-selection screen (also paused if the live gaze stream is lost).
 - Quiz timing never calls the app's gaze cleanup or exit routine. The prior live-gaze hardware recovery warning still applies.
 
 ## Verification pending
