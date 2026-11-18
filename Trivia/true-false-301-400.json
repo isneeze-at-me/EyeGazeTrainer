@@ -290,17 +290,17 @@
   {
     "id": "TF337",
     "category": "Sports & Games",
-    "question": "The world record track length for an outdoor standard running lap is 400 meters in lane one.",
+    "question": "A standard outdoor running track has a lap distance of 400 meters in lane one.",
     "answer": true,
-    "explanation": "The world record track length for an outdoor standard running lap is 400 meters in lane one.",
+    "explanation": "A standard outdoor running track has a lap distance of 400 meters in lane one.",
     "factGroup": "F169"
   },
   {
     "id": "TF338",
     "category": "Sports & Games",
-    "question": "The standard outdoor running-track lap in lane one is 500 meters.",
+    "question": "A standard outdoor running track has a lap distance of 500 meters in lane one.",
     "answer": false,
-    "explanation": "Actually, The world record track length for an outdoor standard running lap is 400 meters in lane one.",
+    "explanation": "Actually, a standard outdoor running track has a lap distance of 400 meters in lane one.",
     "factGroup": "F169"
   },
   {
