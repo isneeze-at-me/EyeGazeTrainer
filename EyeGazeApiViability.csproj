@@ -55,7 +55,7 @@
     <Content Include="Trivia\true-false-*.json" />
     <!-- Build the separately packaged full-trust helper from source. -->
     <Content Include="OverlayCompanion\bin\$(Configuration)\OverlayCompanion.exe">
-      <Link>OverlayCompanion.exe</Link>
+      <TargetPath>OverlayCompanion.exe</TargetPath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
