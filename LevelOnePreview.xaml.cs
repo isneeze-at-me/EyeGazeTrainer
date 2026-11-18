@@ -395,7 +395,9 @@ namespace EyeGazeApiViability
 
         private void OnLevelOne(object sender, RoutedEventArgs e)
         {
-            if (stopping || exitRequested) return;
+            if (stopping || exitRequested || currentScreen != AppScreen.Levels) return;
+            // A completed level stays selectable. Replay resets only the
+            // current six-target session, never the persisted completion flag.
             ShowScreen(AppScreen.Lesson);
             ResetLesson();
         }
@@ -644,12 +646,11 @@ namespace EyeGazeApiViability
 
         private void UpdateAccuracyDisplay()
         {
+            // Only the persisted composite score is shown to the learner.
+            // Component metrics still drive the adaptive smoothing/hitbox.
             AccuracyText.Text = gazeProfile.Acquisitions == 0
-                ? "TRAINING ACCURACY · GETTING STARTED"
-                : "ACCURACY " + Math.Round(gazeProfile.AccuracyScore) +
-                  "%  ·  AIM " + Math.Round(gazeProfile.PrecisionScore) +
-                  "%  ·  SPEED " + Math.Round(gazeProfile.SpeedScore) +
-                  "%  ·  STABILITY " + Math.Round(gazeProfile.StabilityScore) + "%";
+                ? "ACCURACY —"
+                : "ACCURACY " + Math.Round(gazeProfile.AccuracyScore) + "%";
         }
 
         private Point TargetCenter()
