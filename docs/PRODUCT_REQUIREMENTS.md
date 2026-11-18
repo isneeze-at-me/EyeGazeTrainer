@@ -113,3 +113,13 @@ For each metric, a compact rolling history of up to **20** observations is store
 Only counts, time totals and small aggregate metric histories are persisted; no gaze positions, raw gaze traces, or personal identifiers are stored. Historical level completion data is preserved. Report trends start accumulating with this feature and should not be interpreted as clinically meaningful changes.
 
 **Acceptance tests:** verify independent completion/run totals, no counting unfinished replays, active-gaze-only time accumulation and persistence after restart, ten-observation arrow onset, higher-accuracy/lower-jitter improving arrows, no jitter entry from invalid short holds, no timer leaks after navigating off the gaze page, and responsive gaze Back/Exit. Prior eye-tracker safety precautions remain in force.
+
+## Smoothing filter metric and diagnostics header spacing (Test branch, 2026-11-18)
+
+- The upper-left Training Report adds **Smoothing filter** as a seventh row, showing the **actual current MasterCursorSmoothingFilter.SmoothingLevel percentage (0–99%)** rather than estimating a value from accuracy.
+- Existing adaptive update points now append smoothing settings to a rolling, locally persistent 20-observation history. The report uses the same **five most recent vs five preceding** comparison as other trends, with at least 10 observations and a 0.5 percentage point difference to show direction.
+- For smoothing, **▲ means the filter percentage increased**, **▼ means it decreased**, and **— means steady/insufficient history**. The arrow is neutral-colored because more or less filtering alone does not prove a change in gaze-control quality.
+- No smoothing formula or filter execution has changed; this is reporting only. Older sessions have no smoothing history to backfill, but the current value displays immediately.
+- The Diagnostics header reserves additional height and adds an 18-unit gap above the quadrant grid so the matching upper-left BACK button is visually separated from the top quadrant borders.
+
+**Verification:** Build Debug/x64, check the seven report lines fit at Surface scaling, ensure Back is accessible with 1.5-second gaze dwell, confirm smoothing value matches the live filter, trend begins after 10 recorded observations, and history persists across restart. Test gaze handling only with existing supervision/recovery precautions.
