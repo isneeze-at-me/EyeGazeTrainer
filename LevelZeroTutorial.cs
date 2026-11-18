@@ -555,7 +555,7 @@ namespace EyeGazeApiViability
             if (!levelZeroGuidanceStarted)
             {
                 levelZeroGuidanceStarted = true;
-                SpeakLevelZero("Welcome to EyeGazeTrainer! I’m your guide. Those two eyes are your cursor. Look around the screen and watch them move with you. There’s nothing to select yet. Just explore.", true);
+                SpeakLevelZero("Welcome to EyeGazeTrainer! The two eyes on the screen are your cursor. Start by moving your eyes around the screen. Watch the cursor move with you. There is nothing to select yet. Take your time. We will start when you move.", true);
             }
 
             if (levelZeroStage == LevelZeroStage.Explore)
@@ -567,8 +567,8 @@ namespace EyeGazeApiViability
                 int col = Math.Min(2, (int)(raw.X / w * 3));
                 int row = Math.Min(2, (int)(raw.Y / h * 3));
                 levelZeroRegionMask |= 1 << (row * 3 + col);
-                int corner = (raw.X < w * 0.27 ? 0 : raw.X > w * 0.73 ? 1 : -1);
-                int cornerRow = raw.Y < h * 0.30 ? 0 : raw.Y > h * 0.70 ? 1 : -1;
+                int corner = raw.X < w * .27 ? 0 : raw.X > w * .73 ? 1 : -1;
+                int cornerRow = raw.Y < h * .30 ? 0 : raw.Y > h * .70 ? 1 : -1;
                 int candidate = corner >= 0 && cornerRow >= 0
                     ? corner + 2 * cornerRow : -1;
                 if (candidate != levelZeroCornerCandidate)
@@ -577,37 +577,13 @@ namespace EyeGazeApiViability
                     levelZeroCornerCandidateSamples = candidate >= 0 ? 1 : 0;
                     levelZeroCornerEntered = now;
                 }
-                if (candidate >= 0 && candidate == levelZeroCornerCandidate)
-                    levelZeroCornerCandidateSamples++;
                 if (candidate >= 0 && levelZeroCornerCandidateSamples >= 3 &&
-                    (now - levelZeroCornerEntered).TotalMilliseconds >= 250 &&
-                    (levelZeroCornerMask & (1 << candidate)) == 0)
-                {
+                    (now - levelZeroCornerEntered).TotalMilliseconds >= 250)
                     levelZeroCornerMask |= 1 << candidate;
-                    SpeakLevelZero("There you go! You found a corner of the screen. Nicely done.");
-                }
 
-                bool horizontal = levelZeroMaxX - levelZeroMinX >= w * .34;
-                bool vertical = levelZeroMaxY - levelZeroMinY >= h * .27;
-                double seconds = (now - levelZeroStageStarted).TotalSeconds;
-                if (horizontal && !levelZeroHorizontalPrompted && seconds >= 6)
-                {
-                    levelZeroHorizontalPrompted = true;
-                    SpeakLevelZero("That’s it! You’ve moved your cursor from side to side. You’re in control.");
-                }
-                if (vertical && !levelZeroVerticalPraised)
-                {
-                    levelZeroVerticalPraised = true;
-                    SpeakLevelZero("Nice work! Now you're moving the cursor up and down, too.");
-                }
-                if (horizontal && vertical && !levelZeroCornerPrompted)
-                    levelZeroCornerPrompted = true;
-                int regions = CountBits(levelZeroRegionMask);
-                if (seconds >= 15 && horizontal && vertical && regions >= 4)
-                    GoToLevelZeroPursuit();
-                else if (seconds >= 45 && regions >= 3 && (horizontal || vertical))
-                    GoToLevelZeroPursuit();
-
+                // Track the same stabilized cursor position the learner sees.
+                // Raw gaze jitter alone must never generate praise.
+                ObserveLevelZeroMovement(stabilized, w, h, now);
             }
             else if (levelZeroStage == LevelZeroStage.Pursue)
             {
@@ -647,7 +623,7 @@ namespace EyeGazeApiViability
             LevelZeroPursuitTarget.Visibility = Visibility.Visible;
             LevelZeroPursuitCenter.Visibility = Visibility.Visible;
             levelZeroFeedbackQueue.Clear();
-            SpeakLevelZero("Excellent! You’ve mastered moving your eye cursor around. Next up, a glowing circle will travel across the screen. Follow the circle with your eyes and keep your cursor nearby.", true);
+            SpeakLevelZero("Excellent work! You practiced moving up and down, left and right, and drawing circles. Next, follow the glowing circle as it moves around the screen. Keep your eyes on the circle and let the cursor follow.", true);
         }
 
         private void GoToLevelZeroSelection()
