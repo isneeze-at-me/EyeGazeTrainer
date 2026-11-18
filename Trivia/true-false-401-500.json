@@ -4,699 +4,799 @@
     "category": "Transportation",
     "question": "A bicycle usually has two wheels.",
     "answer": true,
-    "explanation": "A bicycle usually has two wheels."
+    "explanation": "A bicycle usually has two wheels.",
+    "factGroup": "F201"
   },
   {
     "id": "TF402",
     "category": "Transportation",
     "question": "A bicycle usually has four wheels.",
     "answer": false,
-    "explanation": "Actually, A bicycle usually has two wheels."
+    "explanation": "Actually, A bicycle usually has two wheels.",
+    "factGroup": "F201"
   },
   {
     "id": "TF403",
     "category": "Transportation",
     "question": "A sailboat can use wind to move.",
     "answer": true,
-    "explanation": "A sailboat can use wind to move."
+    "explanation": "A sailboat can use wind to move.",
+    "factGroup": "F202"
   },
   {
     "id": "TF404",
     "category": "Transportation",
     "question": "A sailboat is powered only by train tracks.",
     "answer": false,
-    "explanation": "Actually, A sailboat can use wind to move."
+    "explanation": "Actually, A sailboat can use wind to move.",
+    "factGroup": "F202"
   },
   {
     "id": "TF405",
     "category": "Transportation",
     "question": "A helicopter can hover in one place.",
     "answer": true,
-    "explanation": "A helicopter can hover in one place."
+    "explanation": "A helicopter can hover in one place.",
+    "factGroup": "F203"
   },
   {
     "id": "TF406",
     "category": "Transportation",
     "question": "A helicopter must always roll on rails to move.",
     "answer": false,
-    "explanation": "Actually, A helicopter can hover in one place."
+    "explanation": "Actually, A helicopter can hover in one place.",
+    "factGroup": "F203"
   },
   {
     "id": "TF407",
     "category": "Transportation",
     "question": "A subway train often travels through tunnels.",
     "answer": true,
-    "explanation": "A subway train often travels through tunnels."
+    "explanation": "A subway train often travels through tunnels.",
+    "factGroup": "F204"
   },
   {
     "id": "TF408",
     "category": "Transportation",
     "question": "A subway train can travel only across deserts.",
     "answer": false,
-    "explanation": "Actually, A subway train often travels through tunnels."
+    "explanation": "Actually, A subway train often travels through tunnels.",
+    "factGroup": "F204"
   },
   {
     "id": "TF409",
     "category": "Transportation",
     "question": "A hot-air balloon rises when the air inside is heated.",
     "answer": true,
-    "explanation": "A hot-air balloon rises when the air inside is heated."
+    "explanation": "A hot-air balloon rises when the air inside is heated.",
+    "factGroup": "F205"
   },
   {
     "id": "TF410",
     "category": "Transportation",
     "question": "A hot-air balloon rises when its basket fills with rocks.",
     "answer": false,
-    "explanation": "Actually, A hot-air balloon rises when the air inside is heated."
+    "explanation": "Actually, A hot-air balloon rises when the air inside is heated.",
+    "factGroup": "F205"
   },
   {
     "id": "TF411",
     "category": "Transportation",
     "question": "A canoe can be moved with a paddle.",
     "answer": true,
-    "explanation": "A canoe can be moved with a paddle."
+    "explanation": "A canoe can be moved with a paddle.",
+    "factGroup": "F206"
   },
   {
     "id": "TF412",
     "category": "Transportation",
     "question": "A canoe is normally moved with airplane wings.",
     "answer": false,
-    "explanation": "Actually, A canoe can be moved with a paddle."
+    "explanation": "Actually, A canoe can be moved with a paddle.",
+    "factGroup": "F206"
   },
   {
     "id": "TF413",
     "category": "Transportation",
     "question": "An airplane's wings help generate lift.",
     "answer": true,
-    "explanation": "An airplane's wings help generate lift."
+    "explanation": "An airplane's wings help generate lift.",
+    "factGroup": "F207"
   },
   {
     "id": "TF414",
     "category": "Transportation",
     "question": "An airplane's wings are used only to store luggage.",
     "answer": false,
-    "explanation": "Actually, An airplane's wings help generate lift."
+    "explanation": "Actually, An airplane's wings help generate lift.",
+    "factGroup": "F207"
   },
   {
     "id": "TF415",
     "category": "Transportation",
     "question": "A locomotive can pull railroad cars.",
     "answer": true,
-    "explanation": "A locomotive can pull railroad cars."
+    "explanation": "A locomotive can pull railroad cars.",
+    "factGroup": "F208"
   },
   {
     "id": "TF416",
     "category": "Transportation",
     "question": "A locomotive is a kind of bicycle bell.",
     "answer": false,
-    "explanation": "Actually, A locomotive can pull railroad cars."
+    "explanation": "Actually, A locomotive can pull railroad cars.",
+    "factGroup": "F208"
   },
   {
     "id": "TF417",
     "category": "Transportation",
     "question": "A ferry can carry passengers across water.",
     "answer": true,
-    "explanation": "A ferry can carry passengers across water."
+    "explanation": "A ferry can carry passengers across water.",
+    "factGroup": "F209"
   },
   {
     "id": "TF418",
     "category": "Transportation",
     "question": "A ferry carries passengers only through underground tunnels.",
     "answer": false,
-    "explanation": "Actually, A ferry can carry passengers across water."
+    "explanation": "Actually, A ferry can carry passengers across water.",
+    "factGroup": "F209"
   },
   {
     "id": "TF419",
     "category": "Transportation",
     "question": "A skateboard usually has four wheels.",
     "answer": true,
-    "explanation": "A skateboard usually has four wheels."
+    "explanation": "A skateboard usually has four wheels.",
+    "factGroup": "F210"
   },
   {
     "id": "TF420",
     "category": "Transportation",
     "question": "A skateboard usually has one large wheel.",
     "answer": false,
-    "explanation": "Actually, A skateboard usually has four wheels."
+    "explanation": "Actually, A skateboard usually has four wheels.",
+    "factGroup": "F210"
   },
   {
     "id": "TF421",
     "category": "Technology",
     "question": "A computer keyboard is used for typing.",
     "answer": true,
-    "explanation": "A computer keyboard is used for typing."
+    "explanation": "A computer keyboard is used for typing.",
+    "factGroup": "F211"
   },
   {
     "id": "TF422",
     "category": "Technology",
     "question": "A computer keyboard is used only for cooking.",
     "answer": false,
-    "explanation": "Actually, A computer keyboard is used for typing."
+    "explanation": "Actually, A computer keyboard is used for typing.",
+    "factGroup": "F211"
   },
   {
     "id": "TF423",
     "category": "Technology",
     "question": "A mouse can move a pointer on a computer screen.",
     "answer": true,
-    "explanation": "A mouse can move a pointer on a computer screen."
+    "explanation": "A mouse can move a pointer on a computer screen.",
+    "factGroup": "F212"
   },
   {
     "id": "TF424",
     "category": "Technology",
     "question": "A computer mouse is designed to make paper copies.",
     "answer": false,
-    "explanation": "Actually, A mouse can move a pointer on a computer screen."
+    "explanation": "Actually, A mouse can move a pointer on a computer screen.",
+    "factGroup": "F212"
   },
   {
     "id": "TF425",
     "category": "Technology",
     "question": "A touchscreen can respond to a finger touching the display.",
     "answer": true,
-    "explanation": "A touchscreen can respond to a finger touching the display."
+    "explanation": "A touchscreen can respond to a finger touching the display.",
+    "factGroup": "F213"
   },
   {
     "id": "TF426",
     "category": "Technology",
     "question": "A touchscreen can only respond to a pencil made of wood.",
     "answer": false,
-    "explanation": "Actually, A touchscreen can respond to a finger touching the display."
+    "explanation": "Actually, A touchscreen can respond to a finger touching the display.",
+    "factGroup": "F213"
   },
   {
     "id": "TF427",
     "category": "Technology",
     "question": "A printer can put words or pictures on paper.",
     "answer": true,
-    "explanation": "A printer can put words or pictures on paper."
+    "explanation": "A printer can put words or pictures on paper.",
+    "factGroup": "F214"
   },
   {
     "id": "TF428",
     "category": "Technology",
     "question": "A printer can only make sounds and never produce images.",
     "answer": false,
-    "explanation": "Actually, A printer can put words or pictures on paper."
+    "explanation": "Actually, A printer can put words or pictures on paper.",
+    "factGroup": "F214"
   },
   {
     "id": "TF429",
     "category": "Technology",
     "question": "A webcam can capture video.",
     "answer": true,
-    "explanation": "A webcam can capture video."
+    "explanation": "A webcam can capture video.",
+    "factGroup": "F215"
   },
   {
     "id": "TF430",
     "category": "Technology",
     "question": "A webcam is a kind of paper stapler.",
     "answer": false,
-    "explanation": "Actually, A webcam can capture video."
+    "explanation": "Actually, A webcam can capture video.",
+    "factGroup": "F215"
   },
   {
     "id": "TF431",
     "category": "Technology",
     "question": "A battery stores energy that can power a device.",
     "answer": true,
-    "explanation": "A battery stores energy that can power a device."
+    "explanation": "A battery stores energy that can power a device.",
+    "factGroup": "F216"
   },
   {
     "id": "TF432",
     "category": "Technology",
     "question": "A battery is designed to store liquid paint.",
     "answer": false,
-    "explanation": "Actually, A battery stores energy that can power a device."
+    "explanation": "Actually, A battery stores energy that can power a device.",
+    "factGroup": "F216"
   },
   {
     "id": "TF433",
     "category": "Technology",
     "question": "A computer monitor displays pictures and text.",
     "answer": true,
-    "explanation": "A computer monitor displays pictures and text."
+    "explanation": "A computer monitor displays pictures and text.",
+    "factGroup": "F217"
   },
   {
     "id": "TF434",
     "category": "Technology",
     "question": "A computer monitor is used only to wash dishes.",
     "answer": false,
-    "explanation": "Actually, A computer monitor displays pictures and text."
+    "explanation": "Actually, A computer monitor displays pictures and text.",
+    "factGroup": "F217"
   },
   {
     "id": "TF435",
     "category": "Technology",
     "question": "Wi-Fi allows devices to communicate wirelessly.",
     "answer": true,
-    "explanation": "Wi-Fi allows devices to communicate wirelessly."
+    "explanation": "Wi-Fi allows devices to communicate wirelessly.",
+    "factGroup": "F218"
   },
   {
     "id": "TF436",
     "category": "Technology",
     "question": "Wi-Fi always requires a physical cable between every connected device.",
     "answer": false,
-    "explanation": "Actually, Wi-Fi allows devices to communicate wirelessly."
+    "explanation": "Actually, Wi-Fi allows devices to communicate wirelessly.",
+    "factGroup": "F218"
   },
   {
     "id": "TF437",
     "category": "Technology",
     "question": "A QR code can store information that a camera can read.",
     "answer": true,
-    "explanation": "A QR code can store information that a camera can read."
+    "explanation": "A QR code can store information that a camera can read.",
+    "factGroup": "F219"
   },
   {
     "id": "TF438",
     "category": "Technology",
     "question": "A QR code is a musical instrument with strings.",
     "answer": false,
-    "explanation": "Actually, A QR code can store information that a camera can read."
+    "explanation": "Actually, A QR code can store information that a camera can read.",
+    "factGroup": "F219"
   },
   {
     "id": "TF439",
     "category": "Technology",
     "question": "A digital camera records images using an electronic sensor.",
     "answer": true,
-    "explanation": "A digital camera records images using an electronic sensor."
+    "explanation": "A digital camera records images using an electronic sensor.",
+    "factGroup": "F220"
   },
   {
     "id": "TF440",
     "category": "Technology",
     "question": "A digital camera must use photographic film for every picture.",
     "answer": false,
-    "explanation": "Actually, A digital camera records images using an electronic sensor."
+    "explanation": "Actually, A digital camera records images using an electronic sensor.",
+    "factGroup": "F220"
   },
   {
     "id": "TF441",
     "category": "Inventions & History",
     "question": "The Wright brothers made a famous powered airplane flight in 1903.",
     "answer": true,
-    "explanation": "The Wright brothers made a famous powered airplane flight in 1903."
+    "explanation": "The Wright brothers made a famous powered airplane flight in 1903.",
+    "factGroup": "F221"
   },
   {
     "id": "TF442",
     "category": "Inventions & History",
     "question": "The Wright brothers made their famous 1903 flight in a submarine.",
     "answer": false,
-    "explanation": "Actually, The Wright brothers made a famous powered airplane flight in 1903."
+    "explanation": "Actually, The Wright brothers made a famous powered airplane flight in 1903.",
+    "factGroup": "F221"
   },
   {
     "id": "TF443",
     "category": "Inventions & History",
     "question": "Johannes Gutenberg helped popularize movable-type printing in Europe.",
     "answer": true,
-    "explanation": "Johannes Gutenberg helped popularize movable-type printing in Europe."
+    "explanation": "Johannes Gutenberg helped popularize movable-type printing in Europe.",
+    "factGroup": "F222"
   },
   {
     "id": "TF444",
     "category": "Inventions & History",
     "question": "Johannes Gutenberg is best known for inventing the bicycle helmet.",
     "answer": false,
-    "explanation": "Actually, Johannes Gutenberg helped popularize movable-type printing in Europe."
+    "explanation": "Actually, Johannes Gutenberg helped popularize movable-type printing in Europe.",
+    "factGroup": "F222"
   },
   {
     "id": "TF445",
     "category": "Inventions & History",
     "question": "Alexander Graham Bell is associated with early telephone development.",
     "answer": true,
-    "explanation": "Alexander Graham Bell is associated with early telephone development."
+    "explanation": "Alexander Graham Bell is associated with early telephone development.",
+    "factGroup": "F223"
   },
   {
     "id": "TF446",
     "category": "Inventions & History",
     "question": "Alexander Graham Bell is known for inventing the electric toaster.",
     "answer": false,
-    "explanation": "Actually, Alexander Graham Bell is associated with early telephone development."
+    "explanation": "Actually, Alexander Graham Bell is associated with early telephone development.",
+    "factGroup": "F223"
   },
   {
     "id": "TF447",
     "category": "Inventions & History",
     "question": "The first successful Moon landing by humans took place in 1969.",
     "answer": true,
-    "explanation": "The first successful Moon landing by humans took place in 1969."
+    "explanation": "The first successful Moon landing by humans took place in 1969.",
+    "factGroup": "F224"
   },
   {
     "id": "TF448",
     "category": "Inventions & History",
     "question": "The first successful Moon landing by humans took place in 1869.",
     "answer": false,
-    "explanation": "Actually, The first successful Moon landing by humans took place in 1969."
+    "explanation": "Actually, The first successful Moon landing by humans took place in 1969.",
+    "factGroup": "F224"
   },
   {
     "id": "TF449",
     "category": "Inventions & History",
     "question": "Ancient Egyptians wrote on material made from papyrus plants.",
     "answer": true,
-    "explanation": "Ancient Egyptians wrote on material made from papyrus plants."
+    "explanation": "Ancient Egyptians wrote on material made from papyrus plants.",
+    "factGroup": "F225"
   },
   {
     "id": "TF450",
     "category": "Inventions & History",
     "question": "Ancient Egyptians made all their writing paper from plastic bottles.",
     "answer": false,
-    "explanation": "Actually, Ancient Egyptians wrote on material made from papyrus plants."
+    "explanation": "Actually, Ancient Egyptians wrote on material made from papyrus plants.",
+    "factGroup": "F225"
   },
   {
     "id": "TF451",
     "category": "Inventions & History",
     "question": "The first modern Olympic Games were held in Athens in 1896.",
     "answer": true,
-    "explanation": "The first modern Olympic Games were held in Athens in 1896."
+    "explanation": "The first modern Olympic Games were held in Athens in 1896.",
+    "factGroup": "F226"
   },
   {
     "id": "TF452",
     "category": "Inventions & History",
     "question": "The first modern Olympic Games were held on the Moon in 1896.",
     "answer": false,
-    "explanation": "Actually, The first modern Olympic Games were held in Athens in 1896."
+    "explanation": "Actually, The first modern Olympic Games were held in Athens in 1896.",
+    "factGroup": "F226"
   },
   {
     "id": "TF453",
     "category": "Inventions & History",
     "question": "The printing press helped books become more widely available.",
     "answer": true,
-    "explanation": "The printing press helped books become more widely available."
+    "explanation": "The printing press helped books become more widely available.",
+    "factGroup": "F227"
   },
   {
     "id": "TF454",
     "category": "Inventions & History",
     "question": "The printing press was invented mainly to bake bread.",
     "answer": false,
-    "explanation": "Actually, The printing press helped books become more widely available."
+    "explanation": "Actually, The printing press helped books become more widely available.",
+    "factGroup": "F227"
   },
   {
     "id": "TF455",
     "category": "Inventions & History",
     "question": "The wheel has been used by people for thousands of years.",
     "answer": true,
-    "explanation": "The wheel has been used by people for thousands of years."
+    "explanation": "The wheel has been used by people for thousands of years.",
+    "factGroup": "F228"
   },
   {
     "id": "TF456",
     "category": "Inventions & History",
     "question": "People first used the wheel in the 1990s.",
     "answer": false,
-    "explanation": "Actually, The wheel has been used by people for thousands of years."
+    "explanation": "Actually, The wheel has been used by people for thousands of years.",
+    "factGroup": "F228"
   },
   {
     "id": "TF457",
     "category": "Inventions & History",
     "question": "Early clocks sometimes used flowing water to measure time.",
     "answer": true,
-    "explanation": "Early clocks sometimes used flowing water to measure time."
+    "explanation": "Early clocks sometimes used flowing water to measure time.",
+    "factGroup": "F229"
   },
   {
     "id": "TF458",
     "category": "Inventions & History",
     "question": "All early clocks used rechargeable batteries.",
     "answer": false,
-    "explanation": "Actually, Early clocks sometimes used flowing water to measure time."
+    "explanation": "Actually, Early clocks sometimes used flowing water to measure time.",
+    "factGroup": "F229"
   },
   {
     "id": "TF459",
     "category": "Inventions & History",
     "question": "The first postage stamp, the Penny Black, appeared in 1840.",
     "answer": true,
-    "explanation": "The first postage stamp, the Penny Black, appeared in 1840."
+    "explanation": "The first postage stamp, the Penny Black, appeared in 1840.",
+    "factGroup": "F230"
   },
   {
     "id": "TF460",
     "category": "Inventions & History",
     "question": "The first postage stamp, the Penny Black, appeared in 2040.",
     "answer": false,
-    "explanation": "Actually, The first postage stamp, the Penny Black, appeared in 1840."
+    "explanation": "Actually, The first postage stamp, the Penny Black, appeared in 1840.",
+    "factGroup": "F230"
   },
   {
     "id": "TF461",
     "category": "Nature & Outdoors",
     "question": "A rainbow can sometimes appear near a waterfall.",
     "answer": true,
-    "explanation": "A rainbow can sometimes appear near a waterfall."
+    "explanation": "A rainbow can sometimes appear near a waterfall.",
+    "factGroup": "F231"
   },
   {
     "id": "TF462",
     "category": "Nature & Outdoors",
     "question": "A rainbow can only appear inside a building.",
     "answer": false,
-    "explanation": "Actually, A rainbow can sometimes appear near a waterfall."
+    "explanation": "Actually, A rainbow can sometimes appear near a waterfall.",
+    "factGroup": "F231"
   },
   {
     "id": "TF463",
     "category": "Nature & Outdoors",
     "question": "A pinecone can hold seeds from a pine tree.",
     "answer": true,
-    "explanation": "A pinecone can hold seeds from a pine tree."
+    "explanation": "A pinecone can hold seeds from a pine tree.",
+    "factGroup": "F232"
   },
   {
     "id": "TF464",
     "category": "Nature & Outdoors",
     "question": "A pinecone is the fruit of a banana plant.",
     "answer": false,
-    "explanation": "Actually, A pinecone can hold seeds from a pine tree."
+    "explanation": "Actually, A pinecone can hold seeds from a pine tree.",
+    "factGroup": "F232"
   },
   {
     "id": "TF465",
     "category": "Nature & Outdoors",
     "question": "A river generally flows downhill.",
     "answer": true,
-    "explanation": "A river generally flows downhill."
+    "explanation": "A river generally flows downhill.",
+    "factGroup": "F233"
   },
   {
     "id": "TF466",
     "category": "Nature & Outdoors",
     "question": "A river naturally flows uphill without any outside force.",
     "answer": false,
-    "explanation": "Actually, A river generally flows downhill."
+    "explanation": "Actually, A river generally flows downhill.",
+    "factGroup": "F233"
   },
   {
     "id": "TF467",
     "category": "Nature & Outdoors",
     "question": "Some rocks are formed when lava cools.",
     "answer": true,
-    "explanation": "Some rocks are formed when lava cools."
+    "explanation": "Some rocks are formed when lava cools.",
+    "factGroup": "F234"
   },
   {
     "id": "TF468",
     "category": "Nature & Outdoors",
     "question": "All rocks are made by freezing milk.",
     "answer": false,
-    "explanation": "Actually, Some rocks are formed when lava cools."
+    "explanation": "Actually, Some rocks are formed when lava cools.",
+    "factGroup": "F234"
   },
   {
     "id": "TF469",
     "category": "Nature & Outdoors",
     "question": "A compass needle points approximately north-south because of Earth's magnetic field.",
     "answer": true,
-    "explanation": "A compass needle points approximately north-south because of Earth's magnetic field."
+    "explanation": "A compass needle points approximately north-south because of Earth's magnetic field.",
+    "factGroup": "F235"
   },
   {
     "id": "TF470",
     "category": "Nature & Outdoors",
     "question": "A compass needle points approximately north-south because it follows nearby flowers.",
     "answer": false,
-    "explanation": "Actually, A compass needle points approximately north-south because of Earth's magnetic field."
+    "explanation": "Actually, A compass needle points approximately north-south because of Earth's magnetic field.",
+    "factGroup": "F235"
   },
   {
     "id": "TF471",
     "category": "Nature & Outdoors",
     "question": "The tide is influenced strongly by the Moon's gravity.",
     "answer": true,
-    "explanation": "The tide is influenced strongly by the Moon's gravity."
+    "explanation": "The tide is influenced strongly by the Moon's gravity.",
+    "factGroup": "F236"
   },
   {
     "id": "TF472",
     "category": "Nature & Outdoors",
     "question": "Ocean tides are caused only by fish swimming in circles.",
     "answer": false,
-    "explanation": "Actually, The tide is influenced strongly by the Moon's gravity."
+    "explanation": "Actually, The tide is influenced strongly by the Moon's gravity.",
+    "factGroup": "F236"
   },
   {
     "id": "TF473",
     "category": "Nature & Outdoors",
     "question": "A forest contains many trees.",
     "answer": true,
-    "explanation": "A forest contains many trees."
+    "explanation": "A forest contains many trees.",
+    "factGroup": "F237"
   },
   {
     "id": "TF474",
     "category": "Nature & Outdoors",
     "question": "A forest is a region made entirely of sand with no plants.",
     "answer": false,
-    "explanation": "Actually, A forest contains many trees."
+    "explanation": "Actually, A forest contains many trees.",
+    "factGroup": "F237"
   },
   {
     "id": "TF475",
     "category": "Nature & Outdoors",
     "question": "A cave can form when water slowly dissolves certain rocks.",
     "answer": true,
-    "explanation": "A cave can form when water slowly dissolves certain rocks."
+    "explanation": "A cave can form when water slowly dissolves certain rocks.",
+    "factGroup": "F238"
   },
   {
     "id": "TF476",
     "category": "Nature & Outdoors",
     "question": "Every cave is dug by a single ant.",
     "answer": false,
-    "explanation": "Actually, A cave can form when water slowly dissolves certain rocks."
+    "explanation": "Actually, A cave can form when water slowly dissolves certain rocks.",
+    "factGroup": "F238"
   },
   {
     "id": "TF477",
     "category": "Nature & Outdoors",
     "question": "A waterfall is a place where water drops over a steep edge.",
     "answer": true,
-    "explanation": "A waterfall is a place where water drops over a steep edge."
+    "explanation": "A waterfall is a place where water drops over a steep edge.",
+    "factGroup": "F239"
   },
   {
     "id": "TF478",
     "category": "Nature & Outdoors",
     "question": "A waterfall is a kind of mountain bicycle.",
     "answer": false,
-    "explanation": "Actually, A waterfall is a place where water drops over a steep edge."
+    "explanation": "Actually, A waterfall is a place where water drops over a steep edge.",
+    "factGroup": "F239"
   },
   {
     "id": "TF479",
     "category": "Nature & Outdoors",
     "question": "Lichen is a partnership involving a fungus and a photosynthetic partner.",
     "answer": true,
-    "explanation": "Lichen is a partnership involving a fungus and a photosynthetic partner."
+    "explanation": "Lichen is a partnership involving a fungus and a photosynthetic partner.",
+    "factGroup": "F240"
   },
   {
     "id": "TF480",
     "category": "Nature & Outdoors",
     "question": "Lichen is a type of tiny feathered bird.",
     "answer": false,
-    "explanation": "Actually, Lichen is a partnership involving a fungus and a photosynthetic partner."
+    "explanation": "Actually, Lichen is a partnership involving a fungus and a photosynthetic partner.",
+    "factGroup": "F240"
   },
   {
     "id": "TF481",
     "category": "Everyday Objects",
     "question": "A zipper can fasten the edges of clothing or a bag.",
     "answer": true,
-    "explanation": "A zipper can fasten the edges of clothing or a bag."
+    "explanation": "A zipper can fasten the edges of clothing or a bag.",
+    "factGroup": "F241"
   },
   {
     "id": "TF482",
     "category": "Everyday Objects",
     "question": "A zipper is used only to measure distance.",
     "answer": false,
-    "explanation": "Actually, A zipper can fasten the edges of clothing or a bag."
+    "explanation": "Actually, A zipper can fasten the edges of clothing or a bag.",
+    "factGroup": "F241"
   },
   {
     "id": "TF483",
     "category": "Everyday Objects",
     "question": "A thermometer can show whether something is warm or cold.",
     "answer": true,
-    "explanation": "A thermometer can show whether something is warm or cold."
+    "explanation": "A thermometer can show whether something is warm or cold.",
+    "factGroup": "F242"
   },
   {
     "id": "TF484",
     "category": "Everyday Objects",
     "question": "A thermometer shows how many pages are in a book.",
     "answer": false,
-    "explanation": "Actually, A thermometer can show whether something is warm or cold."
+    "explanation": "Actually, A thermometer can show whether something is warm or cold.",
+    "factGroup": "F242"
   },
   {
     "id": "TF485",
     "category": "Everyday Objects",
     "question": "A ruler is used to measure length.",
     "answer": true,
-    "explanation": "A ruler is used to measure length."
+    "explanation": "A ruler is used to measure length.",
+    "factGroup": "F243"
   },
   {
     "id": "TF486",
     "category": "Everyday Objects",
     "question": "A ruler is used to measure sound volume.",
     "answer": false,
-    "explanation": "Actually, A ruler is used to measure length."
+    "explanation": "Actually, A ruler is used to measure length.",
+    "factGroup": "F243"
   },
   {
     "id": "TF487",
     "category": "Everyday Objects",
     "question": "A sponge can soak up water.",
     "answer": true,
-    "explanation": "A sponge can soak up water."
+    "explanation": "A sponge can soak up water.",
+    "factGroup": "F244"
   },
   {
     "id": "TF488",
     "category": "Everyday Objects",
     "question": "A sponge is designed to repel every drop of water.",
     "answer": false,
-    "explanation": "Actually, A sponge can soak up water."
+    "explanation": "Actually, A sponge can soak up water.",
+    "factGroup": "F244"
   },
   {
     "id": "TF489",
     "category": "Everyday Objects",
     "question": "An umbrella can help keep rain off your head.",
     "answer": true,
-    "explanation": "An umbrella can help keep rain off your head."
+    "explanation": "An umbrella can help keep rain off your head.",
+    "factGroup": "F245"
   },
   {
     "id": "TF490",
     "category": "Everyday Objects",
     "question": "An umbrella is used only for digging holes.",
     "answer": false,
-    "explanation": "Actually, An umbrella can help keep rain off your head."
+    "explanation": "Actually, An umbrella can help keep rain off your head.",
+    "factGroup": "F245"
   },
   {
     "id": "TF491",
     "category": "Everyday Objects",
     "question": "A key can be used to open a matching lock.",
     "answer": true,
-    "explanation": "A key can be used to open a matching lock."
+    "explanation": "A key can be used to open a matching lock.",
+    "factGroup": "F246"
   },
   {
     "id": "TF492",
     "category": "Everyday Objects",
     "question": "A key is used only to sharpen crayons.",
     "answer": false,
-    "explanation": "Actually, A key can be used to open a matching lock."
+    "explanation": "Actually, A key can be used to open a matching lock.",
+    "factGroup": "F246"
   },
   {
     "id": "TF493",
     "category": "Everyday Objects",
     "question": "Scissors have blades used for cutting.",
     "answer": true,
-    "explanation": "Scissors have blades used for cutting."
+    "explanation": "Scissors have blades used for cutting.",
+    "factGroup": "F247"
   },
   {
     "id": "TF494",
     "category": "Everyday Objects",
     "question": "Scissors have soft bristles used for painting.",
     "answer": false,
-    "explanation": "Actually, Scissors have blades used for cutting."
+    "explanation": "Actually, Scissors have blades used for cutting.",
+    "factGroup": "F247"
   },
   {
     "id": "TF495",
     "category": "Everyday Objects",
     "question": "A magnifying glass uses a lens.",
     "answer": true,
-    "explanation": "A magnifying glass uses a lens."
+    "explanation": "A magnifying glass uses a lens.",
+    "factGroup": "F248"
   },
   {
     "id": "TF496",
     "category": "Everyday Objects",
     "question": "A magnifying glass uses a tiny drum instead of a lens.",
     "answer": false,
-    "explanation": "Actually, A magnifying glass uses a lens."
+    "explanation": "Actually, A magnifying glass uses a lens.",
+    "factGroup": "F248"
   },
   {
     "id": "TF497",
     "category": "Everyday Objects",
     "question": "A paper clip can hold sheets of paper together.",
     "answer": true,
-    "explanation": "A paper clip can hold sheets of paper together."
+    "explanation": "A paper clip can hold sheets of paper together.",
+    "factGroup": "F249"
   },
   {
     "id": "TF498",
     "category": "Everyday Objects",
     "question": "A paper clip is used to boil water.",
     "answer": false,
-    "explanation": "Actually, A paper clip can hold sheets of paper together."
+    "explanation": "Actually, A paper clip can hold sheets of paper together.",
+    "factGroup": "F249"
   },
   {
     "id": "TF499",
     "category": "Everyday Objects",
     "question": "A flashlight can help you see in the dark.",
     "answer": true,
-    "explanation": "A flashlight can help you see in the dark."
+    "explanation": "A flashlight can help you see in the dark.",
+    "factGroup": "F250"
   },
   {
     "id": "TF500",
     "category": "Everyday Objects",
     "question": "A flashlight can only work when sunlight shines directly on it.",
     "answer": false,
-    "explanation": "Actually, A flashlight can help you see in the dark."
+    "explanation": "Actually, A flashlight can help you see in the dark.",
+    "factGroup": "F250"
   }
 ]
