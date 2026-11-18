@@ -44,6 +44,27 @@
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
+    <Style x:Key="ReportLabelStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="19"/>
+      <Setter Property="Foreground" Value="#E7F1FF"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+    <Style x:Key="ReportValueStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="22"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="White"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="TextAlignment" Value="Right"/>
+    </Style>
+    <Style x:Key="ReportTrendStyle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="28"/>
+      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="Foreground" Value="#CBD5E1"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="TextAlignment" Value="Center"/>
+      <Setter Property="MinWidth" Value="30"/>
+    </Style>
   </Page.Resources>
   <Grid x:Name="RootLayout" Background="#101827">
     <!-- Single gaze-owning Page: screen changes never release the eye tracker. -->
@@ -122,7 +143,43 @@
         <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="*"/></Grid.RowDefinitions>
         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
         <Border Grid.Row="0" Grid.Column="0" Background="#214E83"
-                BorderBrush="#76B9F3" BorderThickness="2" CornerRadius="12"/>
+                BorderBrush="#76B9F3" BorderThickness="2" CornerRadius="12">
+          <Grid Padding="18">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="TRAINING REPORT" FontSize="26" FontWeight="Bold"
+                       Foreground="White" TextAlignment="Center" Margin="0,0,0,12"/>
+            <Grid Grid.Row="1" ColumnSpacing="10" RowSpacing="7">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.4*"/>
+                <ColumnDefinition Width="1.2*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="*"/><RowDefinition Height="*"/>
+                <RowDefinition Height="*"/><RowDefinition Height="*"/>
+                <RowDefinition Height="*"/><RowDefinition Height="*"/>
+              </Grid.RowDefinitions>
+              <TextBlock Grid.Row="0" Text="Levels completed" Style="{StaticResource ReportLabelStyle}"/>
+              <TextBlock x:Name="ReportLevelsText" Grid.Row="0" Grid.Column="1" Style="{StaticResource ReportValueStyle}"/>
+              <TextBlock Grid.Row="1" Text="Completed runs" Style="{StaticResource ReportLabelStyle}"/>
+              <TextBlock x:Name="ReportRunsText" Grid.Row="1" Grid.Column="1" Style="{StaticResource ReportValueStyle}"/>
+              <TextBlock Grid.Row="2" Text="Practice time" Style="{StaticResource ReportLabelStyle}"/>
+              <TextBlock x:Name="ReportHoursText" Grid.Row="2" Grid.Column="1" Style="{StaticResource ReportValueStyle}"/>
+              <TextBlock Grid.Row="3" Text="Overall accuracy" Style="{StaticResource ReportLabelStyle}"/>
+              <TextBlock x:Name="ReportOverallText" Grid.Row="3" Grid.Column="1" Style="{StaticResource ReportValueStyle}"/>
+              <TextBlock x:Name="ReportOverallTrend" Grid.Row="3" Grid.Column="2" Style="{StaticResource ReportTrendStyle}"/>
+              <TextBlock Grid.Row="4" Text="Target accuracy" Style="{StaticResource ReportLabelStyle}"/>
+              <TextBlock x:Name="ReportAccuracyText" Grid.Row="4" Grid.Column="1" Style="{StaticResource ReportValueStyle}"/>
+              <TextBlock x:Name="ReportAccuracyTrend" Grid.Row="4" Grid.Column="2" Style="{StaticResource ReportTrendStyle}"/>
+              <TextBlock Grid.Row="5" Text="Eye jitter" Style="{StaticResource ReportLabelStyle}"/>
+              <TextBlock x:Name="ReportJitterText" Grid.Row="5" Grid.Column="1" Style="{StaticResource ReportValueStyle}"/>
+              <TextBlock x:Name="ReportJitterTrend" Grid.Row="5" Grid.Column="2" Style="{StaticResource ReportTrendStyle}"/>
+            </Grid>
+          </Grid>
+        </Border>
         <Border Grid.Row="0" Grid.Column="1" Background="#214E83"
                 BorderBrush="#76B9F3" BorderThickness="2" CornerRadius="12"/>
         <Border Grid.Row="1" Grid.Column="0" Background="#214E83"
