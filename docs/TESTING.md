@@ -326,3 +326,12 @@ At user request, EyeGazeTrainer now has a single, reusable `MasterCursorSmoothin
 ### Shared hitbox implementation
 
 `AdaptiveHitTesting.cs` is now the central logical hit-test API for both circular and rectangular training objects. It accepts a visible shape and a scale factor, expands symmetrically about the object center, and never changes the object's rendered size. Level 1 uses `AdaptiveHitTesting.ContainsCircle` with the persistent `AdaptiveGazeProfile.HitBoxScale`. Other lessons may use `ContainsRectangle` with the same learner-wide scale; essential safety controls remain excluded from assisted hitboxes. All files are on `Test` pending supervised testing.
+
+
+## Adaptive smoothing and hitboxes now include gaze buttons (2026-11-17)
+
+User requested that **all gaze-operated buttons** participate in the same master smoothing and accuracy-based hitbox filters as training objects. On `Test`, `LevelOnePreview.ProcessGazeControl` now receives the **same stabilized position** used by the green cursor/targets, and `InsideButton` uses shared `AdaptiveHitTesting.ContainsRectangle` at the learner's persisted `gazeProfile.HitBoxScale` (110% initially, down to 100% with improved raw-gaze accuracy).
+
+The page has one gaze-operated button at present, **EXIT**, which now participates in both shared filters rather than using a separate strict raw-only rectangle. The handler also preserves **a raw-position fallback to the same adaptive hitbox for EXIT** so stabilization cannot make the essential exit control harder to reach; no smoothing settings, hitbox levels, or dwell intervals are special-cased. Button lookup is routed through `GetGazeButtons()`, a single place to register later gaze-operated buttons, and all use the existing 1.5-second dwell wheel logic.
+
+**Safety:** The raw fallback is intentionally limited to Exit because it is an escape control. Its acquisition is not scored as a training target, so a necessary exit cannot distort persistent user accuracy. The four-stage cleanup, delayed gaze-free shutdown and packaged TD Control overlay handling were not changed. This refinement requires supervised device testing before merge to `main`; a successful Windows build is not evidence of eye-gaze exit safety.
