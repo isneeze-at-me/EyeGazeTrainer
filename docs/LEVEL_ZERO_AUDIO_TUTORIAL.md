@@ -100,3 +100,14 @@
 - **Destination:** After a successful deliberate dwell on the single final large button, Level 0 saves measurements/completion and goes to the **Levels screen**, not the main home menu. The voice says “levels screen,” and the button's accessibility name matches.
 - **No change** to the shared gaze watcher, existing Level 1 lesson, bonus round or staged device cleanup.
 - **Build and hardware tests outstanding:** verify initial audible speech and each stage prompt; ensure audio does not overlap; observe target and final button in sequence; verify Level 0 can't leave before deliberate selection; verify successful dwell enters Levels; verify TD Control coexistence.
+
+## Voice and motion fix — 2026-11-18 (second device test)
+
+**Reported:** No audio after retaining the stream and making the media element visible; the pursuit target also moved slightly jerkily.
+
+**Code changes on Test:**
+- Replaced the XAML `MediaElement` speech player with a nonvisual `Windows.Media.Playback.MediaPlayer` and `Windows.Media.Core.MediaSource.CreateFromStream`. Speech still uses the local `Windows.Media.SpeechSynthesis.SpeechSynthesizer` with no network dependency. The synthesized stream remains alive while audio is in use and is disposed on replacement or Level 0 exit. Native media failures are logged via the existing trace mechanism.
+- Replaced the 50 ms `DispatcherTimer` that moved the target in 20 Hz steps with `Windows.UI.Xaml.Media.CompositionTarget.Rendering`, synchronized to display redraw. The callback is attached only during pursuit, detached at the final-button stage or on exit, so it does not consume unnecessary frame resources elsewhere.
+- The eye cursor, stage criteria, Level 1 and shared gaze-device cleanup remain otherwise unchanged. Completion still opens the Levels screen.
+
+**Pending on-device checks:** Rebuild the Test branch and verify audible instruction on the first valid gaze, voice playback for each stage, a smooth target on the Surface screen, audio error trace if still silent, and successful handoff to Levels. Static structural checks passed; UWP compilation and Tobii hardware verification have **not** been run here.
