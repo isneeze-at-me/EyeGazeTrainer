@@ -25,6 +25,9 @@ The bank contains 500 unique statements, evenly split into 250 True and 250 Fals
 
 ## Implemented quiz behavior
 
+- Starting Level 1 shows a five-second, black-background, colorful introduction to finding and holding ten targets; targets cannot start during the introduction.
+- Following Level 1, the three-second celebration automatically opens a five-second, matching introduction explaining the True/False trivia round.
+- Both introductions dismiss automatically without click or dwell. The existing gaze-loss-sensitive timer pauses progression when live gaze samples stop arriving.
 - Following Level 1, the three-second celebration automatically opens a ten-question True/False round.
 - The complete statement appears centered in the top half. Two large True and False buttons fill the bottom half.
 - The existing shared 1500 ms gaze-button dwell, radial progress wheel, global smoothing and adaptive button hitbox are reused. Mouse or touch Click works for developer tests.
