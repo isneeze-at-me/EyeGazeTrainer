@@ -234,44 +234,47 @@
         </Border>
       </Grid>
 
-      <!-- Skills: real measurements are introduced in the analytics phase;
-           never invent or display guessed values. -->
+      <!-- Skills: user can open five large, gaze-accessible categories.
+           Every new measurement is NA until a validated recorder exists. -->
       <Grid x:Name="DiagnosticsSkillsPanel" Grid.Row="2" Visibility="Collapsed"
-            ColumnSpacing="16" RowSpacing="16">
-        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-        <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-        <Border Grid.Row="0" Grid.Column="0" Background="#214E83" CornerRadius="12" Padding="22">
-          <StackPanel VerticalAlignment="Center" Spacing="12">
-            <TextBlock Text="TARGET ACQUISITION" Foreground="White" FontSize="25" FontWeight="Bold" TextAlignment="Center"/>
-            <TextBlock Text="NA" Foreground="#E2E8F0" FontSize="34" FontWeight="Bold" TextAlignment="Center"/>
-            <TextBlock Text="Average target time and movement direction; not yet collected separately."
-                       Foreground="#E2E8F0" FontSize="18" TextWrapping="Wrap" TextAlignment="Center"/>
-          </StackPanel>
-        </Border>
-        <Border Grid.Row="0" Grid.Column="1" Background="#214E83" CornerRadius="12" Padding="22">
-          <StackPanel VerticalAlignment="Center" Spacing="12">
-            <TextBlock Text="DWELL RELIABILITY" Foreground="White" FontSize="25" FontWeight="Bold" TextAlignment="Center"/>
-            <TextBlock Text="NA" Foreground="#E2E8F0" FontSize="34" FontWeight="Bold" TextAlignment="Center"/>
-            <TextBlock Text="Completed, interrupted, and unintended selections; measurement planned."
-                       Foreground="#E2E8F0" FontSize="18" TextWrapping="Wrap" TextAlignment="Center"/>
-          </StackPanel>
-        </Border>
-        <Border Grid.Row="1" Grid.Column="0" Background="#214E83" CornerRadius="12" Padding="22">
-          <StackPanel VerticalAlignment="Center" Spacing="12">
-            <TextBlock Text="TRACKER AVAILABILITY" Foreground="White" FontSize="25" FontWeight="Bold" TextAlignment="Center"/>
-            <TextBlock Text="NA" Foreground="#E2E8F0" FontSize="34" FontWeight="Bold" TextAlignment="Center"/>
-            <TextBlock Text="Valid tracking time, disconnections, and recovery time; measurement planned."
-                       Foreground="#E2E8F0" FontSize="18" TextWrapping="Wrap" TextAlignment="Center"/>
-          </StackPanel>
-        </Border>
-        <Border Grid.Row="1" Grid.Column="1" Background="#214E83" CornerRadius="12" Padding="22">
-          <StackPanel VerticalAlignment="Center" Spacing="12">
-            <TextBlock Text="FATIGUE &amp; ACCESS" Foreground="White" FontSize="25" FontWeight="Bold" TextAlignment="Center"/>
-            <TextBlock Text="NA" Foreground="#E2E8F0" FontSize="34" FontWeight="Bold" TextAlignment="Center"/>
-            <TextBlock Text="Early-versus-late performance, target-size testing, and practical selection rate; planned."
-                       Foreground="#E2E8F0" FontSize="18" TextWrapping="Wrap" TextAlignment="Center"/>
-          </StackPanel>
-        </Border>
+            RowSpacing="12">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="84"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="SKILL MEASUREMENTS" Grid.Row="0" FontSize="25"
+                   FontWeight="Bold" TextAlignment="Center" Foreground="White"
+                   Margin="0,0,0,2"/>
+        <Grid Grid.Row="1" ColumnSpacing="12">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <Button x:Name="SkillsTargetsButton" Grid.Column="0" Content="TARGETS"
+                  Style="{StaticResource PrimaryGazeButton}" Click="OnSkillsCategoryClicked"
+                  FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+          <Button x:Name="SkillsDwellButton" Grid.Column="1" Content="DWELL"
+                  Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
+                  FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+          <Button x:Name="SkillsTrackingButton" Grid.Column="2" Content="TRACKING"
+                  Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
+                  FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+          <Button x:Name="SkillsEnduranceButton" Grid.Column="3" Content="ENDURANCE"
+                  Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
+                  FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+          <Button x:Name="SkillsFunctionButton" Grid.Column="4" Content="FUNCTION"
+                  Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
+                  FontSize="20" FontWeight="Bold" HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        </Grid>
+        <Grid x:Name="SkillsMetricsGrid" Grid.Row="2"
+              ColumnSpacing="12" RowSpacing="12" IsHitTestVisible="False"/>
       </Grid>
 
       <!-- Compare two location maps without shrinking them into quarter-size cards. -->
@@ -354,20 +357,70 @@
 
       </Grid>
 
-      <Border x:Name="DiagnosticsSessionsPanel" Grid.Row="2" Visibility="Collapsed"
-              Background="#182B43" BorderBrush="#566D8A" BorderThickness="2"
-              CornerRadius="12" Padding="26">
-        <StackPanel VerticalAlignment="Center" Spacing="18">
-          <TextBlock Text="SESSION HISTORY" FontSize="30" FontWeight="Bold"
-                     Foreground="White" TextAlignment="Center"/>
-          <TextBlock Text="Session records have not been collected yet."
-                     FontSize="25" Foreground="#E2E8F0" TextAlignment="Center"
-                     TextWrapping="Wrap"/>
-          <TextBlock Text="Planned: date, practiced level and game, duration, acquisition and dwell results, tracking reliability, fatigue-related trends, and user-controlled report export."
-                     FontSize="20" Foreground="#B7C9E4" TextAlignment="Center"
-                     TextWrapping="Wrap" MaxWidth="800"/>
-        </StackPanel>
-      </Border>
+      <Grid x:Name="DiagnosticsSessionsPanel" Grid.Row="2"
+            Visibility="Collapsed" RowSpacing="14">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/><RowDefinition Height="*"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="SESSION HISTORY &amp; REPORTS"
+                   FontSize="26" FontWeight="Bold" Foreground="White"
+                   TextAlignment="Center"/>
+        <Grid Grid.Row="1" ColumnSpacing="14">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <Border Grid.Column="0" Background="#214E83" BorderBrush="#76B9F3"
+                  BorderThickness="2" CornerRadius="12" Padding="18">
+            <StackPanel VerticalAlignment="Center" Spacing="12">
+              <TextBlock Text="INDIVIDUAL SESSIONS" Foreground="White"
+                         FontSize="23" FontWeight="Bold" TextAlignment="Center"/>
+              <TextBlock Text="NA" Foreground="White" FontSize="32"
+                         FontWeight="Bold" TextAlignment="Center"/>
+              <TextBlock Text="Session dates, duration, level, activity, completed trials and settings snapshot will appear here after session tracking is added."
+                         Foreground="#E2E8F0" FontSize="17" TextWrapping="Wrap"
+                         TextAlignment="Center"/>
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="1" Background="#214E83" BorderBrush="#76B9F3"
+                  BorderThickness="2" CornerRadius="12" Padding="18">
+            <StackPanel VerticalAlignment="Center" Spacing="12">
+              <TextBlock Text="SESSION COMPARISONS" Foreground="White"
+                         FontSize="23" FontWeight="Bold" TextAlignment="Center"/>
+              <TextBlock Text="NA" Foreground="White" FontSize="32"
+                         FontWeight="Bold" TextAlignment="Center"/>
+              <TextBlock Text="Early, middle and late performance; previous-session comparisons; matched-task trends and fatigue observations."
+                         Foreground="#E2E8F0" FontSize="17" TextWrapping="Wrap"
+                         TextAlignment="Center"/>
+            </StackPanel>
+          </Border>
+        </Grid>
+        <Grid Grid.Row="2" ColumnSpacing="14">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <Border Grid.Column="0" Background="#182B43" BorderBrush="#566D8A"
+                  BorderThickness="2" CornerRadius="12" Padding="18">
+            <StackPanel VerticalAlignment="Center" Spacing="12">
+              <TextBlock Text="SESSION CONDITIONS" Foreground="White"
+                         FontSize="23" FontWeight="Bold" TextAlignment="Center"/>
+              <TextBlock Text="Not recorded" Foreground="#E2E8F0"
+                         FontSize="23" FontWeight="Bold" TextAlignment="Center"/>
+              <TextBlock Text="Optional positioning, lighting, screen angle, glasses, time of day, effort, comfort and fatigue ratings. User-controlled, never required."
+                         Foreground="#E2E8F0" FontSize="17" TextWrapping="Wrap"
+                         TextAlignment="Center"/>
+            </StackPanel>
+          </Border>
+          <Border Grid.Column="1" Background="#182B43" BorderBrush="#566D8A"
+                  BorderThickness="2" CornerRadius="12" Padding="18">
+            <StackPanel VerticalAlignment="Center" Spacing="12">
+              <TextBlock Text="THERAPIST EXPORT" Foreground="White"
+                         FontSize="23" FontWeight="Bold" TextAlignment="Center"/>
+              <TextBlock Text="Not available yet" Foreground="#E2E8F0"
+                         FontSize="23" FontWeight="Bold" TextAlignment="Center"/>
+              <TextBlock Text="Planned PDF and CSV reports: progress, skill metrics, session trends, 7×5 heatmaps, data quality and approved notes. No export occurs automatically."
+                         Foreground="#E2E8F0" FontSize="17" TextWrapping="Wrap"
+                         TextAlignment="Center"/>
+            </StackPanel>
+          </Border>
+        </Grid>
+      </Grid>
     </Grid>
 
     <Grid x:Name="LevelsPanel" Background="#101827" Padding="24"
