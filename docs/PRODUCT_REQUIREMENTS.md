@@ -95,3 +95,21 @@ The manually operated STOP control and BACK button are **developer controls** an
 - Before relying on jitter bands, validate them using actual PCEye 5 observations, screen scaling, and expected normal sample rates. Colors express relative training indicators only.
 
 **Regression checklist:** verify the app builds in Visual Studio 2022 with UWP Debug/x64; both 7×5 grids render correctly and show NA initially; accuracy colors match stored values; jitter values and colors update after valid target holds; no mouse preview or interrupted hold invents jitter; jitter and accuracy persist after restart; both maps index the same screen cells; wrong trivia responses leave the map unchanged; Back/Exit still work by gaze without extra steps. Hardware regression must follow the documented supervised safety precautions.
+
+## Top-left training report (Test branch, 2026-11-18)
+
+**Implemented in source; a Visual Studio/UWP build and supervised on-device verification remain pending.**
+
+The upper-left Diagnostics quadrant now displays the **TRAINING REPORT**:
+- **Levels completed:** distinct levels marked complete by the existing permanent `TrainingProgress` flags (currently 1–6, shown as `X / 6`).
+- **Completed runs:** cumulative number of times the user has finished a ten-target lesson, including replays. Runs completed before this counter existed cannot be reconstructed; past completion flags are not treated as run counts. Like the existing progress flags, completing a mouse-preview lesson also increments completed runs.
+- **Practice time:** persistent hours with two decimals. A 1-second dispatcher tick counts elapsed time only while live gaze is running, the app is on the lesson or quiz screen, and valid gaze input was received in the last two seconds. Menu/Diagnostics/Settings, gaze loss, shutdown and long suspended tick gaps do not accrue time. Earlier usage cannot be backfilled.
+- **Overall accuracy:** the existing adaptive `AdaptiveGazeProfile.AccuracyScore` (%). Its upward/downward trend tracks changes to this score; it is intentionally level-weighted rather than a raw success percentage.
+- **Target accuracy:** the most recent measured raw-gaze **precision component** (%) from successful target or correct trivia-button acquisitions; an interrupted deliberate target dwell is recorded as 0 for this report. This is separate from overall adaptive accuracy.
+- **Eye jitter:** the latest valid settled RMS gaze spread in approximate screen millimeters. Lower is steadier; a drop is marked as improving.
+
+For each metric, a compact rolling history of up to **20** observations is stored locally. A direction appears only once there are **10** observations of that metric: the most recent five are compared with the preceding five. A green **▲** means improvement, red **▼** means deterioration, and neutral **—** means insufficient history or no material change. Provisional thresholds are 0.5 percentage points for overall accuracy, 1 percentage point for target accuracy, and 0.15 mm for jitter. The jitter arrow reverses the numeric direction (decreasing jitter is improving).
+
+Only counts, time totals and small aggregate metric histories are persisted; no gaze positions, raw gaze traces, or personal identifiers are stored. Historical level completion data is preserved. Report trends start accumulating with this feature and should not be interpreted as clinically meaningful changes.
+
+**Acceptance tests:** verify independent completion/run totals, no counting unfinished replays, active-gaze-only time accumulation and persistence after restart, ten-observation arrow onset, higher-accuracy/lower-jitter improving arrows, no jitter entry from invalid short holds, no timer leaks after navigating off the gaze page, and responsive gaze Back/Exit. Prior eye-tracker safety precautions remain in force.
