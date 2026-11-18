@@ -11,7 +11,7 @@ namespace EyeGazeApiViability
     /// </summary>
     internal sealed class TrainingTargetMeasurement
     {
-        public const int TargetHoldMilliseconds = 500;
+        public const int TargetHoldMilliseconds = 1000;
         private const int LostGazeMilliseconds = 300;
         private const int SettledWindowMilliseconds = 300;
         private const int MaximumSamples = 120;
