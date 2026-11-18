@@ -2,17 +2,17 @@
   {
     "id": "TF101",
     "category": "Space",
-    "question": "A day on Venus lasts longer than a Venusian year.",
+    "question": "Venus takes longer to rotate once on its axis than to orbit the Sun once.",
     "answer": true,
-    "explanation": "A day on Venus lasts longer than a Venusian year.",
+    "explanation": "Venus takes longer to rotate once on its axis than to orbit the Sun once.",
     "factGroup": "F051"
   },
   {
     "id": "TF102",
     "category": "Space",
-    "question": "A Venusian year lasts longer than a day on Venus.",
+    "question": "Venus takes less time to rotate once on its axis than to orbit the Sun once.",
     "answer": false,
-    "explanation": "Actually, A day on Venus lasts longer than a Venusian year.",
+    "explanation": "Actually, Venus takes longer to rotate once on its axis than to orbit the Sun once.",
     "factGroup": "F051"
   },
   {
