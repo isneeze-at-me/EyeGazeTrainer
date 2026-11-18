@@ -93,7 +93,13 @@ namespace EyeGazeApiViability
                                                   !roundGroups.Contains(q.FactGroup)).ToList();
             if (candidates.Count == 0)
             {
-                // Exhausting the deck permits a new 500-question cycle.
+                // Near the end of a deck, preserving the no-repeat guarantee
+                // takes priority over avoiding a second version of a fact.
+                candidates = questions.Where(q => !usedIds.Contains(q.Id)).ToList();
+            }
+            if (candidates.Count == 0)
+            {
+                // Only replenish after ALL 500 question IDs have been dealt.
                 usedIds.Clear();
                 candidates = questions.Where(q => !roundGroups.Contains(q.FactGroup)).ToList();
             }
