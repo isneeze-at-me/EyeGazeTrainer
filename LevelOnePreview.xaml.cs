@@ -60,6 +60,7 @@ namespace EyeGazeApiViability
         private DateTimeOffset gazeControlEnteredAt;
         private DateTimeOffset lastGazeAt;
         private bool gazeControlTriggered;
+        private bool requireLookAwayAfterNavigation;
         private static readonly TimeSpan ControlDwell = TimeSpan.FromMilliseconds(1500);
 
         public LevelOnePreview()
@@ -213,13 +214,15 @@ namespace EyeGazeApiViability
 
             Point stabilized = cursorFilter.Update(p, DateTimeOffset.UtcNow);
             UpdateCursor(stabilized);
-            Point canvasOrigin = TrainingCanvas.TransformToVisual(this)
-                                  .TransformPoint(new Point(0, 0));
             if (currentScreen == AppScreen.Lesson)
+            {
+                Point canvasOrigin = TrainingCanvas.TransformToVisual(this)
+                                      .TransformPoint(new Point(0, 0));
                 ProcessPosition(new Point(stabilized.X - canvasOrigin.X,
                                           stabilized.Y - canvasOrigin.Y),
                                 new Point(p.X - canvasOrigin.X,
                                           p.Y - canvasOrigin.Y));
+            }
             ProcessGazeControl(stabilized, p);
             e.Handled = true;
         }
@@ -245,6 +248,12 @@ namespace EyeGazeApiViability
             {
                 gazeControlTarget = null;
                 gazeControlTriggered = false;
+                requireLookAwayAfterNavigation = false;
+                buttonDwellWheel.Hide();
+                return;
+            }
+            if (requireLookAwayAfterNavigation)
+            {
                 buttonDwellWheel.Hide();
                 return;
             }
@@ -336,6 +345,9 @@ namespace EyeGazeApiViability
         private void ShowScreen(AppScreen screen)
         {
             currentScreen = screen;
+            // Switching to a new screen never activates a button located
+            // under the previous screen's gaze point until gaze moves away.
+            requireLookAwayAfterNavigation = true;
             displaySettingsVisible = screen == AppScreen.Settings;
             HomePanel.Visibility = screen == AppScreen.Menu ? Visibility.Visible : Visibility.Collapsed;
             LevelsPanel.Visibility = screen == AppScreen.Levels ? Visibility.Visible : Visibility.Collapsed;
