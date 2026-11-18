@@ -131,11 +131,10 @@
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
               <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <TextBlock Text="ACCURACY" FontSize="26" FontWeight="Bold"
                        TextAlignment="Center" Foreground="White" Margin="0,0,0,8"/>
-            <!-- Scalable Surface Pro-style tablet illustration, with an
-                 actual 7x7 data grid drawn over its black display. -->
             <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center"
                      VerticalAlignment="Center">
               <Grid Width="620" Height="390">
@@ -149,8 +148,7 @@
                   <Grid>
                     <Border Margin="19,18,19,24" Background="Black"
                             BorderBrush="#334155" BorderThickness="2">
-                      <Grid x:Name="AccuracyHeatmapGrid"
-                            Background="Black" Margin="3"/>
+                      <Grid x:Name="AccuracyHeatmapGrid" Background="Black" Margin="3"/>
                     </Border>
                     <Ellipse Width="7" Height="7" Fill="#64748B"
                              VerticalAlignment="Bottom" HorizontalAlignment="Center"
@@ -159,10 +157,46 @@
                 </Border>
               </Grid>
             </Viewbox>
+            <TextBlock Grid.Row="2" Text="Higher % = better · Green 80+ · Yellow 60–79 · Red 0–59" FontSize="15"
+                       Foreground="#EFF6FF" TextAlignment="Center" Margin="0,5,0,0"/>
           </Grid>
         </Border>
         <Border Grid.Row="1" Grid.Column="1" Background="#214E83"
-                BorderBrush="#76B9F3" BorderThickness="2" CornerRadius="12"/>
+                BorderBrush="#76B9F3" BorderThickness="2" CornerRadius="12">
+          <Grid Padding="10">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="*"/>
+              <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="EYE JITTER" FontSize="26" FontWeight="Bold"
+                       TextAlignment="Center" Foreground="White" Margin="0,0,0,8"/>
+            <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center"
+                     VerticalAlignment="Center">
+              <Grid Width="620" Height="390">
+                <Polygon Points="555,66 610,105 598,349 547,340"
+                         Fill="#475569" Stroke="#8FA6BF" StrokeThickness="3"
+                         HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <Border Width="584" Height="376" CornerRadius="16"
+                        BorderBrush="#94A3B8" BorderThickness="4"
+                        Background="#121A26" HorizontalAlignment="Left"
+                        VerticalAlignment="Top">
+                  <Grid>
+                    <Border Margin="19,18,19,24" Background="Black"
+                            BorderBrush="#334155" BorderThickness="2">
+                      <Grid x:Name="JitterHeatmapGrid" Background="Black" Margin="3"/>
+                    </Border>
+                    <Ellipse Width="7" Height="7" Fill="#64748B"
+                             VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                             Margin="0,0,0,9"/>
+                  </Grid>
+                </Border>
+              </Grid>
+            </Viewbox>
+            <TextBlock Grid.Row="2" Text="Lower mm = steadier · Green ≤2 · Yellow ≤4 · Red >4" FontSize="15"
+                       Foreground="#EFF6FF" TextAlignment="Center" Margin="0,5,0,0"/>
+          </Grid>
+        </Border>
       </Grid>
       <Button Style="{StaticResource SecondaryGazeButton}" x:Name="DiagnosticsBackButton"
               Content="BACK" Click="OnBackToMenu" MinHeight="86" MinWidth="155"
