@@ -43,6 +43,7 @@
     <Compile Include="TrainingProgress.cs" />
     <Compile Include="TrainingReport.cs" />
     <Compile Include="TherapistTextReport.cs" />
+    <Compile Include="LevelZeroTutorial.cs" />
     <Compile Include="SpatialAccuracyMap.cs" />
     <Compile Include="SpatialJitterMap.cs" />
     <Compile Include="TriviaQuestionBank.cs" />
