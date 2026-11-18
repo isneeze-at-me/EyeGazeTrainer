@@ -23,7 +23,7 @@ namespace EyeGazeApiViability
 
         private double accuracyScore;
         private int acquisitions;
-        private readonly ApplicationDataContainerSettings settings;
+        private readonly Windows.Foundation.Collections.IPropertySet settings;
 
         public double AccuracyScore { get { return accuracyScore; } }
         public int Acquisitions { get { return acquisitions; } }
