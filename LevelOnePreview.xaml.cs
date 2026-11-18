@@ -515,7 +515,7 @@ namespace EyeGazeApiViability
 
         private void ApplyAdaptiveSmoothingAndRecord()
         {
-            ApplyAdaptiveSmoothingAndRecord();
+            cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
             trainingReport.RecordSmoothing(cursorFilter.SmoothingLevel);
         }
 
