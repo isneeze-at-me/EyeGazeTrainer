@@ -58,6 +58,8 @@ namespace EyeGazeApiViability
         private bool triviaAwaitingAnswer;
         private bool triviaFinishing;
         private bool triviaLoading;
+        private bool lessonIntroActive;
+        private bool bonusIntroActive;
         private string tracePath;
         private int targetIndex = -1;
         private readonly TrainingTargetMeasurement targetMeasurement = new TrainingTargetMeasurement();
@@ -363,8 +365,8 @@ namespace EyeGazeApiViability
             switch (currentScreen)
             {
                 case AppScreen.Levels: return levelsButtons;
-                case AppScreen.Lesson: return lessonButtons;
-                case AppScreen.Bonus: return triviaAwaitingAnswer ? bonusButtons : noGazeButtons;
+                case AppScreen.Lesson: return lessonIntroActive ? noGazeButtons : lessonButtons;
+                case AppScreen.Bonus: return !bonusIntroActive && triviaAwaitingAnswer ? bonusButtons : noGazeButtons;
                 case AppScreen.Settings: return displayButtons;
                 default: return menuButtons;
             }
@@ -405,6 +407,10 @@ namespace EyeGazeApiViability
             // Navigating away from the celebration must not fire a stale transition.
             if (screen != AppScreen.Lesson) CancelBonusTransition();
             if (screen != AppScreen.Bonus) CancelBonusQuestionTimer();
+            lessonIntroActive = screen == AppScreen.Lesson && lessonIntroActive;
+            bonusIntroActive = screen == AppScreen.Bonus && bonusIntroActive;
+            if (screen != AppScreen.Lesson) LessonIntroOverlay.Visibility = Visibility.Collapsed;
+            if (screen != AppScreen.Bonus) BonusIntroOverlay.Visibility = Visibility.Collapsed;
             AppScreen previousScreen = currentScreen;
             currentScreen = screen;
             // Any live-gaze screen transition (including automatic lesson
@@ -468,7 +474,46 @@ namespace EyeGazeApiViability
             // A completed level stays selectable. Replay resets only the
             // current ten-target session, never the persisted completion flag.
             ShowScreen(AppScreen.Lesson);
+            lessonIntroActive = true;
             ResetLesson();
+            BeginLessonIntro();
+        }
+
+        private void BeginLessonIntro()
+        {
+            LessonIntroOverlay.Visibility = Visibility.Visible;
+            LessonBackButton.Visibility = Visibility.Collapsed;
+            TargetRing.Visibility = Visibility.Collapsed;
+            TargetBullseye.Visibility = Visibility.Collapsed;
+            HideTargetDwellVisual();
+            // No dwell or click is required to dismiss instructions.
+            StartBonusTimer(TimeSpan.FromSeconds(5), () =>
+            {
+                if (currentScreen != AppScreen.Lesson || stopping || exitRequested) return;
+                lessonIntroActive = false;
+                LessonIntroOverlay.Visibility = Visibility.Collapsed;
+                LessonBackButton.Visibility = Visibility.Visible;
+                if (targetIndex >= 0)
+                    targetMeasurement.BeginTarget(DateTimeOffset.UtcNow);
+                RepositionTarget();
+            });
+        }
+
+        private void BeginTriviaIntro()
+        {
+            bonusIntroActive = true;
+            BonusChoicesPanel.Visibility = Visibility.Collapsed;
+            BonusFinalPanel.Visibility = Visibility.Collapsed;
+            BonusIntroOverlay.Visibility = Visibility.Visible;
+            // Apply the same guided, automatic transition to every future
+            // mini-game; no unlearned selection action is needed.
+            StartBonusTimer(TimeSpan.FromSeconds(5), () =>
+            {
+                if (currentScreen != AppScreen.Bonus || stopping || exitRequested) return;
+                bonusIntroActive = false;
+                BonusIntroOverlay.Visibility = Visibility.Collapsed;
+                _ = StartBonusRoundAsync();
+            });
         }
 
         private void OnPlaceholderLevel(object sender, RoutedEventArgs e)
@@ -632,7 +677,7 @@ namespace EyeGazeApiViability
         private void ProcessPosition(Point p, Point rawPoint)
         {
             if (completed || exitRequested || stopping ||
-                currentScreen != AppScreen.Lesson) return;
+                currentScreen != AppScreen.Lesson || lessonIntroActive) return;
 
             if (TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
                 TrainingCanvas.ActualHeight < TargetDiameter + 24 ||
@@ -720,7 +765,7 @@ namespace EyeGazeApiViability
             if (!completed || stopping || exitRequested ||
                 currentScreen != AppScreen.Lesson) return;
             ShowScreen(AppScreen.Bonus);
-            _ = StartBonusRoundAsync();
+            BeginTriviaIntro();
         }
 
         private void CancelBonusTransition()
@@ -732,7 +777,8 @@ namespace EyeGazeApiViability
                 bonusTransitionTimer = null;
             }
             CompletionOverlay.Visibility = Visibility.Collapsed;
-            LessonBackButton.Visibility = Visibility.Visible;
+            LessonBackButton.Visibility = lessonIntroActive
+                ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private bool IsBonusAnswer(Button button)
@@ -1052,7 +1098,7 @@ namespace EyeGazeApiViability
         private void RepositionTarget()
         {
             if (currentScreen != AppScreen.Lesson || targetIndex < 0 ||
-                completed || TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
+                lessonIntroActive || completed || TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
                 TrainingCanvas.ActualHeight < TargetDiameter + 24)
             {
                 TargetRing.Visibility = Visibility.Collapsed;
@@ -1107,6 +1153,10 @@ namespace EyeGazeApiViability
             exitRequested = true;
             CancelBonusTransition();
             CancelBonusQuestionTimer();
+            LessonIntroOverlay.Visibility = Visibility.Collapsed;
+            BonusIntroOverlay.Visibility = Visibility.Collapsed;
+            lessonIntroActive = false;
+            bonusIntroActive = false;
             displaySettingsVisible = false;
             targetMeasurement.CancelHold();
             HideTargetDwellVisual();
