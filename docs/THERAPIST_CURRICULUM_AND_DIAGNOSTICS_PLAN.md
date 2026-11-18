@@ -1,4 +1,4 @@
-# EyeGazeTrainer — six-level curriculum, therapist diagnostics and delivery plan
+# EyeGazeTrainer — adult-oriented eight-level curriculum, therapist diagnostics and delivery plan
 
 **Status:** Implementation roadmap, prepared 2026-11-18. Diagnostics tab shell is implemented on `Test`; levels 2–6 and the additional measurement pipelines below are **not** implemented. No claim of verified live gaze hardware safety.
 
@@ -10,20 +10,28 @@
 4. **Keep reporting honest:** observed gaze uncertainty may reflect tracking noise, mounting, calibration, head pose, lighting and fatigue. Scores are training indicators, not diagnoses. Mark unavailable metrics **NA**; distinguish observed from inferred. Do not infer intentionality from raw gaze samples alone.
 5. **Privacy:** aggregate counters and session summaries locally; raw gaze samples are short-lived in RAM, off by default for exporting, and never persist as timestamped gaze traces without informed user consent. PDF/CSV export is initiated and confirmed by the user.
 
-## Curriculum and measurement design
+## Adult learner curriculum and measurement design — revised
 
-| Level | New skill and prerequisite | Guided core activity | Optional games (two or three per level) | Evidence and report fields | Advancement gate |
-| --- | --- | --- | --- | --- | --- |
-| **1 Discover & Look** | Gaze causes a visible effect; **zero previous skills**, no click/dwell necessary | Large central visual stimulus, then large targets away from edges. Looking triggers light or animation immediately; no hold required initially. Teach first independent rest/exit path using a gaze-only non-dwell mechanism validated with users. | **Star Catcher**, **Fireworks** | Valid gaze uptime, detection latency, large-target acquisition, region visits, sensor disconnects. Label existing 1-second-hold prototype as legacy until updated. | Demonstrate repeated intentional cause/effect and safe escape without an unlearned activation |
-| **2 Move & Explore** | Move gaze deliberately; requires Level 1 gaze discovery | Travel between large stationary targets left/right/up/down and diagonals. Immediate arrival feedback; no dwell requirement. | **Balloon Pop**, **Follow the Firefly**, **Treasure Hunt** | Acquisition/search time by direction, movement distance, screen coverage, edge reach, tracking gaps, repeated overshoot proxy | Repeated accurate arrival across directions, with optional individualized thresholds |
-| **3 Hold & Steady** | Sustained gaze, requires Level 2 targeting | Explicitly teach holding still with visible non-activating fill meter and user-controlled rest | **Butterfly Garden**, **Fill the Aquarium**, **Grow a Flower** | Uninterrupted fixation durations, raw gaze RMS jitter in mm, drift, hold-breaks, performance across 7×5 screen map, within-session change | Consistent holds for a user-adjustable goal, without requiring dwell *activation* for navigation |
-| **4 Activate with Dwell** | Voluntary selection, requires Level 3 steadiness | Demonstrate dwell activation; show radial countdown before selection; graduated dwell durations | **Launch the Rocket**, **Magic Buttons**, **Treasure Chest** | Dwell attempts/completions/interruptions, dwell latency, false activations using explicitly labeled catch trials, completion rate by duration | Reliable intentional dwell with an independently usable Back/rest route |
-| **5 Choose & Control** | Select between neighboring options and look away to rearm; requires Level 4 | Demonstrate look-away/rearm, two-choice menu navigation, corrections and increasing density | **Matching Pairs**, **Pattern Memory**, **Color Mixer** | Target size/spacing thresholds, rearm successes/failures, neighboring mis-selections, correction effort, menu return success | Reliable multi-choice selections, accessible corrections and safe Back navigation |
-| **6 Everyday Eye-Gaze** | Functional communication and desktop-style tasks; requires Level 5 | Build messages and complete everyday multi-step actions (not tied to live Windows shell) | **Message Builder**, **Gaze Shopping**, **Daily Missions** | Independent task completion, time-to-goal, corrected selections/minute, accuracy under sustained use, rest frequency, setting suitability | Demonstrated user-selected functional goals and independent recovery, not a single composite score |
+**Audience and design intent:** Adults encountering eye gaze for the first time, including people using AAC because of ALS or other motor limitations. The experience must resemble a polished professional training application or premium puzzle interface, **not a children's game**. Use uncluttered high-contrast panels, precise geometry, attractive restrained animations, adult-interest trivia, clear instructions, dignified progress celebrations, optional sound, and familiar functional activities. Do **not** introduce balloons, butterflies, fireworks, cartoon animals, childish narrative voices, playful mascots, or Comic Sans as product defaults.
 
-**Curriculum rule:** Separate *discovery of a skill* from *activation of UI controls that require that skill*. Before Level 4, any navigation must be triggered by previously taught gaze-location-only gestures or another demonstrably accessible mechanism. Avoid one-size-fits-all timers or compulsory mini-games. Completing the core level and completing a game are separate records. Repeatable game sessions should not artificially unlock unrelated skills.
+**Level 1 decision:** Keep the existing ten-target, black-background exercise with large randomized targets, margins away from edges, shared target progress wheel and persistent scoring. Do not replace it with a new themed game. The existing live Level 1 requires a 1-second sustained gaze acquisition and the current menu/Back requires 1.5-second dwell; these dependencies must be introduced through an automatic, no-dwell first-use entry and an initial zero-hold cause-and-effect demonstration **inside Level 1**, before longer holds become necessary. Preserve the current measured hold variant as the later part of Level 1. Retain optional adult general-knowledge trivia as a reward; allow a previously learned gaze-only skip/return path when possible. Replace Comic Sans or juvenile celebration language later as part of a coordinated adult visual refresh, not a rushed change to working gaze logic.
 
-**Game principles:** Short 1–3 minute rounds; optional sound and high-contrast effects; adjustable stimulus motion and complexity; no flashing triggers; clear large opt-out controls; selectable low-visual-load mode; provide immediate feedback. An optional playful theme should not prevent adults from using a clean, non-childlike presentation.
+| Level | Skill and prerequisite | Guided activity (adult visual design) | Optional adult-oriented exercises | Therapist measurements and gates |
+| --- | --- | --- | --- | --- |
+| **1 — Introduction to Eye Gaze** | Awareness of gaze feedback; no previous ability or dwell | **Retain existing ten large targets** on black, with short introductory instantaneous-gaze stage before 1-second hold stage; automatic instructions and completion; safe non-dwell way to rest/return for a complete novice | Existing adult-interest true/false trivia; optional different abstract target palettes only | Initial detection, successful acquisitions, short hold tolerance, region coverage, acquisition latency, tracking availability. Pass without needing an unlearned button or menu dwell |
+| **2 — Gaze Movement** | Deliberate left/right/up/down/diagonal movement; Level 1 | Move between large directional targets with immediate arrival response, no required activation | **Directional Challenge**, **Target Sequence**, **Screen Exploration** | Directional arrival time, movement difficulty, reachability, spatial coverage, overshoot proxy, dropouts |
+| **3 — Gaze Stability** | Sustained focus; Level 2 | Progressive steady hold with a precise progress ring and non-activating confirmation | **Focus Challenge**, **Steady Signal**, **Hold the Indicator** | RMS raw gaze jitter, hold durations/breaks, stability across regions, tracking validity |
+| **4 — Dwell Activation** | Intentional selectable activation; Level 3 | Explicit coaching for dwell progress, activation, and canceling an incomplete selection | **Control Center**, **System Activation**, **Precision Switches** | Dwell success rate, activation time, cancellations, explicitly labeled unintended selections |
+| **5 — Selection Accuracy** | Choose among competing targets; Level 4 | Large, contrasting multi-choice targets; gradually add distractors | **Visual Identification**, **Pattern Recognition**, **Selection Challenge** | Correct intended selections, neighboring errors, correction count, false activation on catch trials, spacing |
+| **6 — Gaze Navigation** | Screen navigation, Back, rest and look-away rearm; Level 5 | Simulated professional menu hierarchy and trained recovery controls | **Dashboard Navigation**, **Route Planner**, **Control Panel Tasks** | Navigation time, look-away rearm success, wrong-screen entries, recovery and independent exits |
+| **7 — Advanced Precision** | Small and close-spaced targets; Level 6 | Adaptively reduce target size and spacing only after previous success | **Precision Grid**, **Fine Targeting**, **Accuracy Challenge** | Minimum reliably selectable size, region-specific error rate, corrected selections/min, target size and dwell sensitivity |
+| **8 — Everyday Applications** | Integrated functional use; Level 7 | Adult-oriented AAC message composition and simulated practical computing | **Message Builder**, **Information Finder**, **Daily Task Simulation** | Functional task completion, effective selections/minute, correction effort, fatigue proxies, independent recovery |
+
+**Progression rules:** Advancement is based on successful repeated demonstrated skills, not entertainment completion. A learner may replay any unlocked activity. Optional games should not block progression. Reporting must distinguish target arrival, sustained hold, and deliberate activation, including whether smoothing/size assistance was active. Each level must offer navigation/stop controls accessible using only **previously taught** skills. Level 1 may need a non-dwell gaze gesture, safe automatically returning mode, or carefully verified non-interactive route; this is a blocker for unattended novice operation, not permission to assume caregiver support.
+
+**Adult interaction and visuals:** Dark slate/black background, cobalt/teal highlights, restrained amber successes, readable sans-serif typography, tasteful subtle motion, geometric panels and visual puzzles; no artificial child voice or cartoons. Use professional, non-patronizing instructions (e.g., “Look at the highlighted target” and “Target acquired”). Celebrate successful progress without overstimulation. Keep optional sound and all animation nonessential to input success. Allow adult-interest quizzes as optional recreation, avoiding literacy or trivia ability as a measure of gaze competence.
+
+**Session design:** Short guided segments with user-controlled rest, repeat, and exit as soon as those controls are teachable; any 1–3 minute round lengths are suggestions, not forced timeouts. Test accessibility and fatigue in the target population.
 
 ## Standardized instrumentation schema
 
@@ -85,28 +93,28 @@ Global layout: fixed black header with readable title + existing **BACK**, large
 
 **Exit gate:** every displayed metric is backed by valid measured input and is labeled NA otherwise.
 
-### Phase 2 — Guided Levels 1 & 2
+### Phase 2 — Preserve and refine Level 1, then build Level 2
 
 - [ ] Rework beginner launch, instructions, controls, rest and exit to use only gaze presence/location; remove compulsory dwell before taught.
-- [ ] Implement adaptive large-target Level 1 and its two optional games, with measurable intentional cause/effect.
-- [ ] Level 2 direction/coverage exercises and games; persist tracking/dropout and latency metrics.
+- [ ] Retain the existing ten-target Level 1, adding only an introductory immediate-gaze feedback step and an independent first-use entry/recovery mechanism; retain the optional adult-interest trivia reward.
+- [ ] Build Level 2 directional movement and adult-styled challenges; persist tracking/dropout and latency metrics.
 - [ ] Validate novice usability without caregiver assistance under a safe observed setup.
 
 **Exit gate:** repeatable independent session at both levels, complete gaze-only recovery routes.
 
-### Phase 3 — Levels 3 & 4
+### Phase 3 — Levels 3 & 4 (steady gaze and dwell activation)
 
 - [ ] Implement stationary hold measurement and dedicated raw-jitter trials, with pauses/dropout filtering.
-- [ ] Add adjustable dwell teaching sequence, 3 games, and explicit canceled/false-activation classification.
+- [ ] Add adjustable dwell teaching sequence, adult-styled control-panel exercises, and explicit canceled/false-activation classification.
 - [ ] Validate metrics against controlled gaze sample fixtures and user-selected dwell durations.
 
 **Exit gate:** users can learn to dwell rather than being required to already know it.
 
-### Phase 4 — Levels 5 & 6
+### Phase 4 — Levels 5–8 (selection, navigation, precision, functional use)
 
-- [ ] Implement look-away rearm, correction and two-choice/multichoice guided menus.
-- [ ] Introduce safe target-size and spacing trials; avoid tiny buttons in navigation before success.
-- [ ] Implement Message Builder, Gaze Shopping and Daily Missions, plus effective selections/min and independence metrics.
+- [ ] Implement Level 5 selection accuracy and Level 6 look-away rearm, correction and two-choice/multichoice guided menus.
+- [ ] Introduce Level 7 safe target-size and spacing trials; avoid tiny buttons in navigation before success.
+- [ ] Implement Level 8 adult functional challenges (Message Builder, Information Finder, Daily Task Simulation), effective selections/min and independence metrics.
 
 **Exit gate:** all task routes, including rest and exit, remain accessible when performance declines.
 
@@ -135,8 +143,8 @@ Global layout: fixed black header with readable title + existing **BACK**, large
 1. **Blocker:** TD Control coexistence plus beginner-safe interaction model (without this, do not claim the app is usable without assistance).
 2. Complete a reproducible **Windows build and UI verification** of the newly tabbed Diagnostics shell.
 3. Implement **reliable session and event recording** and real SKILLS measurements, with unit tests.
-4. Build **Levels 2 and 3** (arrival directions and hold stability) and instrument them. Level 1 must be corrected for unlearned dwell prerequisites first.
-5. Implement the dwell and choice levels, then practical AAC tasks.
+4. Build **Levels 2 and 3** (directional arrival and hold stability) and instrument them; retain the current Level 1 exercise and add a first-use non-dwell introduction and independent recovery route.
+5. Implement **Levels 4–8**: dwell, selection accuracy, menu navigation, advanced precision and practical AAC tasks.
 6. Complete Sessions and user-controlled PDF/CSV export after sufficient valid data exists.
 
 ## Testing notes
