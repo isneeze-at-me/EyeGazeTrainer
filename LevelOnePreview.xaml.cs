@@ -56,6 +56,8 @@ namespace EyeGazeApiViability
         private Button[] skillCategoryButtons;
         private int selectedSkillCategory;
         private readonly TextBlock[] skillMetricNames = new TextBlock[6];
+        private readonly TextBlock[] skillMetricValues = new TextBlock[6];
+        private readonly TextBlock[] skillMetricStatuses = new TextBlock[6];
         private readonly TextBlock[] skillMetricDetails = new TextBlock[6];
         // These are explicitly NOT measured yet. Values must remain NA
         // until validated event-based statistics are implemented.
@@ -428,6 +430,9 @@ namespace EyeGazeApiViability
             }
             if (gazeControlTarget != target)
             {
+                if (target == LevelZeroContinueButton &&
+                    currentScreen == AppScreen.LevelZero)
+                    levelZeroDwellAttempts++;
                 gazeControlTarget = target;
                 gazeControlEnteredAt = now;
                 bonusButtonMeasurement.CancelHold();
@@ -842,6 +847,8 @@ namespace EyeGazeApiViability
                 Grid.SetColumn(card, i % 2);
                 SkillsMetricsGrid.Children.Add(card);
                 skillMetricNames[i] = heading;
+                skillMetricValues[i] = value;
+                skillMetricStatuses[i] = status;
                 skillMetricDetails[i] = detail;
             }
         }
@@ -863,6 +870,10 @@ namespace EyeGazeApiViability
                 string[] parts = SkillMetrics[category][i].Split('|');
                 skillMetricNames[i].Text = parts[0];
                 skillMetricDetails[i].Text = parts[1];
+                string observed = category == 0 ? LevelZeroMetricValue(i) : "NA";
+                skillMetricValues[i].Text = observed;
+                skillMetricStatuses[i].Text = observed == "NA"
+                    ? "NOT YET RECORDED" : "RECORDED IN LEVEL 0";
             }
             for (int i = 0; i < skillCategoryButtons.Length; i++)
                 skillCategoryButtons[i].Style = (Style)Resources[
@@ -964,7 +975,10 @@ namespace EyeGazeApiViability
                     spatialAccuracy, spatialJitter, cursorFilter.SmoothingLevel,
                     gazeProfile.HitBoxScale, TrainingTargetMeasurement.TargetHoldMilliseconds,
                     (int)ControlDwell.TotalMilliseconds,
-                    SkillMetrics, TherapistSkillCategoryNames);
+                    SkillMetrics, TherapistSkillCategoryNames,
+                    new[] { LevelZeroMetricValue(0), LevelZeroMetricValue(1),
+                            LevelZeroMetricValue(2), LevelZeroMetricValue(3),
+                            LevelZeroMetricValue(4), LevelZeroMetricValue(5) });
 
                 string name = "EyeGazeTrainer_TherapistReport_" +
                     now.ToString("yyyyMMdd_HHmmss") + ".txt";
