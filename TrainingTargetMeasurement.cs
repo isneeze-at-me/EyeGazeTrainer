@@ -116,10 +116,14 @@ namespace EyeGazeApiViability
             // Use only recent raw samples for both precision and stability.
             DateTimeOffset cutoff = now.AddMilliseconds(-SettledWindowMilliseconds);
             int count = 0;
+            DateTimeOffset firstSample = default(DateTimeOffset);
+            DateTimeOffset lastSample = default(DateTimeOffset);
             double sx = 0, sy = 0, xx = 0, yy = 0;
             foreach (GazeSample sample in samples)
             {
                 if (sample.When < cutoff) continue;
+                if (count == 0) firstSample = sample.When;
+                lastSample = sample.When;
                 count++;
                 sx += sample.Raw.X;
                 sy += sample.Raw.Y;
@@ -142,7 +146,14 @@ namespace EyeGazeApiViability
             double elapsed = Math.Max(0, (now - shownAt).TotalSeconds);
             double speed = 100 * (1 - Clamp01((elapsed - 1.5) / 6.5));
 
-            return new TargetPerformance(precision, speed, stability);
+            // Avoid claiming a zero-jitter measurement when only one or two
+            // samples arrived or the settled observation was too brief.
+            double? jitter = count >= 3 &&
+                (lastSample - firstSample).TotalMilliseconds >= 100
+                ? Math.Sqrt(Math.Max(0,
+                    xx / count - mx * mx + yy / count - my * my))
+                : (double?)null;
+            return new TargetPerformance(precision, speed, stability, jitter);
         }
 
         private static bool Valid(Point p)
@@ -159,13 +170,16 @@ namespace EyeGazeApiViability
         public double Precision { get; private set; }
         public double Speed { get; private set; }
         public double Stability { get; private set; }
+        public double? JitterViewUnits { get; private set; }
         public double Overall { get { return Precision * 0.40 + Speed * 0.30 + Stability * 0.30; } }
 
-        public TargetPerformance(double precision, double speed, double stability)
+        public TargetPerformance(double precision, double speed, double stability,
+                                 double? jitterViewUnits = null)
         {
             Precision = Clamp(precision);
             Speed = Clamp(speed);
             Stability = Clamp(stability);
+            JitterViewUnits = jitterViewUnits;
         }
 
         private static double Clamp(double n) { return Math.Max(0, Math.Min(100, n)); }
