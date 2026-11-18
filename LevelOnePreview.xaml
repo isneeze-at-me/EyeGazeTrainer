@@ -154,6 +154,20 @@
                  Fill="#FFFFFF" Stroke="#0D253B" StrokeThickness="2"
                  Visibility="Collapsed" IsHitTestVisible="False"/>
       </Canvas>
+      <!-- Intro uses the same bright, playful style as Level 1 completion. -->
+      <Grid x:Name="LessonIntroOverlay" Background="Black"
+            Visibility="Collapsed" IsHitTestVisible="False">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Spacing="22" Margin="28">
+          <TextBlock Text="Ready, Set, Look!" Foreground="#FFD84D"
+                     FontFamily="Comic Sans MS" FontWeight="Bold" FontSize="72"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock Text="Look at each target and hold your gaze until it fills. Find all 10!"
+                     Foreground="#69E6FF" FontFamily="Comic Sans MS"
+                     FontWeight="Bold" FontSize="42"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Grid>
       <!-- Celebration stays on the same black lesson screen for three seconds. -->
       <Grid x:Name="CompletionOverlay" Background="Black"
             Visibility="Collapsed" IsHitTestVisible="False">
@@ -211,6 +225,20 @@
       </Grid>
     </Grid>
 
+    <!-- Automatic bonus intro; no answer buttons are available until it ends. -->
+    <Grid x:Name="BonusIntroOverlay" Background="Black"
+          Visibility="Collapsed" IsHitTestVisible="False">
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                  Spacing="22" Margin="28">
+        <TextBlock Text="Trivia Time!" Foreground="#FFD84D"
+                   FontFamily="Comic Sans MS" FontWeight="Bold" FontSize="76"
+                   TextAlignment="Center" TextWrapping="Wrap"/>
+        <TextBlock Text="10 fun facts! Look at TRUE or FALSE and hold your gaze to choose."
+                   Foreground="#69E6FF" FontFamily="Comic Sans MS"
+                   FontWeight="Bold" FontSize="42"
+                   TextAlignment="Center" TextWrapping="Wrap"/>
+      </StackPanel>
+    </Grid>
     <Grid x:Name="DisplaySettingsPanel"  Background="#101827"
            Visibility="Collapsed">
       <Grid.RowDefinitions>
