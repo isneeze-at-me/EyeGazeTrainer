@@ -303,3 +303,21 @@ Source implementation reviewed directly in private `isneeze-at-me/HomesteadInflu
 - Four-step shutdown, two-second gaze-free exit handoff, maximized launch, and TD Control overlay companion unchanged.
 
 **Verification:** GitHub CI build and supervised PCEye 5 runtime test pending at the time of writing. Confirm a visible wheel centered on Exit, clockwise fill from top, look-away reset, single activation at 1.5s, and normal TD Control recovery. A separate gaze-gap reset is evaluated when the next gaze event arrives; no new gaze APIs or timers were added.
+
+
+## Adaptive master cursor smoothing and target assistance (2026-11-17)
+
+At user request, EyeGazeTrainer now has a single, reusable `MasterCursorSmoothingFilter` with `SmoothingLevel` **0–99** (`0` = untouched raw position), starting at **85**, and a persistent learner `AdaptiveGazeProfile` in **UWP LocalSettings**.
+
+**Adaptation:**
+- The filter is a timestamp-based exponential low-pass filter with a maximum half-life of 120ms at level 99. Large intentional movements (raw-to-stabilized distance >=160 app-view coordinate units) snap immediately to raw. A >500ms gaze gap, off-window sample, or Exit resets smoothing history; no Windows cursor or TD Control trace is moved.
+- The training circle's **visible diameter stays unchanged**. Its circular logical hit area starts at **110%** of the visible diameter and gradually narrows toward **100%**.
+- Each successfully acquired training circle records **one** raw-gaze sample's normalized distance from the visible circle's center, scored from 100 for very central hits to 0 at the outer assisted boundary. No raw gaze coordinates are persisted. The `AccuracyScoreV1` is an exponential average (90% previous score / 10% new precision) and `AcquisitionsV1` is cumulative. Both are kept in the app's LocalSettings.
+- **No adaptive reduction in assistance for the first 8 acquisitions**, even if precision is high. From acquisition 9 through 56 a gradual confidence multiplier ramps toward full adaptation. As raw precision increases, the shared filter's smoothing target drops from 85 toward 0 and the logical training hitbox approaches 100%; if precision worsens, assistance grows again. Individual targets never implement their own independent smoothing parameters.
+- The main page displays a persistent `Accuracy: N%` indicator after the first successfully acquired target. This is an **approximate raw-center precision proxy, NOT a measured clinical tracking-accuracy percentage**. The current lesson has four targets, so initial sessions intentionally remain fully assisted. Future lessons can reuse the same profile.
+- Cursor visualization and training target acquisition consume the **same stabilized point**. Precision scoring uses the **raw** point. The safety-critical EXIT button continues to hit-test and dwell against **raw gaze**, NOT the smoothed point, with its unchanged 1.5s control dwell and circular progress wheel; this avoids trapping the user's Exit behind cursor smoothing.
+- Shutdown resource ordering, gaze-free 2-second exit handoff, maximized window, packaged TD Control overlay suppression and logging remain unchanged.
+
+**Configuration points:** `MasterCursorSmoothingFilter.SmoothingLevel` is the only filter-strength setting (integer 0–99). `AdaptiveGazeProfile.BeginnerSmoothingLevel` sets the initial starting strength; `BeginnerHitBoxScale=1.10` and `ExperiencedHitBoxScale=1.00` specify the logical hitbox endpoints. This adaptation policy is an initial accessibility hypothesis, not clinically validated; it may need tuning after user-supervised field tests.
+
+**Supervised verification:** Pull `Test`, Deploy Debug x64. Confirm early cursor is stabilized without a noticeable lag between target centers; ring activates from slightly beyond its visible edge, Exit dwell activates from **raw gaze** with look-away reset and TD Control stays responsive after exit. Reopen several times and verify accuracy persists; confirm smoothing/hitbox difficulty adapt gradually only after enough target acquisitions. Do not merge to main before approval.
