@@ -453,7 +453,7 @@ namespace EyeGazeApiViability
             {
                 bool done = trainingProgress.IsCompleted(i + 1);
                 allLevelButtons[i].Content = "LEVEL " + (i + 1) +
-                    (done ? "  ✓ COMPLETED" : i == 0 ? "" : "  · SOON");
+                    (done ? "  COMPLETED" : i == 0 ? "" : "  · SOON");
             }
         }
 
@@ -715,14 +715,24 @@ namespace EyeGazeApiViability
                 : "ACCURACY " + Math.Round(gazeProfile.AccuracyScore) + "%";
         }
 
+        // Keep the whole 55 mm target and radial wheel well inside the
+        // screen edges. Scale the extra inset with screen size, allowing
+        // smaller tablet screens without forcing an impossible layout.
+        private double TargetCenterMargin()
+        {
+            double smaller = Math.Min(TrainingCanvas.ActualWidth,
+                                      TrainingCanvas.ActualHeight);
+            double clearSpace = Math.Max(36, Math.Min(72, smaller * 0.10));
+            return Math.Min(smaller / 2 - 2,
+                TargetDiameter * 0.5 + clearSpace);
+        }
+
         private Point TargetCenter()
         {
-            double margin = TargetDiameter * 0.5 + 18;
-            double width = TrainingCanvas.ActualWidth;
-            double height = TrainingCanvas.ActualHeight;
+            double margin = TargetCenterMargin();
             return new Point(
-                margin + Math.Max(0, width - margin * 2) * targetPosition.X,
-                margin + Math.Max(0, height - margin * 2) * targetPosition.Y);
+                margin + Math.Max(0, TrainingCanvas.ActualWidth - margin * 2) * targetPosition.X,
+                margin + Math.Max(0, TrainingCanvas.ActualHeight - margin * 2) * targetPosition.Y);
         }
 
         private void PickRandomTarget()
@@ -730,25 +740,40 @@ namespace EyeGazeApiViability
             if (TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
                 TrainingCanvas.ActualHeight < TargetDiameter + 24) return;
 
+            double margin = TargetCenterMargin();
             Point chosen = new Point(0.5, 0.5);
-            // Avoid targets under the always-visible BACK escape button, and
-            // prefer a clear change in position after each successful dwell.
-            for (int attempt = 0; attempt < 60; attempt++)
+            Point candidate = chosen;
+            double bestDistance = double.MinValue;
+
+            // Keep clear of the gaze-accessible BACK control, and favor
+            // visibly different placements for consecutive acquisitions.
+            Point backOrigin = LessonBackButton.TransformToVisual(TrainingCanvas)
+                                                .TransformPoint(new Point(0, 0));
+            double backRight = backOrigin.X + LessonBackButton.ActualWidth + 20;
+            double backBottom = backOrigin.Y + LessonBackButton.ActualHeight + 20;
+
+            for (int attempt = 0; attempt < 90; attempt++)
             {
-                chosen = new Point(placementRandom.NextDouble(),
-                                   placementRandom.NextDouble());
+                candidate = new Point(placementRandom.NextDouble(),
+                                      placementRandom.NextDouble());
                 Point center = new Point(
-                    TargetDiameter * 0.5 + 18 +
-                    Math.Max(0, TrainingCanvas.ActualWidth - TargetDiameter - 36) * chosen.X,
-                    TargetDiameter * 0.5 + 18 +
-                    Math.Max(0, TrainingCanvas.ActualHeight - TargetDiameter - 36) * chosen.Y);
-                bool overlapsBack = center.X - TargetDiameter / 2 < 205 &&
-                                    center.Y - TargetDiameter / 2 < 125;
-                bool tooClose = hasPreviousTargetPosition &&
-                    Math.Sqrt(Math.Pow(chosen.X - previousTargetPosition.X, 2) +
-                              Math.Pow(chosen.Y - previousTargetPosition.Y, 2)) < 0.28;
-                if (!overlapsBack && !tooClose) break;
+                    margin + Math.Max(0, TrainingCanvas.ActualWidth - margin * 2) * candidate.X,
+                    margin + Math.Max(0, TrainingCanvas.ActualHeight - margin * 2) * candidate.Y);
+                double visualRadius = TargetDiameter * 0.5 + 46;
+                bool overlapsBack = center.X - visualRadius < backRight &&
+                                    center.Y - visualRadius < backBottom;
+                double distance = hasPreviousTargetPosition
+                    ? Math.Sqrt(Math.Pow(candidate.X - previousTargetPosition.X, 2) +
+                                Math.Pow(candidate.Y - previousTargetPosition.Y, 2))
+                    : 1;
+                if (!overlapsBack && distance > bestDistance)
+                {
+                    bestDistance = distance;
+                    chosen = candidate;
+                }
+                if (!overlapsBack && distance >= 0.28) break;
             }
+
             targetPosition = chosen;
             previousTargetPosition = chosen;
             hasPreviousTargetPosition = true;
