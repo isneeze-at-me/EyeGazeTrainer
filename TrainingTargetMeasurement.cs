@@ -52,9 +52,10 @@ namespace EyeGazeApiViability
         /// </summary>
         public bool CancelIncompleteHold(DateTimeOffset now)
         {
+            // Completion is only established by a valid inside-target gaze
+            // sample. A long gap followed by leaving cannot count as success.
             bool missed = dwelling && !acquired &&
-                (now - enteredAt).TotalMilliseconds >= MinimumAttemptMilliseconds &&
-                (now - enteredAt).TotalMilliseconds < TargetHoldMilliseconds;
+                (now - enteredAt).TotalMilliseconds >= MinimumAttemptMilliseconds;
             CancelHold();
             return missed;
         }
