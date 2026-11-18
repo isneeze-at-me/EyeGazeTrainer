@@ -66,27 +66,101 @@
                    TextWrapping="Wrap" FontSize="16"
                    Foreground="#FBBF24"/>
       </StackPanel>
-      <!-- Three equally tall buttons consume nearly all available space. -->
-      <Grid Grid.Row="1" RowSpacing="22">
+      <!-- Five large gaze-accessible main-menu actions. -->
+      <Grid Grid.Row="1" RowSpacing="12">
         <Grid.RowDefinitions>
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Button Style="{StaticResource PrimaryGazeButton}" x:Name="LevelsMenuButton" Grid.Row="0" Content="LEVELS"
-                Click="OnOpenLevels" HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
-                MinHeight="110" FontSize="36" FontWeight="Bold"/>
-        <Button Style="{StaticResource SecondaryGazeButton}" x:Name="SettingsMenuButton" Grid.Row="1" Content="SETTINGS"
-                Click="OnDisplaySettingsRequested" HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
-                MinHeight="110" FontSize="36" FontWeight="Bold"/>
-        <Button Style="{StaticResource DangerGazeButton}" x:Name="ExitButton" Grid.Row="2" Content="EXIT"
-                Click="OnExitRequested" HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
-                MinHeight="110" FontSize="36" FontWeight="Bold"/>
+        <Button Style="{StaticResource PrimaryGazeButton}" x:Name="LevelsMenuButton"
+                Grid.Row="0" Content="EYE GAZE TRAINER" Click="OnOpenLevels"
+                FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        <Button Style="{StaticResource SecondaryGazeButton}" x:Name="TdControlMenuButton"
+                Grid.Row="1" Content="TD CONTROL TRAINER" Click="OnTdControlTrainer"
+                FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        <Button Style="{StaticResource PrimaryGazeButton}" x:Name="DiagnosticsMenuButton"
+                Grid.Row="2" Content="DIAGNOSTICS" Click="OnOpenDiagnostics"
+                FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        <Button Style="{StaticResource SecondaryGazeButton}" x:Name="SettingsMenuButton"
+                Grid.Row="3" Content="SETTINGS" Click="OnDisplaySettingsRequested"
+                FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+        <Button Style="{StaticResource DangerGazeButton}" x:Name="ExitButton"
+                Grid.Row="4" Content="EXIT" Click="OnExitRequested"
+                FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
       </Grid>
+      <TextBlock x:Name="HomeNoticeText" Grid.Row="2" FontSize="18"
+                 TextAlignment="Center" Foreground="#FBBF24"
+                 TextWrapping="Wrap"/>
+    </Grid>
 
+    <!-- Four padded blue diagnostic quadrants on a black screen. -->
+    <Grid x:Name="DiagnosticsPanel" Background="Black" Visibility="Collapsed" Padding="20">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="86"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <TextBlock Grid.Row="0" Text="DIAGNOSTICS" FontSize="36"
+                 FontWeight="Bold" Foreground="White" TextAlignment="Center"
+                 VerticalAlignment="Center" IsHitTestVisible="False"/>
+      <Grid Grid.Row="1" ColumnSpacing="12" RowSpacing="12">
+        <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Border Grid.Row="0" Grid.Column="0" Background="#214E83"
+                BorderBrush="#76B9F3" BorderThickness="2" CornerRadius="12"/>
+        <Border Grid.Row="0" Grid.Column="1" Background="#214E83"
+                BorderBrush="#76B9F3" BorderThickness="2" CornerRadius="12"/>
+        <Border Grid.Row="1" Grid.Column="0" Background="#214E83"
+                BorderBrush="#76B9F3" BorderThickness="2" CornerRadius="12">
+          <Grid Padding="10">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto"/>
+              <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock Text="ACCURACY" FontSize="26" FontWeight="Bold"
+                       TextAlignment="Center" Foreground="White" Margin="0,0,0,8"/>
+            <!-- Scalable Surface Pro-style tablet illustration, with an
+                 actual 7x7 data grid drawn over its black display. -->
+            <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center"
+                     VerticalAlignment="Center">
+              <Grid Width="620" Height="390">
+                <Polygon Points="555,66 610,105 598,349 547,340"
+                         Fill="#475569" Stroke="#8FA6BF" StrokeThickness="3"
+                         HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                <Border Width="584" Height="376" CornerRadius="16"
+                        BorderBrush="#94A3B8" BorderThickness="4"
+                        Background="#121A26" HorizontalAlignment="Left"
+                        VerticalAlignment="Top">
+                  <Grid>
+                    <Border Margin="19,18,19,24" Background="Black"
+                            BorderBrush="#334155" BorderThickness="2">
+                      <Grid x:Name="AccuracyHeatmapGrid"
+                            Background="Black" Margin="3"/>
+                    </Border>
+                    <Ellipse Width="7" Height="7" Fill="#64748B"
+                             VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                             Margin="0,0,0,9"/>
+                  </Grid>
+                </Border>
+              </Grid>
+            </Viewbox>
+          </Grid>
+        </Border>
+        <Border Grid.Row="1" Grid.Column="1" Background="#214E83"
+                BorderBrush="#76B9F3" BorderThickness="2" CornerRadius="12"/>
+      </Grid>
+      <Button Style="{StaticResource SecondaryGazeButton}" x:Name="DiagnosticsBackButton"
+              Content="BACK" Click="OnBackToMenu" MinHeight="86" MinWidth="155"
+              Padding="16,12" FontSize="22" FontWeight="Bold"
+              HorizontalAlignment="Left" VerticalAlignment="Top"
+              Margin="0,0,0,0"/>
     </Grid>
 
     <Grid x:Name="LevelsPanel" Background="#101827" Padding="24"
