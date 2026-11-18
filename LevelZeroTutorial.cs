@@ -26,6 +26,9 @@ namespace EyeGazeApiViability
         private int levelZeroCornerMask;
         private int levelZeroCornerCandidate = -1;
         private DateTimeOffset levelZeroCornerEntered;
+        private int levelZeroCornerCandidateSamples;
+        private DateTimeOffset levelZeroLastPursuitSample;
+        private string levelZeroPendingInstruction;
         private int levelZeroPursuitSamples, levelZeroCloseSamples;
         private int levelZeroDwellAttempts;
         private bool levelZeroHadGaze;
@@ -60,6 +63,9 @@ namespace EyeGazeApiViability
             levelZeroLastPrompt = DateTimeOffset.MinValue;
             levelZeroSeconds = 0;
             levelZeroRegionMask = 0;
+            levelZeroCornerCandidateSamples = 0;
+            levelZeroLastPursuitSample = DateTimeOffset.MinValue;
+            levelZeroPendingInstruction = null;
             levelZeroCornerMask = 0;
             levelZeroMinX = levelZeroMinY = double.MaxValue;
             levelZeroMaxX = levelZeroMaxY = 0;
@@ -88,6 +94,7 @@ namespace EyeGazeApiViability
             try { LevelZeroSpeechPlayer.Stop(); }
             catch (Exception) { }
             levelZeroSpeechBusy = false;
+            levelZeroPendingInstruction = null;
             levelZeroGuidanceStarted = false;
             LevelZeroPursuitTarget.Visibility = Visibility.Collapsed;
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
@@ -98,7 +105,12 @@ namespace EyeGazeApiViability
         private async void SpeakLevelZero(string text, bool essential = false)
         {
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested ||
-                levelZeroSpeechBusy || levelZeroSpeechUnavailable) return;
+                levelZeroSpeechUnavailable) return;
+            if (levelZeroSpeechBusy)
+            {
+                if (essential) levelZeroPendingInstruction = text;
+                return;
+            }
             DateTimeOffset now = DateTimeOffset.UtcNow;
             if (!essential && (now - levelZeroLastPrompt).TotalSeconds < 15) return;
             levelZeroLastPrompt = now;
@@ -124,6 +136,13 @@ namespace EyeGazeApiViability
             finally
             {
                 levelZeroSpeechBusy = false;
+                if (currentScreen == AppScreen.LevelZero &&
+                    !string.IsNullOrEmpty(levelZeroPendingInstruction))
+                {
+                    string next = levelZeroPendingInstruction;
+                    levelZeroPendingInstruction = null;
+                    SpeakLevelZero(next, true);
+                }
             }
         }
 
@@ -186,9 +205,13 @@ namespace EyeGazeApiViability
                 if (candidate != levelZeroCornerCandidate)
                 {
                     levelZeroCornerCandidate = candidate;
+                    levelZeroCornerCandidateSamples = candidate >= 0 ? 1 : 0;
                     levelZeroCornerEntered = now;
                 }
-                if (candidate >= 0 && (now - levelZeroCornerEntered).TotalMilliseconds >= 250 &&
+                if (candidate >= 0 && candidate == levelZeroCornerCandidate)
+                    levelZeroCornerCandidateSamples++;
+                if (candidate >= 0 && levelZeroCornerCandidateSamples >= 3 &&
+                    (now - levelZeroCornerEntered).TotalMilliseconds >= 250 &&
                     (levelZeroCornerMask & (1 << candidate)) == 0)
                 {
                     levelZeroCornerMask |= 1 << candidate;
@@ -221,7 +244,10 @@ namespace EyeGazeApiViability
             }
             else if (levelZeroStage == LevelZeroStage.Pursue)
             {
-                if (!levelZeroHadGaze) return;
+                if (!levelZeroHadGaze ||
+                    (now - levelZeroLastPursuitSample).TotalMilliseconds < 150)
+                    return;
+                levelZeroLastPursuitSample = now;
                 levelZeroPursuitSamples++;
                 double x = Canvas.GetLeft(LevelZeroPursuitTarget) + 62;
                 double y = Canvas.GetTop(LevelZeroPursuitTarget) + 62;
