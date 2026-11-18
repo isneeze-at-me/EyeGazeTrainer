@@ -62,6 +62,12 @@ namespace EyeGazeApiViability
             return totals[row, col] / samples[row, col];
         }
 
+        public int Count(int row, int col)
+        {
+            return row >= 0 && row < Rows && col >= 0 && col < Columns
+                ? samples[row, col] : 0;
+        }
+
         public void Record(Point center, double width, double height,
                            double jitterMillimeters)
         {
