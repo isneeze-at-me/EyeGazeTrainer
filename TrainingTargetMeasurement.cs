@@ -71,7 +71,19 @@ namespace EyeGazeApiViability
 
         public bool Observe(Point raw, DateTimeOffset now, bool inside)
         {
-            if (acquired || shownAt == default(DateTimeOffset)) return false;
+            if (shownAt == default(DateTimeOffset)) return false;
+            if (acquired)
+            {
+                // Shared button dwell lasts 1500 ms, longer than target
+                // acquisition's 1000 ms. Continue retaining recent raw gaze
+                // samples so its eventual click can be measured accurately.
+                if (inside && Valid(raw))
+                {
+                    samples.Add(new GazeSample { When = now, Raw = raw });
+                    if (samples.Count > MaximumSamples) samples.RemoveAt(0);
+                }
+                return false;
+            }
             if (!inside || !Valid(raw) ||
                 (dwelling && (now - lastSampleAt).TotalMilliseconds > LostGazeMilliseconds))
             {
