@@ -12,7 +12,7 @@ namespace EyeGazeApiViability
     internal sealed class DisplayScaleManager
     {
         public const double ReferenceWidthMillimeters = 85.0;
-        public const double LevelOneDiameterMillimeters = 40.0;
+        public const double LevelOneDiameterMillimeters = 55.0;
         public const double BullseyeDiameterMillimeters = 3.5;
         private const string SettingPrefix = "DisplaySizeAdjustment.V1.";
         private const double MinimumViewUnitsPerMillimeter = 0.05;
