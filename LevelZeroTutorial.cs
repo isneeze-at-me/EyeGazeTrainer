@@ -239,25 +239,30 @@ namespace EyeGazeApiViability
             }
             finally
             {
-                if (version != levelZeroNarrationVersion) return;
-                levelZeroPlaybackCompletion = null;
-                levelZeroSpeechBusy = false;
-                if (currentScreen != AppScreen.LevelZero || exitRequested) return;
-                if (!string.IsNullOrEmpty(levelZeroPendingInstruction))
+                if (version == levelZeroNarrationVersion)
                 {
-                    string next = levelZeroPendingInstruction;
-                    levelZeroPendingInstruction = null;
-                    _ = PlayLevelZeroSpeechAsync(next);
-                }
-                else if (levelZeroButtonExplanationPending &&
-                         levelZeroStage == LevelZeroStage.Continue)
-                {
-                    levelZeroButtonExplanationPending = false;
-                    LevelZeroContinueButton.Visibility = Visibility.Visible;
-                }
-                else if (levelZeroFeedbackQueue.Count > 0)
-                {
-                    _ = PlayLevelZeroSpeechAsync(levelZeroFeedbackQueue.Dequeue());
+                    levelZeroPlaybackCompletion = null;
+                    levelZeroSpeechBusy = false;
+                    if (currentScreen == AppScreen.LevelZero && !exitRequested)
+                    {
+                        if (!string.IsNullOrEmpty(levelZeroPendingInstruction))
+                        {
+                            string next = levelZeroPendingInstruction;
+                            levelZeroPendingInstruction = null;
+                            _ = PlayLevelZeroSpeechAsync(next);
+                        }
+                        else if (levelZeroButtonExplanationPending &&
+                                 levelZeroStage == LevelZeroStage.Continue)
+                        {
+                            levelZeroButtonExplanationPending = false;
+                            LevelZeroContinueButton.Visibility = Visibility.Visible;
+                        }
+                        else if (levelZeroFeedbackQueue.Count > 0)
+                        {
+                            _ = PlayLevelZeroSpeechAsync(
+                                levelZeroFeedbackQueue.Dequeue());
+                        }
+                    }
                 }
             }
         }
