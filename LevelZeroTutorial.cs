@@ -17,6 +17,15 @@ namespace EyeGazeApiViability
     {
         private const string LevelZeroDoneKey = "EyeGazeTrainer.LevelZero.CompletedV1";
         private enum LevelZeroStage { Explore, Pursue, Continue }
+        private enum MovementStep { Discover, Vertical, Horizontal, Circles }
+        private MovementStep movementStep;
+        private DateTimeOffset movementStepStarted, lastMotionSample, lastMovement, lastMovementCoach;
+        private Point previousMotionPoint;
+        private bool hasPreviousMotionPoint, hasPreviousCircleAngle, hasActualMovement;
+        private double discoveryMotionSeconds, stepMotionSeconds, stepTravel;
+        private double circleTravelRadians, previousCircleAngle;
+        private int circleDirection, circleSectorMask, axisReversals, lastAxisDirection;
+        private int verticalSamples, horizontalSamples, diagonalSamples, circleSamples;
         private LevelZeroStage levelZeroStage;
         private bool levelZeroRenderingSubscribed;
         private DispatcherTimer levelZeroCoachTimer;
@@ -78,6 +87,8 @@ namespace EyeGazeApiViability
             levelZeroStage = LevelZeroStage.Explore;
             levelZeroStarted = DateTimeOffset.UtcNow;
             levelZeroStageStarted = levelZeroStarted;
+            movementStep = MovementStep.Discover;
+            ResetMovementStep();
             levelZeroLastPrompt = DateTimeOffset.MinValue;
             levelZeroSeconds = 0;
             levelZeroTimeToFirstGaze = -1;
