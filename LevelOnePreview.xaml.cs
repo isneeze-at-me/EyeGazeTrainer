@@ -33,7 +33,7 @@ namespace EyeGazeApiViability
         private Point targetPosition;
         private Point previousTargetPosition;
         private bool hasPreviousTargetPosition;
-        private enum AppScreen { Menu, Levels, Lesson, Settings }
+        private enum AppScreen { Menu, Levels, Lesson, Bonus, Settings }
         private AppScreen currentScreen = AppScreen.Menu;
 
         private GazeDeviceWatcherPreview watcher;
@@ -44,6 +44,7 @@ namespace EyeGazeApiViability
         private bool gazeSubscribed;
         private int cleanupStage;
         private DispatcherTimer cleanupTimer;
+        private DispatcherTimer bonusTransitionTimer;
         private string tracePath;
         private int targetIndex = -1;
         private readonly TrainingTargetMeasurement targetMeasurement = new TrainingTargetMeasurement();
@@ -56,6 +57,7 @@ namespace EyeGazeApiViability
         private Button[] menuButtons;
         private Button[] levelsButtons;
         private Button[] lessonButtons;
+        private Button[] bonusButtons;
         private Button[] displayButtons;
         private Button[] allLevelButtons;
         private DateTimeOffset gazeControlEnteredAt;
@@ -83,6 +85,7 @@ namespace EyeGazeApiViability
                 LevelThreeButton, LevelFourButton, LevelFiveButton,
                 LevelSixButton, LevelsBackButton };
             lessonButtons = new[] { LessonBackButton };
+            bonusButtons = new[] { BonusBackButton };
             displayButtons = new[] { ShorterButton, LongerButton, SaveDisplayButton,
                                      CancelDisplayButton, SettingsExitButton };
             displayScale = new DisplayScaleManager();
@@ -311,7 +314,7 @@ namespace EyeGazeApiViability
                 OnDisplaySettingsRequested(null, null);
             else if (target == LevelsBackButton)
                 OnBackToMenu(null, null);
-            else if (target == LessonBackButton)
+            else if (target == LessonBackButton || target == BonusBackButton)
                 OnBackToLevels(null, null);
             else if (target == LevelOneButton)
                 OnLevelOne(null, null);
@@ -339,6 +342,7 @@ namespace EyeGazeApiViability
             {
                 case AppScreen.Levels: return levelsButtons;
                 case AppScreen.Lesson: return lessonButtons;
+                case AppScreen.Bonus: return bonusButtons;
                 case AppScreen.Settings: return displayButtons;
                 default: return menuButtons;
             }
@@ -376,6 +380,8 @@ namespace EyeGazeApiViability
 
         private void ShowScreen(AppScreen screen)
         {
+            // Navigating away from the celebration must not fire a stale transition.
+            if (screen != AppScreen.Lesson) CancelBonusTransition();
             AppScreen previousScreen = currentScreen;
             currentScreen = screen;
             // Any live-gaze screen transition (including automatic lesson
@@ -394,6 +400,7 @@ namespace EyeGazeApiViability
             HomePanel.Visibility = screen == AppScreen.Menu ? Visibility.Visible : Visibility.Collapsed;
             LevelsPanel.Visibility = screen == AppScreen.Levels ? Visibility.Visible : Visibility.Collapsed;
             LessonPanel.Visibility = screen == AppScreen.Lesson ? Visibility.Visible : Visibility.Collapsed;
+            BonusPanel.Visibility = screen == AppScreen.Bonus ? Visibility.Visible : Visibility.Collapsed;
             DisplaySettingsPanel.Visibility = screen == AppScreen.Settings ? Visibility.Visible : Visibility.Collapsed;
             targetMeasurement.CancelHold();
             buttonDwellWheel.Hide();
@@ -656,12 +663,50 @@ namespace EyeGazeApiViability
                 Trace("Level 1 completed: six targets; source=" +
                       (live ? "live gaze" : "mouse"));
                 UpdateLevelBadges();
-                LevelsNoticeText.Text = "Level 1 completed! Great work.";
-                ShowScreen(AppScreen.Levels);
+                BeginBonusTransition();
                 return;
             }
             PickRandomTarget();
             targetMeasurement.BeginTarget(now);
+        }
+
+        // Celebrate on the lesson's existing black background, then enter the
+        // dedicated bonus screen without any gaze activation or menu selection.
+        private void BeginBonusTransition()
+        {
+            CancelBonusTransition();
+            TargetRing.Visibility = Visibility.Collapsed;
+            TargetBullseye.Visibility = Visibility.Collapsed;
+            HideTargetDwellVisual();
+            buttonDwellWheel.Hide();
+            CompletionOverlay.Visibility = Visibility.Visible;
+            LessonBackButton.Visibility = Visibility.Collapsed;
+            bonusTransitionTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(3)
+            };
+            bonusTransitionTimer.Tick += OnBonusTransitionTick;
+            bonusTransitionTimer.Start();
+        }
+
+        private void OnBonusTransitionTick(object sender, object e)
+        {
+            CancelBonusTransition();
+            if (!completed || stopping || exitRequested ||
+                currentScreen != AppScreen.Lesson) return;
+            ShowScreen(AppScreen.Bonus);
+        }
+
+        private void CancelBonusTransition()
+        {
+            if (bonusTransitionTimer != null)
+            {
+                bonusTransitionTimer.Stop();
+                bonusTransitionTimer.Tick -= OnBonusTransitionTick;
+                bonusTransitionTimer = null;
+            }
+            CompletionOverlay.Visibility = Visibility.Collapsed;
+            LessonBackButton.Visibility = Visibility.Visible;
         }
 
         // Score only an actual started dwell (at least 150 ms), not an
@@ -687,6 +732,7 @@ namespace EyeGazeApiViability
 
         private void ResetLesson()
         {
+            CancelBonusTransition();
             targetIndex = -1;
             completed = false;
             hasPreviousTargetPosition = false;
@@ -987,6 +1033,7 @@ namespace EyeGazeApiViability
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            CancelBonusTransition();
             if (displayInformation != null)
             {
                 displayInformation.DpiChanged -= OnDisplayDpiChanged;
