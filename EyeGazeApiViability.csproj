@@ -35,6 +35,8 @@
     <Compile Include="MainPage.xaml.cs"><DependentUpon>MainPage.xaml</DependentUpon></Compile>
     <Compile Include="LevelOnePreview.xaml.cs"><DependentUpon>LevelOnePreview.xaml</DependentUpon></Compile>
     <Compile Include="SharedButtonDwellWheel.cs" />
+    <Compile Include="MasterCursorSmoothingFilter.cs" />
+    <Compile Include="AdaptiveGazeProfile.cs" />
     <AppxManifest Include="Package.appxmanifest" />
     <ApplicationDefinition Include="App.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></ApplicationDefinition>
     <Page Include="MainPage.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></Page>
