@@ -16,7 +16,10 @@ namespace EyeGazeApiViability
         public const int BeginnerSmoothingLevel =
             MasterCursorSmoothingFilter.InitialSmoothingLevel;
 
-        private const string ScoreKey = "AdaptiveGaze.AccuracyScoreV2";
+        // Version 3 retains existing V2 skill component scores, while
+        // switching overall accuracy to asymmetric, level-aware updates.
+        private const string ScoreKey = "AdaptiveGaze.AccuracyScoreV3";
+        private const string LegacyScoreKey = "AdaptiveGaze.AccuracyScoreV2";
         private const string PrecisionKey = "AdaptiveGaze.PrecisionV2";
         private const string SpeedKey = "AdaptiveGaze.SpeedV2";
         private const string StabilityKey = "AdaptiveGaze.StabilityV2";
@@ -78,8 +81,11 @@ namespace EyeGazeApiViability
                 settings = ApplicationData.Current.LocalSettings.Values;
                 object savedScore;
                 object savedSamples;
-                if (settings.TryGetValue(ScoreKey, out savedScore) &&
-                    settings.TryGetValue(SamplesKey, out savedSamples))
+                // Existing users keep their V2 score until the first new
+                // training outcome. Do not reset learned adaptive history.
+                bool hasScore = settings.TryGetValue(ScoreKey, out savedScore) ||
+                                settings.TryGetValue(LegacyScoreKey, out savedScore);
+                if (hasScore && settings.TryGetValue(SamplesKey, out savedSamples))
                 {
                     double score = Convert.ToDouble(savedScore);
                     int count = Convert.ToInt32(savedSamples);
@@ -109,12 +115,42 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Level 1 deliberately has the smallest potential improvement,
+        // strongest decline, and lowest attainable ceiling. Advanced
+        // levels make it possible to earn the highest accuracy scores.
+        private static double SuccessGain(int level)
+        {
+            return 0.07 + (ClampLevel(level) - 1) * 0.022;
+        }
+
+        private static double WeakPerformanceLoss(int level)
+        {
+            return 0.22 - (ClampLevel(level) - 1) * 0.024;
+        }
+
+        private static double MissLoss(int level)
+        {
+            return 0.14 - (ClampLevel(level) - 1) * 0.018;
+        }
+
+        private static double LevelCeiling(int level)
+        {
+            return 65 + (ClampLevel(level) - 1) * 7;
+        }
+
+        private static int ClampLevel(int level)
+        {
+            return Math.Max(1, Math.Min(6, level));
+        }
+
         /// <summary>
-        /// Update each skill metric once per completed training-target hold.
-        /// Never save raw gaze coordinates or frame-by-frame measurements.
-        /// V2 keys deliberately do not inherit old first-border-entry scores.
+        /// Record a completed target. Only the composite accuracy display
+        /// changes; existing precision/speed/stability aggregates remain
+        /// available internally for performance measurement. Gains are
+        /// slow and level-capped, while poor completed performances have
+        /// a stronger negative influence on the lower levels.
         /// </summary>
-        public void RecordTargetPerformance(TargetPerformance result)
+        public void RecordTargetPerformance(TargetPerformance result, int level = 1)
         {
             if (result == null) return;
             bool first = acquisitions == 0;
@@ -124,11 +160,41 @@ namespace EyeGazeApiViability
                 speedScore * 0.90 + result.Speed * 0.10;
             stabilityScore = first ? result.Stability :
                 stabilityScore * 0.90 + result.Stability * 0.10;
-            accuracyScore = precisionScore * 0.40 +
-                            speedScore * 0.30 +
-                            stabilityScore * 0.30;
-            if (acquisitions < int.MaxValue) acquisitions++;
 
+            double observed = result.Overall;
+            if (observed > accuracyScore)
+            {
+                // Never erase an existing high score just because a
+                // beginner lesson has a lower allowed gain ceiling.
+                double increase = (observed - accuracyScore) * SuccessGain(level);
+                accuracyScore += Math.Min(increase,
+                    Math.Max(0, LevelCeiling(level) - accuracyScore));
+            }
+            else
+            {
+                accuracyScore += (observed - accuracyScore) *
+                                 WeakPerformanceLoss(level);
+            }
+            accuracyScore = ClampScore(accuracyScore);
+            if (acquisitions < int.MaxValue) acquisitions++;
+            Persist();
+        }
+
+        /// <summary>
+        /// An interrupted deliberate dwell counts as one unsuccessful
+        /// attempt. Multiple out-of-target samples after one break must
+        /// never repeat the penalty; the target measurement enforces this.
+        /// No raw positions, gaze history or missed coordinates are saved.
+        /// </summary>
+        public void RecordIncompleteTargetDwell(int level = 1)
+        {
+            if (acquisitions == 0) return; // no earned score to reduce
+            accuracyScore = ClampScore(accuracyScore * (1 - MissLoss(level)));
+            Persist();
+        }
+
+        private void Persist()
+        {
             try
             {
                 if (settings != null)
@@ -142,8 +208,13 @@ namespace EyeGazeApiViability
             }
             catch (Exception)
             {
-                // Storage failure must never block training or the Exit button.
+                // Storage failures must never interrupt training or Exit.
             }
+        }
+
+        private static double ClampScore(double value)
+        {
+            return Math.Max(0, Math.Min(100, value));
         }
 
         private static bool Valid(double score)
