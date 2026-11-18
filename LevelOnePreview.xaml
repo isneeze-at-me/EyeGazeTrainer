@@ -528,6 +528,11 @@
       <StackPanel Grid.Row="2" Spacing="10" Margin="0,18,0,0">
         <TextBlock x:Name="LevelsNoticeText" FontSize="18" TextAlignment="Center"
                    Foreground="#FBBF24" TextWrapping="Wrap"/>
+        <Button Style="{StaticResource PrimaryGazeButton}"
+                x:Name="LevelZeroReplayButton" Content="REPLAY INTRODUCTION"
+                Click="OnLevelZeroReplay" MinHeight="78"
+                FontSize="23" FontWeight="Bold"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
         <Button Style="{StaticResource SecondaryGazeButton}" x:Name="LevelsBackButton" Content="BACK TO MENU"
                 Click="OnBackToMenu" MinHeight="94"
                 FontSize="27" FontWeight="Bold" HorizontalAlignment="Stretch"
