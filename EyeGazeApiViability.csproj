@@ -39,6 +39,7 @@
     <Compile Include="AdaptiveGazeProfile.cs" />
     <Compile Include="AdaptiveHitTesting.cs" />
     <Compile Include="TrainingTargetMeasurement.cs" />
+    <Compile Include="DisplayScaleManager.cs" />
     <AppxManifest Include="Package.appxmanifest" />
     <ApplicationDefinition Include="App.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></ApplicationDefinition>
     <Page Include="MainPage.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></Page>
