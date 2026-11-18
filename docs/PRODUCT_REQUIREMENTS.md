@@ -80,3 +80,18 @@ The manually operated STOP control and BACK button are **developer controls** an
 - The spatial percentages are internal performance indicators, **not a clinical calibration score**, and sparse cells should not be treated as reliable diagnosis.
 
 **Acceptance tests pending:** Build with Debug/x64, verify 35-cell rendering and font sizes at Surface display scaling, navigate in/out with gaze, ensure NA cells stay NA until sampled, record successful and incomplete holds in different regions, restart and check persistence, confirm quiz wrong answers leave the map unchanged, and ensure eye-tracker cleanup remains unchanged. Follow the existing supervised hardware safety guidance.
+
+## Accuracy and eye-jitter heatmaps (Test branch, 2026-11-18)
+
+**Implemented in source; UWP build and hardware behavior are not yet verified.**
+
+- Bottom-left **Accuracy** and bottom-right **Eye Jitter** each use a matching vector tablet with **7 columns × 5 rows** on the same app-view coordinate grid; remaining upper quadrants stay reserved.
+- Accuracy cell backgrounds: green for average score **≥80%**, yellow for **60% through <80%**, red for **<60%**, neutral blue-gray for **NA**. Existing stored accuracy aggregates are reused unchanged.
+- Jitter is the root-mean-square radial dispersion of **raw, unsmoothed gaze coordinates around their mean**, calculated from the **last 300 ms** of a completed target hold. At least **3 valid gaze samples spanning 100 ms** are required; otherwise no jitter value is recorded. Deliberate travel before the settled window and interrupted holds do not contribute jitter measurements. A correctly answered, gaze-activated trivia choice also contributes its measured settled hold when enough samples exist.
+- The metric is converted from UWP view units to approximate **millimeters** using the existing DPI/optional display-size reference setting. These are **estimated on-screen gaze-position deviations**, not eye-movement measurements or clinical diagnoses; tracker noise, calibration, and head motion can affect them.
+- Jitter cell backgrounds use **provisional, non-clinical thresholds**: green **≤2 mm**, yellow **>2–4 mm**, red **>4 mm**, and neutral for **NA**. Each populated cell displays the mean jitter with one decimal place; the quadrant legend states its units and that lower is steadier.
+- Persistent jitter storage contains only each cell's **sum of observed RMS jitter and sample count** (35 pairs), not gaze coordinates, event timestamps, per-attempt traces, or reconstructed paths. Cells remain **NA** until new valid jitter measurements are collected, even if older accuracy data exists.
+- Both maps refresh when the user opens Diagnostics and continue to use existing gaze-only menu/back dwell controls. No changes were made to gaze acquisition, cursor smoothing, timer behavior, or eye-tracker shutdown.
+- Before relying on jitter bands, validate them using actual PCEye 5 observations, screen scaling, and expected normal sample rates. Colors express relative training indicators only.
+
+**Regression checklist:** verify the app builds in Visual Studio 2022 with UWP Debug/x64; both 7×5 grids render correctly and show NA initially; accuracy colors match stored values; jitter values and colors update after valid target holds; no mouse preview or interrupted hold invents jitter; jitter and accuracy persist after restart; both maps index the same screen cells; wrong trivia responses leave the map unchanged; Back/Exit still work by gaze without extra steps. Hardware regression must follow the documented supervised safety precautions.
