@@ -41,6 +41,7 @@
     <Compile Include="TrainingTargetMeasurement.cs" />
     <Compile Include="DisplayScaleManager.cs" />
     <Compile Include="TrainingProgress.cs" />
+    <Compile Include="TrainingReport.cs" />
     <Compile Include="SpatialAccuracyMap.cs" />
     <Compile Include="SpatialJitterMap.cs" />
     <Compile Include="TriviaQuestionBank.cs" />
