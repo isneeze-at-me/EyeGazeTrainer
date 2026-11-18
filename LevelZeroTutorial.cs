@@ -19,6 +19,7 @@ namespace EyeGazeApiViability
         private enum LevelZeroStage { Explore, Pursue, Continue }
         private LevelZeroStage levelZeroStage;
         private bool levelZeroRenderingSubscribed;
+        private DispatcherTimer levelZeroCoachTimer;
         private DateTimeOffset levelZeroStarted;
         private DateTimeOffset levelZeroStageStarted;
         private DateTimeOffset levelZeroLastPrompt;
@@ -40,6 +41,14 @@ namespace EyeGazeApiViability
         private bool levelZeroGuidanceStarted;
         private bool levelZeroHorizontalPrompted, levelZeroCornerPrompted, levelZeroFollowPrompted;
         private bool levelZeroSpeechBusy;
+        private bool levelZeroCoachedHorizontal, levelZeroCoachedVertical, levelZeroCoachedCorner;
+        private bool levelZeroCoachedPursuit, levelZeroCoachedButton;
+        private bool levelZeroVerticalPraised;
+        private bool levelZeroButtonExplanationPending;
+        private readonly System.Collections.Generic.Queue<string> levelZeroFeedbackQueue =
+            new System.Collections.Generic.Queue<string>();
+        private TaskCompletionSource<bool> levelZeroPlaybackCompletion;
+        private int levelZeroNarrationVersion;
         private SpeechSynthesizer levelZeroSynth;
         private MediaPlayer levelZeroAudioPlayer;
         private bool levelZeroSpeechUnavailable;
@@ -76,6 +85,12 @@ namespace EyeGazeApiViability
             levelZeroCornerCandidateSamples = 0;
             levelZeroLastPursuitSample = DateTimeOffset.MinValue;
             levelZeroPendingInstruction = null;
+            levelZeroFeedbackQueue.Clear();
+            levelZeroButtonExplanationPending = false;
+            levelZeroSpeechUnavailable = false;
+            levelZeroCoachedHorizontal = levelZeroCoachedVertical =
+                levelZeroCoachedCorner = levelZeroCoachedPursuit =
+                levelZeroCoachedButton = levelZeroVerticalPraised = false;
             levelZeroCornerMask = 0;
             levelZeroMinX = levelZeroMinY = double.MaxValue;
             levelZeroMaxX = levelZeroMaxY = 0;
@@ -87,12 +102,27 @@ namespace EyeGazeApiViability
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
             LevelZeroContinueButton.Visibility = Visibility.Collapsed;
             ShowScreen(AppScreen.LevelZero);
-            // Only animate while the pursuit stage is visible. The gaze
-            // watcher lifecycle is unchanged.
+            // Coaching continues even when the learner is not moving gaze.
+            levelZeroCoachTimer = new DispatcherTimer
+                { Interval = TimeSpan.FromSeconds(2) };
+            levelZeroCoachTimer.Tick += OnLevelZeroCoachTick;
+            levelZeroCoachTimer.Start();
         }
 
         private void StopLevelZero()
         {
+            levelZeroNarrationVersion++;
+            if (levelZeroCoachTimer != null)
+            {
+                levelZeroCoachTimer.Stop();
+                levelZeroCoachTimer.Tick -= OnLevelZeroCoachTick;
+                levelZeroCoachTimer = null;
+            }
+            if (levelZeroPlaybackCompletion != null)
+            {
+                levelZeroPlaybackCompletion.TrySetResult(false);
+                levelZeroPlaybackCompletion = null;
+            }
             StopLevelZeroRendering();
             // MediaPlayer is independent of the hidden/collapsed XAML visual.
             if (levelZeroAudioPlayer != null)
@@ -100,6 +130,7 @@ namespace EyeGazeApiViability
                 levelZeroAudioPlayer.Pause();
                 levelZeroAudioPlayer.Source = null;
                 levelZeroAudioPlayer.MediaFailed -= OnLevelZeroMediaPlayerFailed;
+                levelZeroAudioPlayer.MediaEnded -= OnLevelZeroMediaEnded;
                 levelZeroAudioPlayer.Dispose();
                 levelZeroAudioPlayer = null;
             }
@@ -110,6 +141,8 @@ namespace EyeGazeApiViability
             }
             levelZeroSpeechBusy = false;
             levelZeroPendingInstruction = null;
+            levelZeroFeedbackQueue.Clear();
+            levelZeroButtonExplanationPending = false;
             levelZeroGuidanceStarted = false;
             LevelZeroPursuitTarget.Visibility = Visibility.Collapsed;
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
