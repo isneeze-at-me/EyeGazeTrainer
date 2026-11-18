@@ -108,6 +108,7 @@ namespace EyeGazeApiViability
             }
             catch (Exception ex)
             {
+                LiveStatusText.Visibility = Visibility.Visible;
                 LiveStatusText.Text = "Cannot begin: trace unavailable (" +
                                       ex.GetType().Name + ")";
                 return;
@@ -129,6 +130,7 @@ namespace EyeGazeApiViability
             catch (Exception ex)
             {
                 Trace("ERROR watcher start: " + ex);
+                LiveStatusText.Visibility = Visibility.Visible;
                 LiveStatusText.Text = "Tracker setup failed: " + ex.GetType().Name +
                                       ". Use EXIT for supervised cleanup.";
             }
@@ -157,6 +159,7 @@ namespace EyeGazeApiViability
                 cursorFilter.Reset();
                 targetMeasurement.CancelHold();
                 HideTargetDwellVisual();
+                LiveStatusText.Visibility = Visibility.Visible;
                 LiveStatusText.Text = "Eye tracker disconnected. Please ask for assistance.";
                 Trace("Gaze device removed");
             });
@@ -179,11 +182,13 @@ namespace EyeGazeApiViability
                 gazeSource.GazeMoved += OnGazeMoved;
                 gazeSubscribed = true;
                 Trace("END gaze source subscription");
+                LiveStatusText.Visibility = Visibility.Collapsed;
                 LiveStatusText.Text = "Eye tracking ready. Look at LEVELS to start.";
             }
             catch (Exception ex)
             {
                 Trace("ERROR gaze source subscription: " + ex);
+                LiveStatusText.Visibility = Visibility.Visible;
                 LiveStatusText.Text = "Unable to start gaze: " + ex.GetType().Name;
             }
         }
@@ -895,6 +900,7 @@ namespace EyeGazeApiViability
             catch (Exception ex)
             {
                 Trace("ERROR " + phaseName + ": " + ex);
+                LiveStatusText.Visibility = Visibility.Visible;
                 LiveStatusText.Text = "HALTED at " + phaseName +
                     ". Helper assistance needed; do not close.";
                 cleanupTimer.Stop();
@@ -915,7 +921,8 @@ namespace EyeGazeApiViability
                 if (!navigated)
                 {
                     Trace("ERROR navigation returned false; exit cancelled");
-                    LiveStatusText.Text = "Unable to navigate; app remains open.";
+                    LiveStatusText.Visibility = Visibility.Visible;
+                LiveStatusText.Text = "Unable to navigate; app remains open.";
                     exitRequested = false;
                     ExitButton.IsEnabled = true;
                 }
@@ -923,6 +930,7 @@ namespace EyeGazeApiViability
             catch (Exception ex)
             {
                 Trace("ERROR navigation: " + ex);
+                LiveStatusText.Visibility = Visibility.Visible;
                 LiveStatusText.Text = "Navigation failed; app remains open.";
                 exitRequested = false;
                 ExitButton.IsEnabled = true;
