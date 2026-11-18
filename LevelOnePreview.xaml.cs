@@ -8,6 +8,7 @@ using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 namespace EyeGazeApiViability
@@ -355,6 +356,7 @@ namespace EyeGazeApiViability
             DisplaySettingsPanel.Visibility = screen == AppScreen.Settings ? Visibility.Visible : Visibility.Collapsed;
             targetMeasurement.CancelHold();
             buttonDwellWheel.Hide();
+            HideTargetDwellVisual();
             TargetRing.Visibility = Visibility.Collapsed;
             TargetBullseye.Visibility = Visibility.Collapsed;
             // Keep triggered gaze locked until the next look-away event.
@@ -440,6 +442,8 @@ namespace EyeGazeApiViability
                 DisplayScaleManager.BullseyeDiameterMillimeters));
             TargetRing.Width = targetDiameter;
             TargetRing.Height = targetDiameter;
+            TargetDwellTrack.Width = targetDiameter + 24;
+            TargetDwellTrack.Height = targetDiameter + 24;
             TargetBullseye.Width = bullseyeDiameter;
             TargetBullseye.Height = bullseyeDiameter;
 
@@ -565,6 +569,7 @@ namespace EyeGazeApiViability
             {
                 targetMeasurement.CancelHold();
                 TargetRing.StrokeThickness = 8;
+                UpdateTargetDwellVisual(false);
                 return;
             }
 
@@ -581,15 +586,12 @@ namespace EyeGazeApiViability
             bool inRing = AdaptiveHitTesting.ContainsCircle(
                 p, center, TargetDiameter, gazeProfile.HitBoxScale);
 
-            // Touching the border is NOT success: a full 500ms hold is needed.
-            if (!targetMeasurement.Observe(rawPoint, now, inRing))
-            {
-                TargetRing.StrokeThickness = inRing
-                    ? 8 + 5 * targetMeasurement.HoldProgress : 8;
-                return;
-            }
-
+            // A full 1000ms uninterrupted hold is required for acquisition.
+            bool acquired = targetMeasurement.Observe(rawPoint, now, inRing);
+            UpdateTargetDwellVisual(inRing);
+            if (!acquired) return;
             TargetRing.StrokeThickness = 8;
+            UpdateTargetDwellVisual(false);
             if (live)
             {
                 TargetPerformance result = targetMeasurement.Measure(
@@ -622,6 +624,7 @@ namespace EyeGazeApiViability
             hasPreviousTargetPosition = false;
             targetMeasurement.CancelHold();
             TargetRing.StrokeThickness = 8;
+            HideTargetDwellVisual();
             TargetRing.Visibility = Visibility.Collapsed;
             TargetBullseye.Visibility = Visibility.Collapsed;
             cursorFilter.Reset();
@@ -693,6 +696,7 @@ namespace EyeGazeApiViability
             {
                 TargetRing.Visibility = Visibility.Collapsed;
                 TargetBullseye.Visibility = Visibility.Collapsed;
+                HideTargetDwellVisual();
                 return;
             }
 
@@ -701,8 +705,82 @@ namespace EyeGazeApiViability
             Canvas.SetTop(TargetRing, center.Y - TargetDiameter / 2);
             Canvas.SetLeft(TargetBullseye, center.X - bullseyeDiameter / 2);
             Canvas.SetTop(TargetBullseye, center.Y - bullseyeDiameter / 2);
+            double radius = TargetDiameter * 0.5 + 12;
+            Canvas.SetLeft(TargetDwellTrack, center.X - radius);
+            Canvas.SetTop(TargetDwellTrack, center.Y - radius);
+            Canvas.SetLeft(TargetDwellCountdown, center.X - 60);
+            Canvas.SetTop(TargetDwellCountdown, center.Y + TargetDiameter * 0.27);
             TargetRing.Visibility = Visibility.Visible;
             TargetBullseye.Visibility = Visibility.Visible;
+            TargetDwellTrack.Visibility = Visibility.Visible;
+            UpdateTargetDwellVisual(false);
+        }
+
+        // Visible 1-second target timer. Menu buttons keep their existing
+        // separate 1.5-second SharedButtonDwellWheel.
+        private void UpdateTargetDwellVisual(bool inside)
+        {
+            if (currentScreen != AppScreen.Lesson ||
+                TargetRing.Visibility != Visibility.Visible)
+            {
+                HideTargetDwellVisual();
+                return;
+            }
+
+            double progress = inside ? targetMeasurement.HoldProgress : 0;
+            int remaining = Math.Max(0, (int)Math.Ceiling(
+                TrainingTargetMeasurement.TargetHoldMilliseconds * (1 - progress)));
+            TargetDwellCountdown.Text = remaining + " ms";
+            TargetDwellCountdown.Visibility = Visibility.Visible;
+            TargetDwellTrack.Visibility = Visibility.Visible;
+            if (progress <= 0)
+            {
+                TargetDwellProgress.Data = null;
+                TargetDwellProgress.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            Point center = TargetCenter();
+            double radius = TargetDiameter * 0.5 + 12;
+            double sweep = Math.Max(0, Math.Min(1, progress)) * Math.PI * 2;
+            double first = Math.Min(Math.PI, sweep);
+            double second = Math.Max(0, sweep - Math.PI);
+            var figure = new PathFigure
+            {
+                StartPoint = new Point(center.X, center.Y - radius),
+                IsClosed = false
+            };
+            figure.Segments.Add(new ArcSegment
+            {
+                Point = new Point(center.X + radius * Math.Sin(first),
+                                  center.Y - radius * Math.Cos(first)),
+                Size = new Size(radius, radius),
+                SweepDirection = SweepDirection.Clockwise,
+                IsLargeArc = false
+            });
+            if (second > 0)
+            {
+                figure.Segments.Add(new ArcSegment
+                {
+                    Point = new Point(center.X + radius * Math.Sin(sweep),
+                                      center.Y - radius * Math.Cos(sweep)),
+                    Size = new Size(radius, radius),
+                    SweepDirection = SweepDirection.Clockwise,
+                    IsLargeArc = false
+                });
+            }
+            var geometry = new PathGeometry();
+            geometry.Figures.Add(figure);
+            TargetDwellProgress.Data = geometry;
+            TargetDwellProgress.Visibility = Visibility.Visible;
+        }
+
+        private void HideTargetDwellVisual()
+        {
+            TargetDwellTrack.Visibility = Visibility.Collapsed;
+            TargetDwellProgress.Visibility = Visibility.Collapsed;
+            TargetDwellProgress.Data = null;
+            TargetDwellCountdown.Visibility = Visibility.Collapsed;
         }
 
         private static double Clamp(double value, double min, double max)
@@ -716,6 +794,7 @@ namespace EyeGazeApiViability
             exitRequested = true;
             displaySettingsVisible = false;
             targetMeasurement.CancelHold();
+            HideTargetDwellVisual();
             cursorFilter.Reset();
             buttonDwellWheel.Hide();
             ExitButton.IsEnabled = false;
