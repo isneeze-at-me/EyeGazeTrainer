@@ -11,7 +11,7 @@ namespace EyeGazeApiViability
     /// </summary>
     internal sealed class AdaptiveGazeProfile
     {
-        public const double BeginnerHitBoxScale = 1.10;
+        public const double BeginnerHitBoxScale = 1.02;
         public const double ExperiencedHitBoxScale = 1.00;
         public const int BeginnerSmoothingLevel =
             MasterCursorSmoothingFilter.InitialSmoothingLevel;
