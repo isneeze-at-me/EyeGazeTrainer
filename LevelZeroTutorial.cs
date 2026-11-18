@@ -442,9 +442,11 @@ namespace EyeGazeApiViability
 
             if (movementStep == MovementStep.Discover)
             {
+                // Count only sampled intervals with real cursor displacement.
+                // Pauses and stationary tracker jitter do not contribute.
                 discoveryMotionSeconds += dt;
                 stepTravel += displacement;
-                if (discoveryMotionSeconds >= 1.0 && stepTravel >= .15)
+                if (discoveryMotionSeconds >= 15.0 && stepTravel >= .50)
                     NextMovementStep(MovementStep.Vertical,
                         "There you go! You're moving the cursor. Now look toward the top of the screen, then down toward the bottom. Keep practicing up and down.");
                 return;
@@ -569,7 +571,7 @@ namespace EyeGazeApiViability
             if (!levelZeroGuidanceStarted)
             {
                 levelZeroGuidanceStarted = true;
-                SpeakLevelZero("Welcome to EyeGazeTrainer! The two eyes on the screen are your cursor. Start by moving your eyes around the screen. Watch the cursor move with you. There is nothing to select yet. Take your time. We will start when you move.", true);
+                SpeakLevelZero("Welcome to EyeGazeTrainer! The two eyes on the screen are your cursor. For the first exercise, move your eyes freely around the screen for fifteen seconds of actual movement. Watch the cursor follow you. You can stop and rest whenever you need to; resting does not count toward the fifteen seconds.", true);
             }
 
             if (levelZeroStage == LevelZeroStage.Explore)
