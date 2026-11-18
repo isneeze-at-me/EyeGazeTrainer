@@ -33,6 +33,9 @@ namespace EyeGazeApiViability
         private const int TargetsPerLevel = 10;
         private readonly Random placementRandom = new Random();
         private readonly TrainingProgress trainingProgress = new TrainingProgress();
+        private readonly TrainingReport trainingReport = new TrainingReport();
+        private DispatcherTimer practiceTimer;
+        private DateTimeOffset lastPracticeTick;
         private readonly SpatialAccuracyMap spatialAccuracy = new SpatialAccuracyMap();
         private readonly SpatialJitterMap spatialJitter = new SpatialJitterMap();
         private readonly TextBlock[,] accuracyCells =
@@ -130,6 +133,10 @@ namespace EyeGazeApiViability
             UpdateAccuracyDisplay();
             UpdateLevelBadges();
             ShowScreen(AppScreen.Menu);
+            practiceTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            practiceTimer.Tick += OnPracticeTimerTick;
+            lastPracticeTick = DateTimeOffset.UtcNow;
+            practiceTimer.Start();
             Loaded += OnPageLoaded;
         }
 
@@ -460,7 +467,11 @@ namespace EyeGazeApiViability
             BonusPanel.Visibility = screen == AppScreen.Bonus ? Visibility.Visible : Visibility.Collapsed;
             DisplaySettingsPanel.Visibility = screen == AppScreen.Settings ? Visibility.Visible : Visibility.Collapsed;
             DiagnosticsPanel.Visibility = screen == AppScreen.Diagnostics ? Visibility.Visible : Visibility.Collapsed;
-            if (screen == AppScreen.Diagnostics) RefreshDiagnosticGrids();
+            if (screen == AppScreen.Diagnostics)
+            {
+                RefreshDiagnosticGrids();
+                RefreshTrainingReport();
+            }
             targetMeasurement.CancelHold();
             buttonDwellWheel.Hide();
             HideTargetDwellVisual();
@@ -470,6 +481,48 @@ namespace EyeGazeApiViability
             // This prevents entering another screen while still gazing at
             // the same coordinates from the previous screen's button.
             if (screen != AppScreen.Lesson) UpdateAccuracyDisplay();
+        }
+
+        // Count only active gaze-guided practice, excluding menu time,
+        // unavailable gaze tracking, long suspension gaps, and shutdown.
+        private void OnPracticeTimerTick(object sender, object e)
+        {
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            double elapsed = (now - lastPracticeTick).TotalSeconds;
+            lastPracticeTick = now;
+            if (exitRequested || stopping || !live ||
+                (currentScreen != AppScreen.Lesson && currentScreen != AppScreen.Bonus) ||
+                lastValidGazeSampleAt == default(DateTimeOffset) ||
+                (now - lastValidGazeSampleAt).TotalSeconds > 2) return;
+            trainingReport.AddPracticeSeconds(elapsed);
+        }
+
+        private static void SetTrend(TextBlock label, int trend)
+        {
+            // Up means improved; for jitter an improvement is a reduction.
+            label.Text = trend > 0 ? "▲" : trend < 0 ? "▼" : "—";
+            label.Foreground = trend > 0 ? GoodBrush :
+                               trend < 0 ? PoorBrush : WhiteTextBrush;
+        }
+
+        private void RefreshTrainingReport()
+        {
+            int finished = 0;
+            for (int level = 1; level <= 6; level++)
+                if (trainingProgress.IsCompleted(level)) finished++;
+            ReportLevelsText.Text = finished + " / 6";
+            ReportRunsText.Text = trainingReport.CompletedRuns.ToString();
+            ReportHoursText.Text = trainingReport.PracticeHours.ToString("0.00") + " h";
+            // Overall is the existing persistent adaptive accuracy score.
+            ReportOverallText.Text = gazeProfile.Acquisitions > 0
+                ? gazeProfile.AccuracyScore.ToString("0") + "%" : "NA";
+            ReportAccuracyText.Text = trainingReport.LatestAccuracy.HasValue
+                ? trainingReport.LatestAccuracy.Value.ToString("0") + "%" : "NA";
+            ReportJitterText.Text = trainingReport.LatestJitter.HasValue
+                ? trainingReport.LatestJitter.Value.ToString("0.0") + " mm" : "NA";
+            SetTrend(ReportOverallTrend, trainingReport.OverallTrend);
+            SetTrend(ReportAccuracyTrend, trainingReport.AccuracyTrend);
+            SetTrend(ReportJitterTrend, trainingReport.JitterTrend);
         }
 
         // Both maps use the same screen coordinates and 7x5 region geometry.
@@ -564,6 +617,7 @@ namespace EyeGazeApiViability
                                         displayScale.ViewUnitsPerMillimeter;
             spatialJitter.Record(screenCenter, RootLayout.ActualWidth,
                                  RootLayout.ActualHeight, jitterMillimeters);
+            trainingReport.RecordJitter(jitterMillimeters);
         }
 
         private void OnOpenLevels(object sender, RoutedEventArgs e)
@@ -861,6 +915,8 @@ namespace EyeGazeApiViability
                 TargetPerformance result = targetMeasurement.Measure(
                     center, TargetDiameter * 0.5, now);
                 gazeProfile.RecordTargetPerformance(result, 1);
+                trainingReport.RecordOverall(gazeProfile.AccuracyScore);
+                trainingReport.RecordAccuracy(result.Precision);
                 Point canvasOriginOnPage = TrainingCanvas.TransformToVisual(RootLayout)
                     .TransformPoint(new Point(0, 0));
                 spatialAccuracy.Record(
@@ -879,6 +935,7 @@ namespace EyeGazeApiViability
             {
                 completed = true;
                 trainingProgress.MarkCompleted(1);
+                trainingReport.RecordCompletedRun();
                 Trace("Level 1 completed: ten targets; source=" +
                       (live ? "live gaze" : "mouse"));
                 UpdateLevelBadges();
@@ -1040,6 +1097,8 @@ namespace EyeGazeApiViability
                         bonusButtonMeasurement.Measure(center, radius,
                                                        DateTimeOffset.UtcNow);
                     gazeProfile.RecordTargetPerformance(performance, 1);
+                    trainingReport.RecordOverall(gazeProfile.AccuracyScore);
+                    trainingReport.RecordAccuracy(performance.Precision);
                     spatialAccuracy.Record(center, RootLayout.ActualWidth,
                                            RootLayout.ActualHeight, performance.Overall);
                     RecordMeasuredJitter(center, performance);
@@ -1146,6 +1205,9 @@ namespace EyeGazeApiViability
             if (targetMeasurement.CancelIncompleteHold(now))
             {
                 gazeProfile.RecordIncompleteTargetDwell(1);
+                if (gazeProfile.Acquisitions > 0)
+                    trainingReport.RecordOverall(gazeProfile.AccuracyScore);
+                trainingReport.RecordAccuracy(0);
                 Point missedTarget = TargetCenter();
                 Point offset = TrainingCanvas.TransformToVisual(RootLayout)
                     .TransformPoint(new Point(0, 0));
@@ -1309,6 +1371,12 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            if (practiceTimer != null)
+            {
+                practiceTimer.Stop();
+                practiceTimer.Tick -= OnPracticeTimerTick;
+                practiceTimer = null;
+            }
             CancelBonusTransition();
             CancelBonusQuestionTimer();
             LessonIntroOverlay.Visibility = Visibility.Collapsed;
@@ -1466,6 +1534,12 @@ namespace EyeGazeApiViability
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            if (practiceTimer != null)
+            {
+                practiceTimer.Stop();
+                practiceTimer.Tick -= OnPracticeTimerTick;
+                practiceTimer = null;
+            }
             CancelBonusTransition();
             CancelBonusQuestionTimer();
             if (displayInformation != null)
