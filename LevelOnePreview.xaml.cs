@@ -376,11 +376,12 @@ namespace EyeGazeApiViability
 
         private void ShowScreen(AppScreen screen)
         {
+            AppScreen previousScreen = currentScreen;
             currentScreen = screen;
             // Any live-gaze screen transition (including automatic lesson
             // completion) needs a deliberate movement before another
             // button can activate. Startup and mouse-only use do not.
-            requireLookAwayAfterNavigation = live && currentScreen != screen;
+            requireLookAwayAfterNavigation = live && previousScreen != screen;
             if (requireLookAwayAfterNavigation)
                 lastActivatedGazePosition = mostRecentRawGazePosition;
             gazeControlTarget = null;
