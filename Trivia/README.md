@@ -1,6 +1,6 @@
 # Level 1 True/False Trivia — 500-question bank
 
-**Status:** Question content added to the `Test` branch. The bonus-round screen is currently a placeholder; the quiz selection, answer controls, scoring, and completion behavior are **not implemented yet**.
+**Status:** Question bank and Level 1 ten-question bonus flow implemented on `Test`; Windows/UWP compilation and supervised gaze hardware testing remain **unverified**.
 
 ## Files
 
@@ -23,12 +23,20 @@ Each UTF-8 JSON file is an array of 100 records with the fields:
 
 The bank contains 500 unique statements, evenly split into 250 True and 250 False answers, with simple-to-moderate topics and no intentional political, religious, violent, sexual, or otherwise controversial material. Each category contains 10 True and 10 False answers.
 
-## Future quiz integration
+## Implemented quiz behavior
 
-- Shuffle across categories and rotate material to avoid overly repetitive rounds.
-- **Never show both questions with the same `factGroup` in one quiz.** Doing so would repeat the underlying fact or reveal an answer.
-- Balance True and False answers in each round where practical, rather than displaying the bank in file order.
-- Keep the first bonus game compatible with the prior taught gaze skills; avoid requiring novel click, dwell, or navigation interactions without instruction.
-- Verify the quiz UI and actual runtime loading before claiming the bonus round is functional.
+- Following Level 1, the three-second celebration automatically opens a ten-question True/False round.
+- The complete statement appears centered in the top half. Two large True and False buttons fill the bottom half.
+- The existing shared 1500 ms gaze-button dwell, radial progress wheel, global smoothing and adaptive button hitbox are reused. Mouse or touch Click works for developer tests.
+- Ten questions are selected randomly across available topics, with a preference for different topics and balanced truth values. No two questions from the same fact group appear in one round.
+- Dealt question IDs are saved to UWP LocalSettings across sessions; none repeats until the pool of 500 is exhausted. At exhaustion the deck replenishes.
+- After an answer, the answer and explanation replace the statement for five seconds, regardless of correctness.
+- The separate trivia score is the count correct. Incorrect answers leave the existing gaze accuracy score untouched; correct answers from a valid live-gaze dwell can update it using the measured button selection. Mouse clicks do not impersonate gaze accuracy measurements.
+- After the tenth explanation, show the result for three seconds and return to the level-selection screen.
+- Quiz timing never calls the app's gaze cleanup or exit routine. The prior live-gaze hardware recovery warning still applies.
+
+## Verification pending
+
+Run Visual Studio UWP x64 build, confirm all five JSON content files are included in the deployment package, test a complete round with mouse, verify persisted non-repeating deck over restarts, test late-deck cycle reset, and separately validate button accuracy with **supervised** eye-gaze testing only after critical TD Control recovery issue #9 has been resolved.
 
 Editorial QA: record counts, category counts, unique IDs and question strings were checked programmatically when added. Factual statements have not undergone independent external fact-checking or user acceptance testing.
