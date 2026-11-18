@@ -51,6 +51,8 @@ namespace EyeGazeApiViability
         private Point previousTargetPosition;
         private bool hasPreviousTargetPosition;
         private enum AppScreen { Menu, Levels, Lesson, Bonus, Settings, Diagnostics }
+        private enum DiagnosticsTab { Overview, Skills, Maps, Sessions }
+        private DiagnosticsTab selectedDiagnosticsTab = DiagnosticsTab.Overview;
         private AppScreen currentScreen = AppScreen.Menu;
 
         private GazeDeviceWatcherPreview watcher;
@@ -113,7 +115,9 @@ namespace EyeGazeApiViability
             targetDwellWheel = new SharedButtonDwellWheel(CursorOverlay);
             menuButtons = new[] { LevelsMenuButton, TdControlMenuButton,
                                   DiagnosticsMenuButton, SettingsMenuButton, ExitButton };
-            diagnosticsButtons = new[] { DiagnosticsBackButton };
+            diagnosticsButtons = new[] { DiagnosticsBackButton,
+                DiagnosticsOverviewTabButton, DiagnosticsSkillsTabButton,
+                DiagnosticsMapsTabButton, DiagnosticsSessionsTabButton };
             BuildDiagnosticGrids();
             allLevelButtons = new[] { LevelOneButton, LevelTwoButton,
                 LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton };
@@ -363,6 +367,11 @@ namespace EyeGazeApiViability
                 OnOpenDiagnostics(null, null);
             else if (target == DiagnosticsBackButton)
                 OnBackToMenu(null, null);
+            else if (target == DiagnosticsOverviewTabButton ||
+                     target == DiagnosticsSkillsTabButton ||
+                     target == DiagnosticsMapsTabButton ||
+                     target == DiagnosticsSessionsTabButton)
+                SelectDiagnosticsTab(target);
             else if (target == SettingsMenuButton)
                 OnDisplaySettingsRequested(null, null);
             else if (target == LevelsBackButton)
@@ -471,6 +480,7 @@ namespace EyeGazeApiViability
             {
                 RefreshDiagnosticGrids();
                 RefreshTrainingReport();
+                SelectDiagnosticsTab(DiagnosticsOverviewTabButton);
             }
             targetMeasurement.CancelHold();
             buttonDwellWheel.Hide();
@@ -648,6 +658,52 @@ namespace EyeGazeApiViability
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Menu) return;
             HomeNoticeText.Text = "TD Control Trainer is coming soon.";
+        }
+
+        private void OnDiagnosticsTabClicked(object sender, RoutedEventArgs e)
+        {
+            if (currentScreen != AppScreen.Diagnostics || stopping || exitRequested)
+                return;
+            SelectDiagnosticsTab(sender as Button);
+        }
+
+        private void SelectDiagnosticsTab(Button selected)
+        {
+            if (selected == DiagnosticsOverviewTabButton)
+                selectedDiagnosticsTab = DiagnosticsTab.Overview;
+            else if (selected == DiagnosticsSkillsTabButton)
+                selectedDiagnosticsTab = DiagnosticsTab.Skills;
+            else if (selected == DiagnosticsMapsTabButton)
+                selectedDiagnosticsTab = DiagnosticsTab.Maps;
+            else if (selected == DiagnosticsSessionsTabButton)
+                selectedDiagnosticsTab = DiagnosticsTab.Sessions;
+            else return;
+
+            DiagnosticsOverviewPanel.Visibility =
+                selectedDiagnosticsTab == DiagnosticsTab.Overview
+                    ? Visibility.Visible : Visibility.Collapsed;
+            DiagnosticsSkillsPanel.Visibility =
+                selectedDiagnosticsTab == DiagnosticsTab.Skills
+                    ? Visibility.Visible : Visibility.Collapsed;
+            DiagnosticsMapsPanel.Visibility =
+                selectedDiagnosticsTab == DiagnosticsTab.Maps
+                    ? Visibility.Visible : Visibility.Collapsed;
+            DiagnosticsSessionsPanel.Visibility =
+                selectedDiagnosticsTab == DiagnosticsTab.Sessions
+                    ? Visibility.Visible : Visibility.Collapsed;
+
+            DiagnosticsOverviewTabButton.Style = (Style)Resources[
+                selectedDiagnosticsTab == DiagnosticsTab.Overview
+                    ? "PrimaryGazeButton" : "SecondaryGazeButton"];
+            DiagnosticsSkillsTabButton.Style = (Style)Resources[
+                selectedDiagnosticsTab == DiagnosticsTab.Skills
+                    ? "PrimaryGazeButton" : "SecondaryGazeButton"];
+            DiagnosticsMapsTabButton.Style = (Style)Resources[
+                selectedDiagnosticsTab == DiagnosticsTab.Maps
+                    ? "PrimaryGazeButton" : "SecondaryGazeButton"];
+            DiagnosticsSessionsTabButton.Style = (Style)Resources[
+                selectedDiagnosticsTab == DiagnosticsTab.Sessions
+                    ? "PrimaryGazeButton" : "SecondaryGazeButton"];
         }
 
         private void OnOpenDiagnostics(object sender, RoutedEventArgs e)
