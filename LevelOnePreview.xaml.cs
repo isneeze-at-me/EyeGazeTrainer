@@ -73,6 +73,7 @@ namespace EyeGazeApiViability
         private Button[] levelsButtons;
         private Button[] lessonButtons;
         private Button[] bonusButtons;
+        private Button[] bonusBackOnlyButtons;
         private readonly Button[] noGazeButtons = new Button[0];
         private Button[] displayButtons;
         private Button[] allLevelButtons;
@@ -101,7 +102,8 @@ namespace EyeGazeApiViability
                 LevelThreeButton, LevelFourButton, LevelFiveButton,
                 LevelSixButton, LevelsBackButton };
             lessonButtons = new[] { LessonBackButton };
-            bonusButtons = new[] { BonusTrueButton, BonusFalseButton };
+            bonusButtons = new[] { BonusBackButton, BonusTrueButton, BonusFalseButton };
+            bonusBackOnlyButtons = new[] { BonusBackButton };
             displayButtons = new[] { ShorterButton, LongerButton, SaveDisplayButton,
                                      CancelDisplayButton, SettingsExitButton };
             displayScale = new DisplayScaleManager();
@@ -336,7 +338,7 @@ namespace EyeGazeApiViability
                 OnDisplaySettingsRequested(null, null);
             else if (target == LevelsBackButton)
                 OnBackToMenu(null, null);
-            else if (target == LessonBackButton)
+            else if (target == LessonBackButton || target == BonusBackButton)
                 OnBackToLevels(null, null);
             else if (target == BonusTrueButton || target == BonusFalseButton)
                 SubmitBonusAnswer(target == BonusTrueButton, true);
@@ -366,7 +368,9 @@ namespace EyeGazeApiViability
             {
                 case AppScreen.Levels: return levelsButtons;
                 case AppScreen.Lesson: return lessonIntroActive ? noGazeButtons : lessonButtons;
-                case AppScreen.Bonus: return !bonusIntroActive && triviaAwaitingAnswer ? bonusButtons : noGazeButtons;
+                case AppScreen.Bonus:
+                    return bonusIntroActive ? noGazeButtons :
+                           triviaAwaitingAnswer ? bonusButtons : bonusBackOnlyButtons;
                 case AppScreen.Settings: return displayButtons;
                 default: return menuButtons;
             }
