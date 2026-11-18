@@ -287,3 +287,19 @@ At user's request removed the **3-second diagnostic pause between each of the fo
 The packaged `OverlayCompanion` now also calls `ShowWindow(hwnd, SW_MAXIMIZE)` **once per newly recognized exact EyeGazeTrainer foreground window**, then applies the same approved window-style overlay suppression logic. This produces an ordinary maximized Windows app window with its title bar, not an exclusive or borderless full-screen view. It does not maximize other apps, modify TD Control, or alter gaze APIs. If the companion fails to launch, app maximization is not guaranteed; check companion package and launch traces if needed. No added UI buttons or training levels.
 
 **Verification:** New faster cleanup timing and maximized-window behavior have not yet been validated on PCEye 5 hardware together. Because native gaze resource handoff had previously caused black screens and temporary loss of TD Control, perform first run only with helper/independent input available, and ensure TD Control responds after exit. The 100ms spacing is not evidence of native-device readiness.
+
+
+## Shared circular gaze-button dwell wheel (2026-11-17)
+
+User reports the shorter cleanup and maximized launch have **no issues** and requests the same **shared circular button dwell timer** used in Homestead Influencer.
+
+Source implementation reviewed directly in private `isneeze-at-me/HomesteadInfluencer`, `src/UI/ApprovedButtonInteraction.cs` (`ApprovedDwellWheelControl` and `ApprovedButtonInteractionService`) and `src/UI/SharedDwellWheelOverlay.cs`. Its approved design uses one dark circular track, a light clockwise progress arc starting at 12 o'clock, about 38px radius, 6px track and 7px progress thickness. It is visual-only; the interaction state owns activation. Homestead attaches its wheel to a registered button's local visual so transforms don't drift. The port uses the existing UWP page-wide hit-test-transparent overlay and calculates the registered button's center from `TransformToVisual`.
+
+**Implementation on Test:**
+- Added reusable `SharedButtonDwellWheel.cs`, a visual-only class that draws a circular track and an arc in `CursorOverlay`, centered on the active UWP `Button`. Its `Present(button, progress)`, `Hide()` and `Reset()` methods can be reused for later gaze-target buttons.
+- The wheel never captures pointer input and does not open any gaze APIs; it reuses `LevelOnePreview.ProcessGazeControl` and the existing **1.5-second Exit dwell**.
+- Wheel is visible when gazing at Exit and fills continuously, resetting immediately when gaze leaves the button or when the incoming gaze-event stream has a gap over 500ms. It hides after activation and on Exit.
+- Replaced the old `LiveStatusText` percentage update while looking at Exit with the visible circular wheel. No progress bars or extra buttons.
+- Four-step shutdown, two-second gaze-free exit handoff, maximized launch, and TD Control overlay companion unchanged.
+
+**Verification:** GitHub CI build and supervised PCEye 5 runtime test pending at the time of writing. Confirm a visible wheel centered on Exit, clockwise fill from top, look-away reset, single activation at 1.5s, and normal TD Control recovery. A separate gaze-gap reset is evaluated when the next gaze event arrives; no new gaze APIs or timers were added.
