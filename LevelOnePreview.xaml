@@ -459,7 +459,7 @@
       </Grid>
       <!-- Noninteractive success popup; it never blocks gaze Back or tabs. -->
       <Border x:Name="TherapistExportConfirmation"
-              Grid.Row="2" Panel.ZIndex="30"
+              Grid.Row="2" Canvas.ZIndex="30"
               Visibility="Collapsed" IsHitTestVisible="False"
               HorizontalAlignment="Center" VerticalAlignment="Center"
               MaxWidth="710" Margin="24"
