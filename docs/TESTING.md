@@ -321,3 +321,8 @@ At user request, EyeGazeTrainer now has a single, reusable `MasterCursorSmoothin
 **Configuration points:** `MasterCursorSmoothingFilter.SmoothingLevel` is the only filter-strength setting (integer 0–99). `AdaptiveGazeProfile.BeginnerSmoothingLevel` sets the initial starting strength; `BeginnerHitBoxScale=1.10` and `ExperiencedHitBoxScale=1.00` specify the logical hitbox endpoints. This adaptation policy is an initial accessibility hypothesis, not clinically validated; it may need tuning after user-supervised field tests.
 
 **Supervised verification:** Pull `Test`, Deploy Debug x64. Confirm early cursor is stabilized without a noticeable lag between target centers; ring activates from slightly beyond its visible edge, Exit dwell activates from **raw gaze** with look-away reset and TD Control stays responsive after exit. Reopen several times and verify accuracy persists; confirm smoothing/hitbox difficulty adapt gradually only after enough target acquisitions. Do not merge to main before approval.
+
+
+### Shared hitbox implementation
+
+`AdaptiveHitTesting.cs` is now the central logical hit-test API for both circular and rectangular training objects. It accepts a visible shape and a scale factor, expands symmetrically about the object center, and never changes the object's rendered size. Level 1 uses `AdaptiveHitTesting.ContainsCircle` with the persistent `AdaptiveGazeProfile.HitBoxScale`. Other lessons may use `ContainsRectangle` with the same learner-wide scale; essential safety controls remain excluded from assisted hitboxes. All files are on `Test` pending supervised testing.
