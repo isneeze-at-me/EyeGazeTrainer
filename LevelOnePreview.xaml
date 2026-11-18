@@ -12,11 +12,14 @@
       <StackPanel Grid.Row="0" Spacing="6" Margin="0,2,0,14">
         <TextBlock Text="EYEGAZETRAINER" FontSize="36" FontWeight="Bold"
                    TextAlignment="Center" Foreground="White"/>
-        <TextBlock x:Name="AccuracyText" Text="ACCURACY · GETTING STARTED"
+        <TextBlock x:Name="AccuracyText" Text="ACCURACY —"
                    FontSize="25" FontWeight="SemiBold" TextAlignment="Center"
                    TextWrapping="Wrap" Foreground="#86EFAC"/>
+        <!-- Diagnostic status is available to the app but not shown as
+             extra data on the uncluttered main menu. -->
         <TextBlock x:Name="LiveStatusText" Text="Connecting to eye tracker…"
-                   TextAlignment="Center" TextWrapping="Wrap" FontSize="16"
+                   Visibility="Collapsed" TextAlignment="Center"
+                   TextWrapping="Wrap" FontSize="16"
                    Foreground="#FBBF24"/>
       </StackPanel>
       <!-- Three equally tall buttons consume nearly all available space. -->
@@ -39,9 +42,7 @@
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
                 MinHeight="110" FontSize="36" FontWeight="Bold"/>
       </Grid>
-      <TextBlock Grid.Row="2" Margin="0,12,0,0"
-                 Text="Look at a button for 1.5 seconds."
-                 TextAlignment="Center" FontSize="17" Foreground="#B7C9E4"/>
+
     </Grid>
 
     <Grid x:Name="LevelsPanel" Background="#101827" Padding="16"
