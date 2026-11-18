@@ -68,6 +68,31 @@
   </Page.Resources>
   <Grid x:Name="RootLayout" Background="#101827">
     <!-- Single gaze-owning Page: screen changes never release the eye tracker. -->
+    <!-- First-run gaze-only introduction: no instructional text. -->
+    <Grid x:Name="LevelZeroPanel" Background="#080F1C"
+          Visibility="Collapsed">
+      <Canvas x:Name="LevelZeroCanvas" Background="#080F1C"
+              IsHitTestVisible="False">
+        <Ellipse x:Name="LevelZeroPursuitTarget" Width="124" Height="124"
+                 Stroke="#6FC9F9" StrokeThickness="8" Fill="#203E5B"
+                 Visibility="Collapsed"/>
+        <Ellipse x:Name="LevelZeroPursuitCenter" Width="18" Height="18"
+                 Fill="#C7F0FF" Visibility="Collapsed"/>
+      </Canvas>
+      <Button x:Name="LevelZeroContinueButton"
+              Style="{StaticResource PrimaryGazeButton}"
+              Content="⌂" FontSize="88" FontWeight="Bold"
+              Width="330" Height="210"
+              HorizontalAlignment="Center" VerticalAlignment="Center"
+              Visibility="Collapsed"
+              AutomationProperties.Name="Open main screen"
+              Click="OnLevelZeroContinue"/>
+      <!-- Offline Windows voice playback; no audio controls or on-screen instructions. -->
+      <MediaElement x:Name="LevelZeroSpeechPlayer" AutoPlay="False"
+                    AreTransportControlsEnabled="False"
+                    Visibility="Collapsed" IsHitTestVisible="False"/>
+    </Grid>
+
     <Grid x:Name="HomePanel" Background="#101827" Padding="26">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
@@ -691,6 +716,26 @@
             Canvas.ZIndex="30">
       <Ellipse x:Name="PreviewDot" Width="44" Height="44" Fill="#34D399"
                Visibility="Collapsed" IsHitTestVisible="False"/>
+      <!-- The two eyes are the cursor itself, not separately moving objects. -->
+      <Canvas x:Name="LevelZeroEyeCursor" Width="112" Height="65"
+              Visibility="Collapsed" IsHitTestVisible="False">
+        <Ellipse Canvas.Left="2" Canvas.Top="4" Width="53" Height="53"
+                 Fill="#EDF7FF" Stroke="#68BFE9" StrokeThickness="3"/>
+        <Ellipse Canvas.Left="57" Canvas.Top="4" Width="53" Height="53"
+                 Fill="#EDF7FF" Stroke="#68BFE9" StrokeThickness="3"/>
+        <Ellipse Canvas.Left="22" Canvas.Top="21" Width="23" Height="23"
+                 Fill="#235D8D"/>
+        <Ellipse Canvas.Left="77" Canvas.Top="21" Width="23" Height="23"
+                 Fill="#235D8D"/>
+        <Ellipse Canvas.Left="29" Canvas.Top="27" Width="10" Height="10"
+                 Fill="#0D1C2C"/>
+        <Ellipse Canvas.Left="84" Canvas.Top="27" Width="10" Height="10"
+                 Fill="#0D1C2C"/>
+        <Ellipse Canvas.Left="26" Canvas.Top="22" Width="5" Height="5"
+                 Fill="White"/>
+        <Ellipse Canvas.Left="81" Canvas.Top="22" Width="5" Height="5"
+                 Fill="White"/>
+      </Canvas>
     </Canvas>
   </Grid>
 </Page>
