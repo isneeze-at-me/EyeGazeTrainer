@@ -55,7 +55,6 @@ namespace EyeGazeApiViability
         private bool triviaAwaitingAnswer;
         private bool triviaFinishing;
         private bool triviaLoading;
-        private bool triviaMouseSelection;
         private string tracePath;
         private int targetIndex = -1;
         private readonly TrainingTargetMeasurement targetMeasurement = new TrainingTargetMeasurement();
@@ -69,6 +68,7 @@ namespace EyeGazeApiViability
         private Button[] levelsButtons;
         private Button[] lessonButtons;
         private Button[] bonusButtons;
+        private readonly Button[] noGazeButtons = new Button[0];
         private Button[] displayButtons;
         private Button[] allLevelButtons;
         private DateTimeOffset gazeControlEnteredAt;
@@ -360,7 +360,7 @@ namespace EyeGazeApiViability
             {
                 case AppScreen.Levels: return levelsButtons;
                 case AppScreen.Lesson: return lessonButtons;
-                case AppScreen.Bonus: return triviaAwaitingAnswer ? bonusButtons : new Button[0];
+                case AppScreen.Bonus: return triviaAwaitingAnswer ? bonusButtons : noGazeButtons;
                 case AppScreen.Settings: return displayButtons;
                 default: return menuButtons;
             }
