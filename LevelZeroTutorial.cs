@@ -51,6 +51,12 @@ namespace EyeGazeApiViability
         private DateTimeOffset levelZeroCornerEntered;
         private int levelZeroCornerCandidateSamples;
         private DateTimeOffset levelZeroLastPursuitSample;
+        private const double LevelZeroPursuitRadius = 110;
+        private const double LevelZeroPursuitInsideRadius = 100;
+        private double levelZeroPursuitInsideSeconds;
+        private DateTimeOffset levelZeroPursuitLastInside;
+        private bool levelZeroPursuitPreviouslyInside;
+        private bool levelZeroPursuitOutsideCoached;
         private Point levelZeroPursuitStartPoint;
         private string levelZeroPendingInstruction;
         private int levelZeroPursuitSamples, levelZeroCloseSamples;
@@ -112,6 +118,10 @@ namespace EyeGazeApiViability
             levelZeroRegionMask = 0;
             levelZeroCornerCandidateSamples = 0;
             levelZeroLastPursuitSample = DateTimeOffset.MinValue;
+            levelZeroPursuitInsideSeconds = 0;
+            levelZeroPursuitLastInside = DateTimeOffset.MinValue;
+            levelZeroPursuitPreviouslyInside = false;
+            levelZeroPursuitOutsideCoached = false;
             levelZeroPendingInstruction = null;
             levelZeroFeedbackQueue.Clear();
             levelZeroButtonExplanationPending = false;
@@ -466,22 +476,19 @@ namespace EyeGazeApiViability
                 }
                 return;
             }
-            if (!levelZeroHadGaze || (now - levelZeroLastValid).TotalSeconds > 8)
+            // During pursuit, coaching still works when gaze tracking is lost.
+            if (levelZeroStage != LevelZeroStage.Pursue &&
+                (!levelZeroHadGaze ||
+                 (now - levelZeroLastValid).TotalSeconds > 8))
                 return;
             double elapsed = (now - levelZeroStageStarted).TotalSeconds;
             if (levelZeroStage == LevelZeroStage.Pursue)
             {
-                if (elapsed >= 14 && levelZeroCloseSamples < 5 &&
-                    !levelZeroCoachedPursuit)
+                if (!levelZeroPursuitOutsideCoached &&
+                    (now - levelZeroPursuitLastInside).TotalSeconds > 5)
                 {
-                    levelZeroCoachedPursuit = true;
-                    SpeakLevelZero("Watch the glowing circle, not your cursor. Your eyes will guide the cursor as you follow.");
-                }
-                else if (elapsed >= 31 && levelZeroCloseSamples < 10 &&
-                         !levelZeroCoachedButton)
-                {
-                    levelZeroCoachedButton = true;
-                    SpeakLevelZero("Try following just part of the circle's path. Take your time.");
+                    levelZeroPursuitOutsideCoached = true;
+                    SpeakLevelZero("You're doing fine! Look at the large glowing circle and follow it with your eyes. Try to keep your eye cursor inside the circle as it moves.");
                 }
             }
             else if (levelZeroStage == LevelZeroStage.Continue &&
@@ -807,10 +814,12 @@ namespace EyeGazeApiViability
             // Keep the full moving target away from the display edges.
             double w = LevelZeroCanvas.ActualWidth;
             double h = LevelZeroCanvas.ActualHeight;
-            x = Math.Max(62, Math.Min(w - 62, x));
-            y = Math.Max(62, Math.Min(h - 62, y));
-            Canvas.SetLeft(LevelZeroPursuitTarget, x - 62);
-            Canvas.SetTop(LevelZeroPursuitTarget, y - 62);
+            x = Math.Max(LevelZeroPursuitRadius,
+                Math.Min(w - LevelZeroPursuitRadius, x));
+            y = Math.Max(LevelZeroPursuitRadius,
+                Math.Min(h - LevelZeroPursuitRadius, y));
+            Canvas.SetLeft(LevelZeroPursuitTarget, x - LevelZeroPursuitRadius);
+            Canvas.SetTop(LevelZeroPursuitTarget, y - LevelZeroPursuitRadius);
             Canvas.SetLeft(LevelZeroPursuitCenter, x - 9);
             Canvas.SetTop(LevelZeroPursuitCenter, y - 9);
         }
@@ -841,10 +850,16 @@ namespace EyeGazeApiViability
                     gaze = mostRecentRawGazePosition;
             }
             levelZeroPursuitStartPoint = new Point(
-                Math.Max(62, Math.Min(w - 62, gaze.X)),
-                Math.Max(62, Math.Min(h - 62, gaze.Y)));
+                Math.Max(LevelZeroPursuitRadius,
+                    Math.Min(w - LevelZeroPursuitRadius, gaze.X)),
+                Math.Max(LevelZeroPursuitRadius,
+                    Math.Min(h - LevelZeroPursuitRadius, gaze.Y)));
             levelZeroStageStarted = DateTimeOffset.UtcNow;
             levelZeroLastPursuitSample = DateTimeOffset.MinValue;
+            levelZeroPursuitInsideSeconds = 0;
+            levelZeroPursuitLastInside = levelZeroStageStarted;
+            levelZeroPursuitPreviouslyInside = false;
+            levelZeroPursuitOutsideCoached = false;
             PositionLevelZeroPursuitTarget(
                 levelZeroPursuitStartPoint.X, levelZeroPursuitStartPoint.Y);
             LevelZeroPursuitTarget.Visibility = Visibility.Visible;
@@ -873,11 +888,10 @@ namespace EyeGazeApiViability
             double cy = levelZeroPursuitStartPoint.Y +
                 (desiredY - levelZeroPursuitStartPoint.Y) * blend;
             PositionLevelZeroPursuitTarget(cx, cy);
-            if (elapsed >= 18 && levelZeroCloseSamples >= 20)
+            // Require fifteen cumulative seconds of measured gaze
+            // inside the larger circle before moving to button practice.
+            if (levelZeroPursuitInsideSeconds >= 15.0)
                 GoToLevelZeroSelection();
-            else if (elapsed > 35 && levelZeroCloseSamples >= 6)
-                GoToLevelZeroSelection();
-
         }
 
         private void ProcessLevelZeroGaze(Point raw, Point stabilized)
@@ -925,23 +939,32 @@ namespace EyeGazeApiViability
             else if (levelZeroStage == LevelZeroStage.Pursue)
             {
                 if (levelZeroStageWaitingForInstructions ||
-                    !levelZeroHadGaze ||
-                    (now - levelZeroLastPursuitSample).TotalMilliseconds < 150)
+                    (now - levelZeroLastPursuitSample).TotalMilliseconds < 80)
                     return;
+                // Tracking gaps do not count as continuous inside time.
+                double sampleSeconds = levelZeroLastPursuitSample ==
+                    DateTimeOffset.MinValue ? 0 :
+                    (now - levelZeroLastPursuitSample).TotalSeconds;
                 levelZeroLastPursuitSample = now;
                 levelZeroPursuitSamples++;
-                double x = Canvas.GetLeft(LevelZeroPursuitTarget) + 62;
-                double y = Canvas.GetTop(LevelZeroPursuitTarget) + 62;
-                double dx = raw.X - x, dy = raw.Y - y;
-                if (dx * dx + dy * dy <= 180 * 180)
+                double cx = Canvas.GetLeft(LevelZeroPursuitTarget) +
+                    LevelZeroPursuitRadius;
+                double cy = Canvas.GetTop(LevelZeroPursuitTarget) +
+                    LevelZeroPursuitRadius;
+                double dx = stabilized.X - cx, dy = stabilized.Y - cy;
+                bool inside = dx * dx + dy * dy <=
+                    LevelZeroPursuitInsideRadius * LevelZeroPursuitInsideRadius;
+                if (inside)
                 {
                     levelZeroCloseSamples++;
-                    if (levelZeroCloseSamples == 18 && !levelZeroFollowPrompted)
-                    {
-                        levelZeroFollowPrompted = true;
-                        SpeakLevelZero("That’s the idea! You’re keeping up with the moving circle. Nice work.");
-                    }
+                    levelZeroPursuitLastInside = now;
+                    levelZeroPursuitOutsideCoached = false;
+                    if (levelZeroPursuitPreviouslyInside && sampleSeconds <= .3)
+                        levelZeroPursuitInsideSeconds += sampleSeconds;
+                    if (levelZeroPursuitInsideSeconds >= 15.0)
+                        GoToLevelZeroSelection();
                 }
+                levelZeroPursuitPreviouslyInside = inside;
             }
         }
 
@@ -965,8 +988,8 @@ namespace EyeGazeApiViability
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
             levelZeroFeedbackQueue.Clear();
             string explanation = skipped
-                ? "Good effort, let's move on. A glowing circle will move around the screen. Follow it with your eyes and keep your cursor nearby."
-                : "Excellent work! You practiced moving up and down, left and right, and drawing circles. Next, follow the glowing circle as it moves around the screen. Keep your eyes on the circle and let the cursor follow.";
+                ? "Good effort, let's move on. A large glowing circle will move around the screen. Keep your eye cursor inside the circle for fifteen seconds of practice."
+                : "Excellent work! You practiced moving up and down, left and right, and drawing circles. Next, a large glowing circle will move around the screen. Follow it with your eyes and keep your eye cursor inside the circle for fifteen seconds.";
             levelZeroStageInstructionSpeech = explanation;
             SpeakLevelZero(explanation, true);
         }
