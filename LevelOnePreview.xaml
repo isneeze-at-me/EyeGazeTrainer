@@ -250,7 +250,7 @@
             <TextBlock Text="YOUR PROGRESS" Foreground="White" FontSize="26"
                        FontWeight="Bold" TextAlignment="Center"/>
             <TextBlock Text="RECOMMENDED DWELL" Foreground="#9CE4F8" FontSize="21" FontWeight="Bold" TextAlignment="Center"/>
-             <TextBlock x:Name="RecommendedDwellText" Text="500 ms" Foreground="White" FontSize="32" FontWeight="Bold" TextAlignment="Center"/>
+             <TextBlock x:Name="RecommendedDwellText" Text="1500 ms" Foreground="White" FontSize="32" FontWeight="Bold" TextAlignment="Center"/>
              <TextBlock x:Name="RecommendedDwellEvidenceText" Text="Starting estimate; awaiting practice" Foreground="#D4E6F8" FontSize="16" TextWrapping="Wrap" TextAlignment="Center"/>
              <TextBlock Text="This is a provisional estimate, not an applied setting or verified optimum." Foreground="#D4E6F8" FontSize="15" TextWrapping="Wrap" TextAlignment="Center"/>
              <TextBlock Text="▲ Improving    ▼ Declining    — Stable / awaiting history"
