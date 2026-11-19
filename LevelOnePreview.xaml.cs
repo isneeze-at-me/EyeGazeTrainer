@@ -155,6 +155,7 @@ namespace EyeGazeApiViability
         private bool completed;
         private bool exitRequested;
         private bool autoStartAttempted;
+        private bool overlayHandoffRequested;
         private DispatcherTimer startupSplashTimer;
         private bool startupSplashCompleted;
         private const int StartupSplashDurationSeconds = 3;
@@ -443,6 +444,16 @@ namespace EyeGazeApiViability
 
             Point stabilized = cursorFilter.Update(p, DateTimeOffset.UtcNow);
             UpdateCursor(stabilized);
+            // Delay the gaze-aware window marker until real, in-bounds
+            // PCEye gaze has reached this view. Before the splash-screen
+            // redesign the watcher was started immediately; activating the
+            // helper three seconds before watcher readiness caused a
+            // startup race with TD Control.
+            if (!overlayHandoffRequested)
+            {
+                overlayHandoffRequested = true;
+                App.StartOverlayCompanionAfterValidGaze();
+            }
             if (currentScreen == AppScreen.LevelZero)
                 ProcessLevelZeroGaze(p, stabilized);
             if (currentScreen == AppScreen.Lesson)
