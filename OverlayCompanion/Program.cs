@@ -13,12 +13,16 @@ namespace EyeGazeTrainer.OverlayCompanion
         // Draft Tolt/Tobii gaze-aware convention. Also WS_EX_NOPARENTNOTIFY.
         private const int GazeAwareBit = 0x2;
         private const int MaxSeconds = 8 * 60 * 60;
-        private const int SwMaximize = 3;
+        // Published gaze-aware interoperability marker. TD Control may
+        // hide its toolbar when the foreground window advertises this bit.
+        private const string GazeAwareProperty = "eyegaze:aware";
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool SetProp(IntPtr hWnd, string property, IntPtr value);
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr RemoveProp(IntPtr hWnd, string property);
         [DllImport("user32.dll")]
         private static extern bool IsWindow(IntPtr hWnd);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
@@ -35,8 +39,7 @@ namespace EyeGazeTrainer.OverlayCompanion
         {
             IntPtr changed = IntPtr.Zero;
             IntPtr seen = IntPtr.Zero;
-            IntPtr maximized = IntPtr.Zero;
-            DateTime started = DateTime.UtcNow;
+             DateTime started = DateTime.UtcNow;
             DateTime missingSince = DateTime.MinValue;
             try
             {
@@ -52,14 +55,9 @@ namespace EyeGazeTrainer.OverlayCompanion
 
                     if (target)
                     {
-                        // Apply only once per observed app window. This is a
-                        // normal maximized desktop window, NOT full-screen mode.
-                        // The same exact-window allowlist protects other apps.
-                        if (foreground != maximized)
-                        {
-                            ShowWindow(foreground, SwMaximize);
-                            maximized = foreground;
-                        }
+                        // Full-screen sizing is owned by the UWP app.
+                        // Do not force a maximized window here; it can
+                        // undo UWP's immersive full-screen presentation.
                         seen = foreground;
                         missingSince = DateTime.MinValue;
                         if (changed == IntPtr.Zero)
@@ -70,7 +68,14 @@ namespace EyeGazeTrainer.OverlayCompanion
                                 Marshal.GetLastWin32Error();
                                 SetWindowLong(foreground, GwlExStyle, style | GazeAwareBit);
                                 int confirmed = GetWindowLong(foreground, GwlExStyle);
-                                if ((confirmed & GazeAwareBit) != 0) changed = foreground;
+                                if ((confirmed & GazeAwareBit) != 0)
+                                {
+                                    // Advertise both the draft standardized
+                                    // marker and Tobii's legacy 0x2 bit.
+                                    // Only ever touch our exact app window.
+                                    SetProp(foreground, GazeAwareProperty, new IntPtr(1));
+                                    changed = foreground;
+                                }
                             }
                         }
                     }
@@ -105,13 +110,18 @@ namespace EyeGazeTrainer.OverlayCompanion
             if (!string.Equals(className.ToString(), "ApplicationFrameWindow",
                                StringComparison.Ordinal)) return false;
             GetWindowText(hWnd, title, title.Capacity);
-            return string.Equals(title.ToString(), "Eye Gaze API Viability",
+            // App manifest was renamed to Eye Gaze Trainer. The old
+            // hard-coded name prevented this helper from matching at all.
+            return string.Equals(title.ToString(), "Eye Gaze Trainer",
+                                 StringComparison.Ordinal) ||
+                   string.Equals(title.ToString(), "Eye Gaze API Viability",
                                  StringComparison.Ordinal);
         }
 
         private static void Restore(IntPtr hWnd)
         {
             if (!IsWindow(hWnd)) return;
+            RemoveProp(hWnd, GazeAwareProperty);
             int style = GetWindowLong(hWnd, GwlExStyle);
             if ((style & GazeAwareBit) != 0)
                 SetWindowLong(hWnd, GwlExStyle, style & ~GazeAwareBit);
