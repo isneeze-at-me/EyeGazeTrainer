@@ -8,7 +8,7 @@
   <Identity Name="EyeGazeApiViability" Publisher="CN=EyeGazeApiViability" Version="1.0.0.0" />
   <mp:PhoneIdentity PhoneProductId="8E31C3ED-B3E7-482F-899F-D8233F3EEDC4" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
-    <DisplayName>Eye Gaze API Viability</DisplayName>
+    <DisplayName>Eye Gaze Trainer</DisplayName>
     <PublisherDisplayName>Eye Gaze API Viability</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -18,7 +18,7 @@
   <Resources><Resource Language="en-us" /></Resources>
   <Applications>
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="EyeGazeApiViability.App">
-      <uap:VisualElements DisplayName="Eye Gaze API Viability" Description="One-minute gaze device compatibility diagnostic"
+      <uap:VisualElements DisplayName="Eye Gaze Trainer" Description="Accessible eye gaze skills training"
          BackgroundColor="#101827" Square150x150Logo="Assets\Square150.png" Square44x44Logo="Assets\Square44.png">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310.png" Square310x310Logo="Assets\Square310.png" />
         <uap:SplashScreen Image="Assets\Splash620.png" BackgroundColor="#101827" />
