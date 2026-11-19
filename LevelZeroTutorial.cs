@@ -31,6 +31,9 @@ namespace EyeGazeApiViability
         private double circleTravelRadians, previousCircleAngle;
         private int circleDirection, circleSectorMask, axisReversals, lastAxisDirection;
         private int verticalSamples, horizontalSamples, diagonalSamples, circleSamples;
+        private DateTimeOffset lastCorrectAxisMovement;
+        private DateTimeOffset coachingWindowStarted;
+        private int recentCorrectSweeps, recentOtherAxisSweeps, recentDiagonalSweeps;
         private LevelZeroStage levelZeroStage;
         private bool levelZeroRenderingSubscribed;
         private DispatcherTimer levelZeroCoachTimer;
@@ -360,23 +363,30 @@ namespace EyeGazeApiViability
                         MovementInstruction();
                 else if ((now - movementStepStarted).TotalSeconds > 7)
                 {
-                    // If the requested activity is already happening, stay
-                    // quiet. Only redirect when another movement dominates.
-                    bool correct = movementStep == MovementStep.Vertical &&
-                        verticalSamples >= 8 && verticalSamples >= horizontalSamples ||
-                        movementStep == MovementStep.Horizontal &&
-                        horizontalSamples >= 8 && horizontalSamples >= verticalSamples ||
-                        movementStep == MovementStep.Circles && circleSamples >= 8;
-                    if (!correct)
+                    // Never infer the user's CURRENT direction from totals
+                    // accumulated across the entire lesson. Old sideways
+                    // samples caused incorrect "side to side" narration
+                    // during genuine up/down movement.
+                    bool recentCorrect = movementStep == MovementStep.Circles
+                        ? circleSamples >= 8
+                        : lastCorrectAxisMovement != DateTimeOffset.MinValue &&
+                          (now - lastCorrectAxisMovement).TotalSeconds < 6;
+                    if (!recentCorrect)
                     {
-                        string observed = horizontalSamples >= 5 &&
-                            horizontalSamples > verticalSamples * 1.5
-                            ? "You're moving side to side. " :
-                            verticalSamples >= 5 &&
-                            verticalSamples > horizontalSamples * 1.5
-                            ? "You're moving up and down. " :
-                            diagonalSamples >= 5
-                            ? "You're moving diagonally. " : "";
+                        // Give neutral, useful help when direction evidence is
+                        // ambiguous; do not insist they're moving the wrong way.
+                        // A confident wrong-axis observation must come from
+                        // recent complete sweep windows only.
+                        bool confidentWrongAxis =
+                            movementStep != MovementStep.Circles &&
+                            recentOtherAxisSweeps >= 5 &&
+                            recentOtherAxisSweeps >= 3 * Math.Max(1, recentCorrectSweeps) &&
+                            recentDiagonalSweeps <= recentOtherAxisSweeps;
+                        string observed = confidentWrongAxis
+                            ? movementStep == MovementStep.Vertical
+                                ? "I see mostly sideways movement right now. "
+                                : "I see mostly up and down movement right now. "
+                            : "";
                         coaching = observed + MovementInstruction();
                     }
                 }
@@ -444,6 +454,9 @@ namespace EyeGazeApiViability
             lastMotionSample = DateTimeOffset.MinValue;
             lastMovement = movementStepStarted;
             lastMovementCoach = movementStepStarted;
+            lastCorrectAxisMovement = DateTimeOffset.MinValue;
+            coachingWindowStarted = movementStepStarted;
+            recentCorrectSweeps = recentOtherAxisSweeps = recentDiagonalSweeps = 0;
             hasPreviousMotionPoint = false;
             hasPreviousCircleAngle = false;
             directionWindowInitialized = false;
@@ -612,6 +625,12 @@ namespace EyeGazeApiViability
                 return;
             }
 
+            // Coaching only considers the most recent five seconds.
+            if ((now - coachingWindowStarted).TotalSeconds >= 5)
+            {
+                coachingWindowStarted = now;
+                recentCorrectSweeps = recentOtherAxisSweeps = recentDiagonalSweeps = 0;
+            }
             double dx = gaze.X - directionWindowStart.X;
             double dy = gaze.Y - directionWindowStart.Y;
             directionWindowStart = gaze;
@@ -632,9 +651,13 @@ namespace EyeGazeApiViability
                 {
                     if (movementStep == MovementStep.Vertical) horizontalSamples++;
                     else verticalSamples++;
+                    recentOtherAxisSweeps++;
                 }
                 else if (Math.Max(Math.Abs(primary), Math.Abs(secondary)) >= minimumPixels)
+                {
                     diagonalSamples++;
+                    recentDiagonalSweeps++;
+                }
                 return;
             }
 
@@ -642,6 +665,8 @@ namespace EyeGazeApiViability
             if (lastAxisDirection != 0 && direction != lastAxisDirection)
                 axisReversals++;
             lastAxisDirection = direction;
+            lastCorrectAxisMovement = now;
+            recentCorrectSweeps++;
             stepMotionSeconds += Math.Min(.5, seconds);
             stepTravel += Math.Abs(primary) /
                 (movementStep == MovementStep.Vertical ? height : width);
