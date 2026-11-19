@@ -1,0 +1,210 @@
+# Level 0 — Audio-Guided Eye Cursor (Adult First-Run Experience)
+
+**Status (2026-11-18):** Initial implementation is committed on the `Test` branch: the first-run Level 0 screen, eyeball-shaped gaze cursor, local Windows spoken instructions with activity-based feedback, slow geometric pursuit target, and a single large button using the shared 1.5-second dwell to open the existing home screen. Existing Level 1 and eye-tracker shutdown lifecycle were not changed. **Windows build and live PCEye 5/TD Control coexistence have not been validated.** A spoken non-dwell gaze gesture, replay option, and aggregate six-metric Level 0 reporting have since been added. They still require practical accessibility validation; do not represent this as a complete accessible release.
+
+## Core experience
+
+- **No written instructional text.** All directions, feedback and encouragement are spoken using locally available Windows speech (SAPI); no internet, microphone or ElevenLabs key is required. The only essential visual controls are a cursor, a target, and finally a large accessible main-screen icon/button.
+- The **cursor itself looks like a pair of eyeballs**. Their position follows the user's gaze using the existing smoothing filter. Do not display separate eyes that follow the cursor or look toward the user; that creates a competing fixation point.
+- Visually adult: neutral black/slate background, restrained blue accents, simple professional eye shapes rather than cartoon/googly eyes, one softly glowing moving geometric target. No progress text, stickers, childlike music or childish congratulations.
+- No button, dwell, hold or reading required in Stages A and B. Each skill is taught before it becomes a required control. User must be able to independently recover or exit before selection is taught; design and hardware-test this non-dwell safety route first.
+
+## Stage A: free exploration
+
+1. Once valid gaze is detected, say: **“Your eyes move the cursor. Take a moment to look around the screen.”**
+2. Let the learner move the eyeball cursor freely without selecting anything. Spend at least approximately 10–15 seconds but **never advance solely on a timer**.
+3. Detect genuine horizontal/vertical exploration and visits to coarse screen regions. Corner visits require multiple valid samples across approximately 250ms, not a single noisy event, and must be possible without reaching the extreme edge.
+4. Use brief, contingent spoken feedback. Examples:
+   - After horizontal movement: **“Nice. You've moved the cursor from side to side.”**
+   - After vertical movement: **“Good. Now try looking toward a corner.”**
+   - On an actual stable corner-region visit: **“Good job looking toward the corner.”**
+   - After broad exploration: **“Excellent. You've explored much of the screen.”**
+   - After a long pause with valid tracking: **“Take your time. Try looking to the left or right.”**
+5. Do not require all four corners; adapt to observed accessible range and avoid trapping a person with limited movement. Give no false praise for unseen motion.
+
+## Stage B: pursuit
+
+1. After meaningful exploration, say: **“Now follow the moving target with your eye cursor.”**
+2. Introduce one large slowly moving circle/ring, inset away from the screen edges. Start left-to-right, then gentle vertical arcs. No jumps, sharp changes or timed penalties.
+3. Keep the cursor as eyeballs throughout.
+4. Use raw gaze positions to measure proximity to the moving target, fraction of valid tracked time near it, continuous pursuit duration and interruptions, with generous tolerances. Do not assume tracking loss means the learner failed.
+5. If observable following is consistent: **“You're following it well.”** If there is sustained difficulty: **“Try keeping your eyes near the moving circle.”** Pause speech while the learner is actively pursuing.
+6. Continue until there is meaningful participation and observed progress, with individualized relaxed progress conditions rather than a rigid pass/fail timer.
+
+## Stage C: first intentional selection
+
+1. Remove the moving target and present one **very large Main Screen icon/button**. The label may be conveyed entirely by an icon and spoken audio; no instructions are written on screen.
+2. Say: **“Now look at the large button to open the main screen.”** Then explain the new interaction before demanding it: **“Keep looking until the circle fills.”**
+3. Use the app's existing shared dwell wheel, generous hit area, and an introductory forgiving activation period. Do not make simply crossing the button trigger navigation.
+4. On success, say: **“You did it. Opening the main screen.”** Persist first-run completion and navigate to the normal home screen.
+5. On repeated incomplete intentional holds, after cooldown say: **“Almost there. Keep looking until the circle fills.”** Provide a gaze-only non-dwell recovery mechanism during any stage.
+
+## Spoken feedback selection
+
+- **Speech is triggered by observed activity**, not a narration schedule. Favor meaningful coaching over constant praise. Do not repeat a corner greeting every time a gaze cursor re-enters the same corner.
+- Maintain a single speech queue and deduplicate events. Prioritize safety/recovery, new-stage instructions, difficulty coaching, then achievement feedback.
+- Allow a **12–20 second cooldown** between ordinary feedback prompts. Short mandatory stage instructions may be spoken when previous speech has stopped. Never overlap spoken phrases.
+- Avoid a stream of prompts following each eye movement. Silence is a feature when the user is engaging successfully.
+- Tracking unavailable: avoid guessing or blaming the learner. After confirmed sustained loss, optionally say **“I can't see your eye movement right now. Try looking toward the center of the screen.”** Don't speak it repeatedly.
+- Use a calm, respectful adult voice at a comfortable rate and volume; no childlike voice or childish praise. Future audio settings must be accessible without requiring reading or a skill not taught yet.
+- No listening/microphone processing needed.
+
+## Reportable Level 0 observations
+
+- Time to first valid gaze and ratio of valid tracked time; explicit unknown for unavailable validity.
+- Raw gaze extent along both axes and screen regions visited, including genuine stable corner visits.
+- Moving-target pursuit: time close to target, sustained-follow duration, lost-tracking intervals, and movement-path complexity.
+- Final selection: started dwells, canceled dwells, successful selection and time to activate.
+- Aggregate measurements only, stored locally; do not retain raw time-stamped gaze positions or audio of the user. These are training observations, **not clinical diagnoses**.
+- Mark measurements unavailable until adequate samples exist; use confidence/sample counts to prevent false conclusions.
+
+## First-run and safety rules
+
+- Run Level 0 on an actual first launch; skip for returning learners who completed it. Provide an accessible Replay Introduction option on the home/levels menu after implementation.
+- Never force a novice to use the 1.5-second regular menu dwell before Level 0 has taught selection. After Stage C, transfer to the existing Level 1 without changing its ten-target exercise.
+- Do not time out of the tutorial merely because the gaze tracker is slow; ensure a previously learned gaze-only way to rest, recover and leave.
+- The existing PCEye 5 / TD Control coexistence issue must be tested under supervision before claiming independent use. Do not modify gaze watcher activation/cleanup based solely on this design.
+- Keep speech nonblocking so gaze controls and safe Exit are responsive even during announcements.
+
+## Acceptance checklist
+
+- [ ] On first launch, audio instruction plays once when gaze is ready; no written instructional text appears.
+- [ ] Only the **eye-shaped cursor** follows gaze (not two stationary tracked eyes).
+- [ ] Stage A and B need no dwell or keyboard/mouse input.
+- [ ] Stable, correctly observed corner visits trigger occasional accurate spoken feedback; no repetitive speech.
+- [ ] Slow moving target is followable and does not enter unsafe edge zones.
+- [ ] Stage C verbally teaches first dwell, uses the existing visual dwell wheel and goes to home on success.
+- [ ] Progression never relies solely on elapsed time or requires all four corners.
+- [ ] Level 0 completion is persisted; subsequent launches open home and accessible replay is available.
+- [ ] Local reports store aggregate data, with NA for insufficient observations.
+- [ ] Gaze-only safety/back/recovery and TD Control handoff are supervised and verified.
+
+**Implementation progress:** [x] first-run routing for a new learner (existing learners with training records skip); [x] local speech service; [x] eye-shaped cursor; [x] free-movement and corner feedback; [x] animated slow target and sampled proximity; [x] large final dwell button; [x] completion flag and entry to home; [x] first implementation of a gaze-only non-dwell escape (top-left, bottom-left, repeat; spoken coaching); [x] gaze-dwell REPLAY INTRODUCTION button in Levels; [x] persist six aggregate Level 0 summary measurements and populate Skills / TXT export; [ ] user test and refine no-dwell escape reliability, instruction pacing and metric thresholds; [ ] supervised Windows compile/layout/device tests. Level 0 is **development-preview only** until those remaining items are addressed.
+
+### Current implementation notes
+
+- First-run Level 0 starts automatically only when no previous Level 1 acquisition/completion/run records are present and the completion flag is absent. It does not override an existing user's stored training progress.
+- Stage A automatically speaks when the **first valid gaze sample** is observed; stable coarse corner visits require repeated valid points. The target-following stage uses a slow sinusoidal arc, sampled at intervals to prevent frame-rate inflation of follow counts.
+- Optional **movement-only escape:** after about 22 seconds the user is told how to sweep between the upper-left and lower-left corners twice to return to home without activating a dwell button. This is provisional: the two-sweep gesture can be difficult for a new learner or accidentally match exploration, and must be refined through supervised evaluation.
+- Stage C displays one large home icon and uses the same shared dwell wheel as the rest of the app. After selection the tutorial marks completion and opens the existing home screen.
+- Aggregate first-run measurements for initial response, 9-region coverage, four corners, horizontal/vertical range, pursuit sample-proximity, and final button selection are saved locally only on completion. These fields appear in Diagnostics > Skills > Level 0 and the existing TXT therapist report when recorded.
+- Returning users can choose **REPLAY INTRODUCTION** on the Levels menu; the existing Level 1 training and its bonus round remain unchanged.
+- Gaze watcher creation, ownership, TD Control coexistence, and staged shutdown were not modified.
+
+**Safety and build disclaimer:** Static code/XAML integration checks do not establish an executable build, usability, or tracker compatibility. Do not use Level 0 as unattended independent access until on-device safety, audio availability and non-dwell recovery have passed.
+
+## Bug-fix notes — 2026-11-18 (voice / early exit / destination)
+
+- **Voice:** The invisible UWP speech `MediaElement` is kept **Visible at 1×1 and 0 opacity** rather than `Collapsed`. The synthesized `SpeechSynthesisStream` stays alive until a following phrase or exit, instead of being closed by the synthesis method after an estimated delay. Media playback errors are traced to the existing local diagnostic trace. These changes address likely sources of silence but must be verified on the Surface/Windows audio device.
+- **Unintended early exit:** Removed the experimental upper-left/lower-left repeated-sweep shortcut. Normal exploratory gaze movements could match its pattern and send the learner away before pursuit or the final button. No automatic exit should occur on exploration. A new, explicitly requested and independently accessible pre-dwell escape control must be designed and tested separately; do not claim novice independent escape is solved yet.
+- **Destination:** After a successful deliberate dwell on the single final large button, Level 0 saves measurements/completion and goes to the **Levels screen**, not the main home menu. The voice says “levels screen,” and the button's accessibility name matches.
+- **No change** to the shared gaze watcher, existing Level 1 lesson, bonus round or staged device cleanup.
+- **Build and hardware tests outstanding:** verify initial audible speech and each stage prompt; ensure audio does not overlap; observe target and final button in sequence; verify Level 0 can't leave before deliberate selection; verify successful dwell enters Levels; verify TD Control coexistence.
+
+## Voice and motion fix — 2026-11-18 (second device test)
+
+**Reported:** No audio after retaining the stream and making the media element visible; the pursuit target also moved slightly jerkily.
+
+**Code changes on Test:**
+- Replaced the XAML `MediaElement` speech player with a nonvisual `Windows.Media.Playback.MediaPlayer` and `Windows.Media.Core.MediaSource.CreateFromStream`. Speech still uses the local `Windows.Media.SpeechSynthesis.SpeechSynthesizer` with no network dependency. The synthesized stream remains alive while audio is in use and is disposed on replacement or Level 0 exit. Native media failures are logged via the existing trace mechanism.
+- Replaced the 50 ms `DispatcherTimer` that moved the target in 20 Hz steps with `Windows.UI.Xaml.Media.CompositionTarget.Rendering`, synchronized to display redraw. The callback is attached only during pursuit, detached at the final-button stage or on exit, so it does not consume unnecessary frame resources elsewhere.
+- The eye cursor, stage criteria, Level 1 and shared gaze-device cleanup remain otherwise unchanged. Completion still opens the Levels screen.
+
+**Pending on-device checks:** Rebuild the Test branch and verify audible instruction on the first valid gaze, voice playback for each stage, a smooth target on the Surface screen, audio error trace if still silent, and successful handoff to Levels. Static structural checks passed; UWP compilation and Tobii hardware verification have **not** been run here.
+
+## Guided introductory movement sequence — implementation update
+
+The initial Level 0 free exploration has been revised to teach deliberate cursor movement in this order:
+
+1. **Discover movement:** Spoken welcome asks the learner to move their eyes around the screen. A stationary cursor is not praised or passed. A minimum of **15 cumulative seconds of observed non-jitter cursor movement** and meaningful cumulative distance triggers the next step; if no valid gaze or movement is detected, offer a helpful spoken reminder.
+2. **Up and down:** Speak the up/down task. Remain in it for at least **15 seconds**, requiring multiple genuinely vertical movements, changes of direction and useful travel before advancement. If gaze moves predominantly horizontally or diagonally, describe what was observed and gently remind the learner to look up/down. Do not praise unrelated movement.
+3. **Left and right:** Celebrate completing vertical movement, then explain left/right. Remain for at least **15 seconds** with genuine horizontal direction reversals and travel. Coach specifically if the learner is practicing another direction.
+4. **Circles:** Celebrate left/right control, then explain how to trace a large circle with the eyes. Require at least **15 seconds**, measurable angular movement around screen center and coverage of multiple directions. Do not pass because of stationary jitter or elapsed time alone.
+5. **Follow the moving circle:** After the circular movement is demonstrated, give a spoken congratulation and introduce the existing slow moving visual target. This preserves the original pursuit and final home-icon selection phases.
+
+Coaching is triggered periodically when the requested task is not being observed. The detector samples stabilized cursor positions at up to 10 Hz, ignores tiny and implausibly large jumps, and does not mistake a timer for practice completion. The training state resets on replay. The voice system marshals native MediaPlayer completion back to the UWP UI dispatcher before revealing controls.
+
+**Status:** Implemented on `Test` but not compiled or tested with an actual PCEye 5. The detection thresholds are initial estimates and need device testing and accessibility tuning. No eye tracker acquisition, ownership, or staged cleanup was changed.
+
+**Step 1 revision (2026-11-18):** Require **15 seconds of cumulative actual free movement**, not 15 seconds elapsed on screen. No specific direction is prescribed in this phase. Each sampled interval contributes only when the stabilized cursor moves beyond the jitter threshold (and without a large invalid jump). Pauses do not count; the learner may take as long as needed. A minimum total normalized travel of 0.50 also applies. The next step provides the up/down instruction only after these criteria are met.
+
+## Free-exploration coaching and directional fix — 2026-11-18
+
+- **Step 1 (15 seconds of actual free movement):** The voice coaches only when the app has not observed meaningful movement or movement has stopped for at least seven seconds. It does not coach based on the direction or pattern of movement during this free-exploration phase. An introductory prompt still explains the task. Tiny tracker drift must not accumulate as qualifying movement.
+- The free-exploration displacement threshold is 2.5% of normalized screen diagonal per sampled change, evaluated across a 250 ms window so slow deliberate movement is still measurable; movement time accumulates only on windows with sufficient observed travel. Pauses do not count.
+- **Step 2 (up/down) and Step 3 (left/right):** Movement axes are now classified using actual X and Y movement in the same screen-coordinate units rather than separately dividing by width and height. The previous normalized-axis comparison biased direction recognition on non-square displays. An axis must dominate by 1.8× before it is counted as vertical or horizontal. Diagonal motion is classified separately and cannot contribute to vertical reversals or completion.
+- Device tuning is pending: real Tobii PCEye 5 input may require adjustment of the movement/noise thresholds. Static checks verified the relevant controls and handlers; a Windows build and actual hardware test were not run here.
+
+## Directional exercise time correction — 2026-11-18
+
+The up/down exercise had mistakenly required 15 seconds of **elapsed stage time** but only 2.5 seconds of real vertical cursor movement. This is corrected: **15 cumulative seconds of correctly classified, above-noise vertical motion** are now required, plus direction reversals and useful travel. Time looking still, moving horizontally or diagonally, and tracking gaps cannot satisfy the vertical timer. The left/right exercise uses the same 15-second **correct-direction motion** rule for consistency. Spoken transitions now clearly explain that only correct movement counts. These are per-sample active movement durations (not simply time with gaze available or time since the lesson began). Windows compilation and eye-tracker validation are still pending.
+
+## Spoken-message serialization — 2026-11-18
+
+Level 0 now waits for Windows MediaPlayer's actual **MediaEnded** notification before starting any subsequent voice instruction, praise or coaching. The former 18-second fallback (which could cut off longer messages and start the next voice early) has been removed. A 350 ms quiet gap follows completed playback. Stage directions take precedence over ordinary feedback, and no two voices are deliberately started concurrently. Playback errors signal failure rather than advancing speech as if it completed; voice errors are logged, while the tutorial continues to function without audio. Leaving Level 0 still cancels pending narration and disposes the player. This change is committed on `Test`; hardware verification remains pending.
+
+## Directional recognition reliability — 2026-11-18
+
+Device feedback: deliberate up/down and left/right gaze sweeps were not consistently recognized despite the previous coordinate-scale correction. The directional steps now classify displacement across a ~350 ms observation window instead of individual 100 ms gaze samples. This reduces sensitivity to eye-tracker jitter, tiny opposite-axis corrections, and smoothing lag during slow sweeps. A correct movement requires at least 8 px (or 0.7% of the smaller screen dimension, whichever is greater) in the requested axis, with a 1.35:1 directional dominance ratio. Other-axis and diagonal sweeps are tracked for coaching but do not contribute to progress. **15 cumulative seconds of recognized correct-direction movement**, plus meaningful travel and reversals, remain required. Step 1 free movement, circular tracking, narration sequencing, completion navigation, and gaze watcher lifetime are unchanged. Static checks passed; thresholds must still be calibrated on the Tobii PCEye 5 device.
+
+## Start exercise timing after instructions — 2026-11-18
+
+For the first free-movement exercise and subsequent vertical, horizontal, and circle exercises, the movement progress counters and their per-step timing **do not start until the entire corresponding voice introduction has finished playback** (MediaPlayer `MediaEnded`, followed by the existing 350 ms separation). Movement or gaze during the spoken explanation is ignored for progression. A step transition locks out scoring and coaching before queuing its instruction, preventing queued longer messages from allowing premature activity credit. Completing the instruction resets motion measurement windows and unlocks counting for that step, so earlier gaze does not carry forward. If speech fails or becomes unavailable, the step unlocks rather than trapping an eye-gaze-only learner. The existing 15 cumulative seconds of correct active movement requirement remains. Static source checks passed; Windows/PCEye device testing remains pending.
+
+## Circular movement timing correction — 2026-11-18
+
+Removed the spoken sentence "We'll begin when I finish explaining" from the circles introduction. The app still silently waits for the corresponding instruction's complete audio playback before collecting evidence. Step 4 previously required only 15 seconds elapsed in the phase, with a much smaller amount of detected circular movement. It now requires **15 cumulative seconds of correctly classified circular gaze movement**, plus the existing angular travel, sample and sector coverage requirements; idle time and incorrectly classified motion do not add to that timer. Changes are committed to `Test` and statically checked, but not built/tested on Windows hardware.
+
+## One-minute safety advancement and final target placement — 2026-11-18
+
+- Each Level 0 activity (free gaze movement, vertical, horizontal, circles, moving-circle pursuit, and final home-button selection) now has a **60-second maximum active activity window**, starting **after that activity's spoken instructions finish**. The coach timer runs even when no gaze samples arrive. Completing the activity normally still uses the original correct-movement/dwell rules.
+- If an activity exceeds the maximum, it advances automatically using a supportive **“Good effort, let's move on”** transition, rather than claiming an uncompleted movement skill was mastered. The final button activity exits to Levels after the voice announcement completes if the user cannot dwell within the time limit.
+- Level 0's welcome now begins on screen entry without depending on an initial valid gaze point. This prevents the first lesson from waiting indefinitely if no gaze arrives.
+- The final home button is positioned at reveal time in the screen corner with the greatest separation between the current gaze point and the button's actual rectangular hit area, with 36 px inset wherever space allows. It remains hidden until its complete spoken explanation finishes, and the old dwell state is cleared before it becomes visible. This forces a deliberate gaze movement toward the new target rather than an accidental selection at the current gaze location.
+- Selection metrics distinguish a completed dwell from a selection that automatically advanced after 60 seconds.
+- Static source/XAML and handler checks passed. Windows compilation and physical PCEye 5 verification remain outstanding.
+
+## Pursuit inside-circle requirement — 2026-11-19
+
+- The glowing pursuit circle has been enlarged from **124 px to 220 px** in diameter (110 px radius, 100 px effective scoring radius inset from the visible ring).
+- The activity now completes after **15 cumulative seconds of valid stabilized eye-cursor samples inside the moving circle**. Each consecutive valid inside sample contributes only its observed interval, up to 300 ms, so long tracking gaps cannot count. Samples outside the circle and pauses do not add progress. The previous 18/35-second and proximity-sample shortcut rules are removed.
+- When the eye cursor has not been inside for **more than five seconds**, including a loss of gaze tracking, the voice gives encouraging feedback about looking at and following the larger circle. The reminder is issued once per extended outside period, and it becomes available again after the cursor reenters.
+- Pursuit still begins at the current eye-cursor location after instructions finish and eases into motion. The existing **60-second practice safety fallback** is unchanged. Static checks passed; Windows/PCEye hardware testing remains outstanding.
+
+## Unified activity feedback — 2026-11-19
+
+Replaced the earlier, separate coaching routines for all six Level 0 activities (free gaze, vertical, horizontal, circles, moving circle, final home button) with a single action-based rule. Once the current activity's introduction has **finished speaking**, gaze progress is observed from the same detectors used by the activity scoring itself. **Five seconds without correctly performing the requested action** elicits one short activity-specific coaching sentence. Coaching checks run every second; another correction is allowed no sooner than ten seconds later if the requested action is still absent. An actively demonstrated correct action earns a short "Good job" phrase after at least five seconds in the activity and 1.5 accumulated seconds of valid action. Praise thereafter repeats no sooner than twelve seconds apart and only with further correct activity. The final button uses the actual shared dwell target. The app no longer guesses specific wrong-direction movement patterns from old samples.
+
+Audio still plays only one utterance at a time and waits for `MediaEnded`; a two-second minimum voice-start guard (reduced from ten seconds) prevents suppressing the first correction at the five-second mark. Any queued corrective message is discarded when correct movement resumes; stale praise is discarded when coaching is needed. Intro voice messages and automatic one-minute "Good effort, let's move on" transitions are not changed. The application does not record raw gaze coordinates in feedback. This is committed on `Test` and passed static checks; Windows/PCEye testing remains pending.
+
+## Five seconds of correct activity required for praise — 2026-11-19
+
+Clarification: the shared Level 0 feedback logic now requires **five cumulative seconds of observed correct task activity** (not 1.5 seconds plus five seconds of elapsed stage time) before a short "Good job" message is eligible. It also requires correct activity to have been observed within the last two seconds, so praise does not occur after the learner stops. Five seconds without the requested task still triggers a short coaching reminder, and longer pauses do not count toward correct activity. The final house button intentionally completes on its normal 1.5-second dwell, so it is not delayed just to earn praise. The 60-second automatic advance, stage explanations and one-at-a-time narration are retained. Test branch static checks completed, Windows runtime validation pending.
+
+## Full-screen splash and startup routing — 2026-11-19
+
+At app launch, UWP now requests preferred full-screen windowing **before frame creation** and also calls `TryEnterFullScreenMode()` after activation, with nonfatal fallback and lifecycle tracing if Windows declines. The existing single `LevelOnePreview` page shows an opaque full-window splash overlay for three seconds. It displays an accessible, high-contrast **scalable XAML recreation** of the approved Eye Gaze Trainer eye/focus icon and title, with no controls and no gaze or dwell needed to dismiss it. The approved generated bitmap is not yet committed as an asset; this startup uses vector XAML branding, not the exact generated PNG. The UWP manifest display name and description have been refreshed without touching package identity, the existing native splash bitmap, or exit-test protocol.
+
+Once the splash times out, if `EyeGazeTrainer.LevelZero.CompletedV1` is not explicitly true, the app starts Level 0; otherwise it shows the full-screen main menu. It does not use other-level progress as a substitute for Level 0 completion. The existing `FinishLevelZero` path marks the completion flag, stops the tutorial and navigates to Levels. Gaze acquisition is initialized once after the splash, on the existing gaze-owning page; no second device watcher is added. All startup UI code remains on `Test`. Static XAML structure and handler checks passed; an actual Windows/UWP run with PCEye hardware is still needed, including a check of full-screen launch restrictions and the brief Windows-native splash displayed before the in-app splash.
+
+## Gaze disconnect recovery after startup changes — 2026-11-19
+
+A device-disconnect report on the full-screen main menu revealed that the UWP gaze watcher displayed a disconnected message on `Removed`, but left `gazeSubscribed=true`, so subsequent Ready events could not reattach. In `LevelOnePreview.xaml.cs`, removal now keeps the watcher running, releases any stale gaze event subscription, resets the subscription flag and waits for a fresh Added/Updated Ready event to attach a source. A removal event is ignored when valid gaze data has arrived within the preceding two seconds (protecting against an unrelated transient device event). The warning clears when valid cursor input resumes. The controlled exit cleanup order remains unchanged.
+
+The experimental foreground window marker helper is now **not launched** during normal startup while its compatibility with Tobii PCEye 5 / TD Control is investigated. This prioritizes restoring shared gaze input; TD Control's overlay may remain visible until safe interoperability can be validated. Full-screen splash/startup routing is retained. GitHub static checks passed; no physical Windows/PCEye device test was possible.
+
+## Automatic TD Control gaze-trace handoff (Test branch, 2026-11-19)
+
+A first-time learner cannot be required to switch TD Control to Repeat Click / Hide Trace manually. The packaged full-trust `OverlayCompanion` is again launched automatically but now uses a **live-gaze guarded** implementation: the UWP page writes a coordinate-free liveness signal once per second while actual gaze samples arrive. The helper only sets the Tolt `eyegaze:aware` window property and Tobii's legacy 0x2 extended-window marker **on the verified Eye Gaze Trainer foreground window** after the signal is fresh. It never changes TD Control windows, settings, device handles or process lifetime. When the foreground changes it removes its marker and reapplies automatically on return. If actual gaze samples stop for 3.5 seconds after marking, it rolls back and will not retry in that helper session. On app exit it restores its own flags. This allows the supported gaze-aware interop to attempt automatic removal of TD Control's trace without prerequired user skills; behavior depends on installed TD Control version. Both the window marker and its compatibility with PCEye 5 require physical test. No direct automated Hide Trace interface was found in Tobii's published user documentation. Store packaging of the full-trust helper must also be verified before release.
+
+## Repeat-launch TD Control regression — session lifetime fix (2026-11-19)
+
+Observed hardware behavior: first launch after restoring the original 0x2 gaze-aware window flag worked; second launch reported tracker disconnected, TD Control took over, and gaze-controlled exit appeared frozen. The original `OverlayCompanion.exe` loop could remain alive for **up to eight hours**, waiting for an old `ApplicationFrameWindow` handle to disappear, and was not explicitly tied to an EyeGazeTrainer application session. It could therefore outlive a successful first run and interact with a subsequent launch. This is a **source-confirmed lifecycle defect**, though the actual cause of the reported disconnection/freezing remains unverified without logs.
+
+The `Test` branch now writes a fresh random session token in UWP `LocalState/eyegazetrainer-overlay-session.id` **before activating the app window**. A newly launched full-trust companion reads this token and checks it every 250 ms. If it disappears or changes (normal exit or later launch), the old helper leaves its loop and uses the original `finally` handler to restore the 0x2 flag it owned. The token is deleted only **after the gaze cleanup successfully navigates to the gaze-free closing page**, and also on normal UWP window close. The original 0x2 flag, app-title matching, full-screen splash, Level 0 routing, gaze watcher, and original staged release order are preserved. The alternate experimental window property/heartbeat were not reinstated. This session fix is guarded; helper exits without mutating the window if it cannot establish package identity or read the session token.
+
+**Regression test:** after restarting Windows once to clear helper processes from older builds which lacked session checking, rebuild and deploy latest `Test`; run the application and EXIT normally, then launch it a second and third time; confirm all three have working gaze input, no TD Control circle, and normal EXIT. If failure persists, inspect `gaze-lifecycle-trace.txt` and `level1-live-gaze-trace.txt` in the package LocalState folder. Those trace files are designed not to record gaze coordinates. The test has not been performed on Tobii hardware by the code author.
+
+### Startup ordering safeguard
+
+The splash introduces a three-second delay before the first gaze watcher subscription. The initial automatic handoff implementation started its helper during `App.OnLaunched`, **before** the gaze watcher was even started. This created a device-handoff race: TD Control could react to the app's 0x2 marker while EyeGazeTrainer still had no gaze source. The helper is now started once only after `LevelOnePreview.OnGazeMoved` receives an in-bounds valid sample, stabilizes it, and updates the eye cursor. The original 0x2 convention is unchanged. The new unique per-run token ends old helpers after successful exit and invalidates one before the next window becomes visible. This is a root-cause hypothesis supported by source-code timing, not proof that TD Control itself caused the observed freeze.

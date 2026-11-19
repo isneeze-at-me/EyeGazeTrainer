@@ -35,14 +35,27 @@
     <Compile Include="MainPage.xaml.cs"><DependentUpon>MainPage.xaml</DependentUpon></Compile>
     <Compile Include="LevelOnePreview.xaml.cs"><DependentUpon>LevelOnePreview.xaml</DependentUpon></Compile>
     <Compile Include="SharedButtonDwellWheel.cs" />
+    <Compile Include="MasterCursorSmoothingFilter.cs" />
+    <Compile Include="AdaptiveGazeProfile.cs" />
+    <Compile Include="AdaptiveHitTesting.cs" />
+    <Compile Include="TrainingTargetMeasurement.cs" />
+    <Compile Include="DisplayScaleManager.cs" />
+    <Compile Include="TrainingProgress.cs" />
+    <Compile Include="TrainingReport.cs" />
+    <Compile Include="TherapistTextReport.cs" />
+    <Compile Include="LevelZeroTutorial.cs" />
+    <Compile Include="SpatialAccuracyMap.cs" />
+    <Compile Include="SpatialJitterMap.cs" />
+    <Compile Include="TriviaQuestionBank.cs" />
     <AppxManifest Include="Package.appxmanifest" />
     <ApplicationDefinition Include="App.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></ApplicationDefinition>
     <Page Include="MainPage.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></Page>
     <Page Include="LevelOnePreview.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></Page>
     <Content Include="Assets\*.png" />
+    <Content Include="Trivia\true-false-*.json" />
     <!-- Build the separately packaged full-trust helper from source. -->
     <Content Include="OverlayCompanion\bin\$(Configuration)\OverlayCompanion.exe">
-      <Link>OverlayCompanion.exe</Link>
+      <TargetPath>OverlayCompanion.exe</TargetPath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

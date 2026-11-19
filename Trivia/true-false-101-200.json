@@ -1,0 +1,802 @@
+[
+  {
+    "id": "TF101",
+    "category": "Space",
+    "question": "Venus takes longer to rotate once on its axis than to orbit the Sun once.",
+    "answer": true,
+    "explanation": "Venus takes longer to rotate once on its axis than to orbit the Sun once.",
+    "factGroup": "F051"
+  },
+  {
+    "id": "TF102",
+    "category": "Space",
+    "question": "Venus takes less time to rotate once on its axis than to orbit the Sun once.",
+    "answer": false,
+    "explanation": "Actually, Venus takes longer to rotate once on its axis than to orbit the Sun once.",
+    "factGroup": "F051"
+  },
+  {
+    "id": "TF103",
+    "category": "Space",
+    "question": "Neptune was discovered in 1846 using predictions about its position.",
+    "answer": true,
+    "explanation": "Neptune was discovered in 1846 using predictions about its position.",
+    "factGroup": "F052"
+  },
+  {
+    "id": "TF104",
+    "category": "Space",
+    "question": "Neptune was first discovered when astronauts photographed it.",
+    "answer": false,
+    "explanation": "Actually, Neptune was discovered in 1846 using predictions about its position.",
+    "factGroup": "F052"
+  },
+  {
+    "id": "TF105",
+    "category": "Space",
+    "question": "Uranus rotates on an axis tilted by about 98 degrees.",
+    "answer": true,
+    "explanation": "Uranus rotates on an axis tilted by about 98 degrees.",
+    "factGroup": "F053"
+  },
+  {
+    "id": "TF106",
+    "category": "Space",
+    "question": "Uranus rotates on an axis tilted by only about 5 degrees.",
+    "answer": false,
+    "explanation": "Actually, Uranus rotates on an axis tilted by about 98 degrees.",
+    "factGroup": "F053"
+  },
+  {
+    "id": "TF107",
+    "category": "Space",
+    "question": "The Great Red Spot is a long-lasting storm on Jupiter.",
+    "answer": true,
+    "explanation": "The Great Red Spot is a long-lasting storm on Jupiter.",
+    "factGroup": "F054"
+  },
+  {
+    "id": "TF108",
+    "category": "Space",
+    "question": "The Great Red Spot is a large volcano on Jupiter.",
+    "answer": false,
+    "explanation": "Actually, The Great Red Spot is a long-lasting storm on Jupiter.",
+    "factGroup": "F054"
+  },
+  {
+    "id": "TF109",
+    "category": "Space",
+    "question": "Saturn's moon Titan has lakes of liquid methane and ethane.",
+    "answer": true,
+    "explanation": "Saturn's moon Titan has lakes of liquid methane and ethane.",
+    "factGroup": "F055"
+  },
+  {
+    "id": "TF110",
+    "category": "Space",
+    "question": "Saturn's moon Titan has lakes of liquid water on its surface.",
+    "answer": false,
+    "explanation": "Actually, Saturn's moon Titan has lakes of liquid methane and ethane.",
+    "factGroup": "F055"
+  },
+  {
+    "id": "TF111",
+    "category": "Space",
+    "question": "Sunlight takes a little over eight minutes to reach Earth.",
+    "answer": true,
+    "explanation": "Sunlight takes a little over eight minutes to reach Earth.",
+    "factGroup": "F056"
+  },
+  {
+    "id": "TF112",
+    "category": "Space",
+    "question": "Sunlight takes a little over eight seconds to reach Earth.",
+    "answer": false,
+    "explanation": "Actually, Sunlight takes a little over eight minutes to reach Earth.",
+    "factGroup": "F056"
+  },
+  {
+    "id": "TF113",
+    "category": "Space",
+    "question": "Mars has two small natural moons named Phobos and Deimos.",
+    "answer": true,
+    "explanation": "Mars has two small natural moons named Phobos and Deimos.",
+    "factGroup": "F057"
+  },
+  {
+    "id": "TF114",
+    "category": "Space",
+    "question": "Mars has two small natural moons named Io and Europa.",
+    "answer": false,
+    "explanation": "Actually, Mars has two small natural moons named Phobos and Deimos.",
+    "factGroup": "F057"
+  },
+  {
+    "id": "TF115",
+    "category": "Space",
+    "question": "Pluto is classified as a dwarf planet by the International Astronomical Union.",
+    "answer": true,
+    "explanation": "Pluto is classified as a dwarf planet by the International Astronomical Union.",
+    "factGroup": "F058"
+  },
+  {
+    "id": "TF116",
+    "category": "Space",
+    "question": "Pluto is classified as a full planet by the International Astronomical Union.",
+    "answer": false,
+    "explanation": "Actually, Pluto is classified as a dwarf planet by the International Astronomical Union.",
+    "factGroup": "F058"
+  },
+  {
+    "id": "TF117",
+    "category": "Space",
+    "question": "The Moon always shows approximately the same face to Earth because of tidal locking.",
+    "answer": true,
+    "explanation": "The Moon always shows approximately the same face to Earth because of tidal locking.",
+    "factGroup": "F059"
+  },
+  {
+    "id": "TF118",
+    "category": "Space",
+    "question": "The Moon shows every side equally to Earth over the course of each month.",
+    "answer": false,
+    "explanation": "Actually, The Moon always shows approximately the same face to Earth because of tidal locking.",
+    "factGroup": "F059"
+  },
+  {
+    "id": "TF119",
+    "category": "Space",
+    "question": "A light-year measures distance, not time.",
+    "answer": true,
+    "explanation": "A light-year measures distance, not time.",
+    "factGroup": "F060"
+  },
+  {
+    "id": "TF120",
+    "category": "Space",
+    "question": "A light-year measures the time taken for Earth to orbit the Sun.",
+    "answer": false,
+    "explanation": "Actually, A light-year measures distance, not time.",
+    "factGroup": "F060"
+  },
+  {
+    "id": "TF121",
+    "category": "Earth & Weather",
+    "question": "Earth's inner core is primarily iron and nickel.",
+    "answer": true,
+    "explanation": "Earth's inner core is primarily iron and nickel.",
+    "factGroup": "F061"
+  },
+  {
+    "id": "TF122",
+    "category": "Earth & Weather",
+    "question": "Earth's inner core is primarily granite and sandstone.",
+    "answer": false,
+    "explanation": "Actually, Earth's inner core is primarily iron and nickel.",
+    "factGroup": "F061"
+  },
+  {
+    "id": "TF123",
+    "category": "Earth & Weather",
+    "question": "A cumulonimbus cloud is often associated with thunderstorms.",
+    "answer": true,
+    "explanation": "A cumulonimbus cloud is often associated with thunderstorms.",
+    "factGroup": "F062"
+  },
+  {
+    "id": "TF124",
+    "category": "Earth & Weather",
+    "question": "A cirrus cloud is the main towering cloud type associated with thunderstorms.",
+    "answer": false,
+    "explanation": "Actually, A cumulonimbus cloud is often associated with thunderstorms.",
+    "factGroup": "F062"
+  },
+  {
+    "id": "TF125",
+    "category": "Earth & Weather",
+    "question": "The Coriolis effect influences the direction of large-scale winds.",
+    "answer": true,
+    "explanation": "The Coriolis effect influences the direction of large-scale winds.",
+    "factGroup": "F063"
+  },
+  {
+    "id": "TF126",
+    "category": "Earth & Weather",
+    "question": "The Coriolis effect is caused by Earth's magnetic poles pulling clouds sideways.",
+    "answer": false,
+    "explanation": "Actually, The Coriolis effect influences the direction of large-scale winds.",
+    "factGroup": "F063"
+  },
+  {
+    "id": "TF127",
+    "category": "Earth & Weather",
+    "question": "The ozone layer is mainly found in the stratosphere.",
+    "answer": true,
+    "explanation": "The ozone layer is mainly found in the stratosphere.",
+    "factGroup": "F064"
+  },
+  {
+    "id": "TF128",
+    "category": "Earth & Weather",
+    "question": "The ozone layer is mainly found in the troposphere close to the ground.",
+    "answer": false,
+    "explanation": "Actually, The ozone layer is mainly found in the stratosphere.",
+    "factGroup": "F064"
+  },
+  {
+    "id": "TF129",
+    "category": "Earth & Weather",
+    "question": "The lowest average surface temperatures on Earth occur in Antarctica.",
+    "answer": true,
+    "explanation": "The lowest average surface temperatures on Earth occur in Antarctica.",
+    "factGroup": "F065"
+  },
+  {
+    "id": "TF130",
+    "category": "Earth & Weather",
+    "question": "The lowest average surface temperatures on Earth occur in the Sahara Desert.",
+    "answer": false,
+    "explanation": "Actually, The lowest average surface temperatures on Earth occur in Antarctica.",
+    "factGroup": "F065"
+  },
+  {
+    "id": "TF131",
+    "category": "Earth & Weather",
+    "question": "A barometer measures atmospheric pressure.",
+    "answer": true,
+    "explanation": "A barometer measures atmospheric pressure.",
+    "factGroup": "F066"
+  },
+  {
+    "id": "TF132",
+    "category": "Earth & Weather",
+    "question": "A barometer measures rainfall in millimeters.",
+    "answer": false,
+    "explanation": "Actually, A barometer measures atmospheric pressure.",
+    "factGroup": "F066"
+  },
+  {
+    "id": "TF133",
+    "category": "Earth & Weather",
+    "question": "The equinox occurs when the Sun crosses Earth's celestial equator.",
+    "answer": true,
+    "explanation": "The equinox occurs when the Sun crosses Earth's celestial equator.",
+    "factGroup": "F067"
+  },
+  {
+    "id": "TF134",
+    "category": "Earth & Weather",
+    "question": "An equinox happens when Earth is closest to the Sun.",
+    "answer": false,
+    "explanation": "Actually, The equinox occurs when the Sun crosses Earth's celestial equator.",
+    "factGroup": "F067"
+  },
+  {
+    "id": "TF135",
+    "category": "Earth & Weather",
+    "question": "Most of Earth's fresh water is frozen in glaciers and ice sheets.",
+    "answer": true,
+    "explanation": "Most of Earth's fresh water is frozen in glaciers and ice sheets.",
+    "factGroup": "F068"
+  },
+  {
+    "id": "TF136",
+    "category": "Earth & Weather",
+    "question": "Most of Earth's fresh water is held in rivers and lakes.",
+    "answer": false,
+    "explanation": "Actually, Most of Earth's fresh water is frozen in glaciers and ice sheets.",
+    "factGroup": "F068"
+  },
+  {
+    "id": "TF137",
+    "category": "Earth & Weather",
+    "question": "The Richter scale is logarithmic, so equal steps correspond to multiplying measured wave amplitude.",
+    "answer": true,
+    "explanation": "The Richter scale is logarithmic, so equal steps correspond to multiplying measured wave amplitude.",
+    "factGroup": "F069"
+  },
+  {
+    "id": "TF138",
+    "category": "Earth & Weather",
+    "question": "The Richter scale is linear, so each step adds the same wave amplitude.",
+    "answer": false,
+    "explanation": "Actually, The Richter scale is logarithmic, so equal steps correspond to multiplying measured wave amplitude.",
+    "factGroup": "F069"
+  },
+  {
+    "id": "TF139",
+    "category": "Earth & Weather",
+    "question": "Lightning heats the surrounding air, causing the rapid expansion that produces thunder.",
+    "answer": true,
+    "explanation": "Lightning heats the surrounding air, causing the rapid expansion that produces thunder.",
+    "factGroup": "F070"
+  },
+  {
+    "id": "TF140",
+    "category": "Earth & Weather",
+    "question": "Thunder is produced by clouds physically bumping into each other.",
+    "answer": false,
+    "explanation": "Actually, Lightning heats the surrounding air, causing the rapid expansion that produces thunder.",
+    "factGroup": "F070"
+  },
+  {
+    "id": "TF141",
+    "category": "Plants & Trees",
+    "question": "A pineapple develops from many flowers whose fruits fuse together.",
+    "answer": true,
+    "explanation": "A pineapple develops from many flowers whose fruits fuse together.",
+    "factGroup": "F071"
+  },
+  {
+    "id": "TF142",
+    "category": "Plants & Trees",
+    "question": "A pineapple develops from one berry that grows from a single flower.",
+    "answer": false,
+    "explanation": "Actually, A pineapple develops from many flowers whose fruits fuse together.",
+    "factGroup": "F071"
+  },
+  {
+    "id": "TF143",
+    "category": "Plants & Trees",
+    "question": "A Venus flytrap closes its trap after trigger hairs are stimulated.",
+    "answer": true,
+    "explanation": "A Venus flytrap closes its trap after trigger hairs are stimulated.",
+    "factGroup": "F072"
+  },
+  {
+    "id": "TF144",
+    "category": "Plants & Trees",
+    "question": "A Venus flytrap catches insects by wrapping its roots around them.",
+    "answer": false,
+    "explanation": "Actually, A Venus flytrap closes its trap after trigger hairs are stimulated.",
+    "factGroup": "F072"
+  },
+  {
+    "id": "TF145",
+    "category": "Plants & Trees",
+    "question": "The tallest living tree species is the coast redwood.",
+    "answer": true,
+    "explanation": "The tallest living tree species is the coast redwood.",
+    "factGroup": "F073"
+  },
+  {
+    "id": "TF146",
+    "category": "Plants & Trees",
+    "question": "The tallest living tree species is the giant sequoia.",
+    "answer": false,
+    "explanation": "Actually, The tallest living tree species is the coast redwood.",
+    "factGroup": "F073"
+  },
+  {
+    "id": "TF147",
+    "category": "Plants & Trees",
+    "question": "A banana plant is a large herb rather than a woody tree.",
+    "answer": true,
+    "explanation": "A banana plant is a large herb rather than a woody tree.",
+    "factGroup": "F074"
+  },
+  {
+    "id": "TF148",
+    "category": "Plants & Trees",
+    "question": "A banana plant is a woody tree with a hard trunk.",
+    "answer": false,
+    "explanation": "Actually, A banana plant is a large herb rather than a woody tree.",
+    "factGroup": "F074"
+  },
+  {
+    "id": "TF149",
+    "category": "Plants & Trees",
+    "question": "Ginkgo trees have fan-shaped leaves.",
+    "answer": true,
+    "explanation": "Ginkgo trees have fan-shaped leaves.",
+    "factGroup": "F075"
+  },
+  {
+    "id": "TF150",
+    "category": "Plants & Trees",
+    "question": "Ginkgo trees have needle-shaped leaves like pines.",
+    "answer": false,
+    "explanation": "Actually, Ginkgo trees have fan-shaped leaves.",
+    "factGroup": "F075"
+  },
+  {
+    "id": "TF151",
+    "category": "Plants & Trees",
+    "question": "A coconut is botanically a fibrous, one-seeded drupe.",
+    "answer": true,
+    "explanation": "A coconut is botanically a fibrous, one-seeded drupe.",
+    "factGroup": "F076"
+  },
+  {
+    "id": "TF152",
+    "category": "Plants & Trees",
+    "question": "A coconut is botanically a true nut.",
+    "answer": false,
+    "explanation": "Actually, A coconut is botanically a fibrous, one-seeded drupe.",
+    "factGroup": "F076"
+  },
+  {
+    "id": "TF153",
+    "category": "Plants & Trees",
+    "question": "Maple trees produce winged seeds called samaras.",
+    "answer": true,
+    "explanation": "Maple trees produce winged seeds called samaras.",
+    "factGroup": "F077"
+  },
+  {
+    "id": "TF154",
+    "category": "Plants & Trees",
+    "question": "Maple trees produce seeds inside fleshy berries.",
+    "answer": false,
+    "explanation": "Actually, Maple trees produce winged seeds called samaras.",
+    "factGroup": "F077"
+  },
+  {
+    "id": "TF155",
+    "category": "Plants & Trees",
+    "question": "Some orchids rely on fungi to help their tiny seeds germinate.",
+    "answer": true,
+    "explanation": "Some orchids rely on fungi to help their tiny seeds germinate.",
+    "factGroup": "F078"
+  },
+  {
+    "id": "TF156",
+    "category": "Plants & Trees",
+    "question": "All orchid seeds germinate without help from fungi.",
+    "answer": false,
+    "explanation": "Actually, Some orchids rely on fungi to help their tiny seeds germinate.",
+    "factGroup": "F078"
+  },
+  {
+    "id": "TF157",
+    "category": "Plants & Trees",
+    "question": "The sensitive plant Mimosa pudica folds its leaves in response to touch.",
+    "answer": true,
+    "explanation": "The sensitive plant Mimosa pudica folds its leaves in response to touch.",
+    "factGroup": "F079"
+  },
+  {
+    "id": "TF158",
+    "category": "Plants & Trees",
+    "question": "The sensitive plant Mimosa pudica opens its flowers in response to touch rather than moving its leaves.",
+    "answer": false,
+    "explanation": "Actually, The sensitive plant Mimosa pudica folds its leaves in response to touch.",
+    "factGroup": "F079"
+  },
+  {
+    "id": "TF159",
+    "category": "Plants & Trees",
+    "question": "A sunflower head contains many small individual flowers.",
+    "answer": true,
+    "explanation": "A sunflower head contains many small individual flowers.",
+    "factGroup": "F080"
+  },
+  {
+    "id": "TF160",
+    "category": "Plants & Trees",
+    "question": "A sunflower head contains one giant flower with no smaller florets.",
+    "answer": false,
+    "explanation": "Actually, A sunflower head contains many small individual flowers.",
+    "factGroup": "F080"
+  },
+  {
+    "id": "TF161",
+    "category": "Fruits & Vegetables",
+    "question": "Botanically, a banana is classified as a berry.",
+    "answer": true,
+    "explanation": "Botanically, a banana is classified as a berry.",
+    "factGroup": "F081"
+  },
+  {
+    "id": "TF162",
+    "category": "Fruits & Vegetables",
+    "question": "Botanically, a strawberry is classified as a true berry.",
+    "answer": false,
+    "explanation": "Actually, Botanically, a banana is classified as a berry.",
+    "factGroup": "F081"
+  },
+  {
+    "id": "TF163",
+    "category": "Fruits & Vegetables",
+    "question": "The edible part of an asparagus spear is a young shoot.",
+    "answer": true,
+    "explanation": "The edible part of an asparagus spear is a young shoot.",
+    "factGroup": "F082"
+  },
+  {
+    "id": "TF164",
+    "category": "Fruits & Vegetables",
+    "question": "The edible part of an asparagus spear is a flower petal.",
+    "answer": false,
+    "explanation": "Actually, The edible part of an asparagus spear is a young shoot.",
+    "factGroup": "F082"
+  },
+  {
+    "id": "TF165",
+    "category": "Fruits & Vegetables",
+    "question": "A red bell pepper can contain more vitamin C by weight than an orange.",
+    "answer": true,
+    "explanation": "A red bell pepper can contain more vitamin C by weight than an orange.",
+    "factGroup": "F083"
+  },
+  {
+    "id": "TF166",
+    "category": "Fruits & Vegetables",
+    "question": "A red bell pepper contains no vitamin C.",
+    "answer": false,
+    "explanation": "Actually, A red bell pepper can contain more vitamin C by weight than an orange.",
+    "factGroup": "F083"
+  },
+  {
+    "id": "TF167",
+    "category": "Fruits & Vegetables",
+    "question": "Vanilla flavor comes from the cured seed pods of an orchid.",
+    "answer": true,
+    "explanation": "Vanilla flavor comes from the cured seed pods of an orchid.",
+    "factGroup": "F084"
+  },
+  {
+    "id": "TF168",
+    "category": "Fruits & Vegetables",
+    "question": "Vanilla flavor comes from the leaves of a mint plant.",
+    "answer": false,
+    "explanation": "Actually, Vanilla flavor comes from the cured seed pods of an orchid.",
+    "factGroup": "F084"
+  },
+  {
+    "id": "TF169",
+    "category": "Fruits & Vegetables",
+    "question": "A peanut is a legume rather than a tree nut.",
+    "answer": true,
+    "explanation": "A peanut is a legume rather than a tree nut.",
+    "factGroup": "F085"
+  },
+  {
+    "id": "TF170",
+    "category": "Fruits & Vegetables",
+    "question": "A peanut is a tree nut rather than a legume.",
+    "answer": false,
+    "explanation": "Actually, A peanut is a legume rather than a tree nut.",
+    "factGroup": "F085"
+  },
+  {
+    "id": "TF171",
+    "category": "Fruits & Vegetables",
+    "question": "Purple carrots existed long before modern orange varieties became popular.",
+    "answer": true,
+    "explanation": "Purple carrots existed long before modern orange varieties became popular.",
+    "factGroup": "F086"
+  },
+  {
+    "id": "TF172",
+    "category": "Fruits & Vegetables",
+    "question": "Orange carrots were the only kind cultivated before modern times.",
+    "answer": false,
+    "explanation": "Actually, Purple carrots existed long before modern orange varieties became popular.",
+    "factGroup": "F086"
+  },
+  {
+    "id": "TF173",
+    "category": "Fruits & Vegetables",
+    "question": "The tiny 'seeds' on a strawberry's surface are actually small fruits called achenes.",
+    "answer": true,
+    "explanation": "The tiny 'seeds' on a strawberry's surface are actually small fruits called achenes.",
+    "factGroup": "F087"
+  },
+  {
+    "id": "TF174",
+    "category": "Fruits & Vegetables",
+    "question": "The tiny 'seeds' on a strawberry's surface are enlarged flower petals.",
+    "answer": false,
+    "explanation": "Actually, The tiny 'seeds' on a strawberry's surface are actually small fruits called achenes.",
+    "factGroup": "F087"
+  },
+  {
+    "id": "TF175",
+    "category": "Fruits & Vegetables",
+    "question": "A cashew grows attached to a fleshy structure known as a cashew apple.",
+    "answer": true,
+    "explanation": "A cashew grows attached to a fleshy structure known as a cashew apple.",
+    "factGroup": "F088"
+  },
+  {
+    "id": "TF176",
+    "category": "Fruits & Vegetables",
+    "question": "A cashew grows inside the center of a regular apple.",
+    "answer": false,
+    "explanation": "Actually, A cashew grows attached to a fleshy structure known as a cashew apple.",
+    "factGroup": "F088"
+  },
+  {
+    "id": "TF177",
+    "category": "Fruits & Vegetables",
+    "question": "The edible portion of cauliflower consists mostly of undeveloped flower structures.",
+    "answer": true,
+    "explanation": "The edible portion of cauliflower consists mostly of undeveloped flower structures.",
+    "factGroup": "F089"
+  },
+  {
+    "id": "TF178",
+    "category": "Fruits & Vegetables",
+    "question": "The edible portion of cauliflower is the plant's underground root.",
+    "answer": false,
+    "explanation": "Actually, The edible portion of cauliflower consists mostly of undeveloped flower structures.",
+    "factGroup": "F089"
+  },
+  {
+    "id": "TF179",
+    "category": "Fruits & Vegetables",
+    "question": "Artichokes are harvested as immature flower buds.",
+    "answer": true,
+    "explanation": "Artichokes are harvested as immature flower buds.",
+    "factGroup": "F090"
+  },
+  {
+    "id": "TF180",
+    "category": "Fruits & Vegetables",
+    "question": "Artichokes are harvested as fully ripened fruits.",
+    "answer": false,
+    "explanation": "Actually, Artichokes are harvested as immature flower buds.",
+    "factGroup": "F090"
+  },
+  {
+    "id": "TF181",
+    "category": "Human Body",
+    "question": "The stapes in the middle ear is the smallest bone in the human body.",
+    "answer": true,
+    "explanation": "The stapes in the middle ear is the smallest bone in the human body.",
+    "factGroup": "F091"
+  },
+  {
+    "id": "TF182",
+    "category": "Human Body",
+    "question": "The malleus in the middle ear is the smallest bone in the human body.",
+    "answer": false,
+    "explanation": "Actually, The stapes in the middle ear is the smallest bone in the human body.",
+    "factGroup": "F091"
+  },
+  {
+    "id": "TF183",
+    "category": "Human Body",
+    "question": "The left lung normally has two lobes while the right lung has three.",
+    "answer": true,
+    "explanation": "The left lung normally has two lobes while the right lung has three.",
+    "factGroup": "F092"
+  },
+  {
+    "id": "TF184",
+    "category": "Human Body",
+    "question": "The left lung normally has three lobes while the right lung has two.",
+    "answer": false,
+    "explanation": "Actually, The left lung normally has two lobes while the right lung has three.",
+    "factGroup": "F092"
+  },
+  {
+    "id": "TF185",
+    "category": "Human Body",
+    "question": "Tooth enamel is the hardest substance in the human body.",
+    "answer": true,
+    "explanation": "Tooth enamel is the hardest substance in the human body.",
+    "factGroup": "F093"
+  },
+  {
+    "id": "TF186",
+    "category": "Human Body",
+    "question": "The skull is made from the hardest substance in the human body.",
+    "answer": false,
+    "explanation": "Actually, Tooth enamel is the hardest substance in the human body.",
+    "factGroup": "F093"
+  },
+  {
+    "id": "TF187",
+    "category": "Human Body",
+    "question": "Red blood cells carry oxygen using hemoglobin.",
+    "answer": true,
+    "explanation": "Red blood cells carry oxygen using hemoglobin.",
+    "factGroup": "F094"
+  },
+  {
+    "id": "TF188",
+    "category": "Human Body",
+    "question": "Red blood cells carry oxygen mainly using keratin.",
+    "answer": false,
+    "explanation": "Actually, Red blood cells carry oxygen using hemoglobin.",
+    "factGroup": "F094"
+  },
+  {
+    "id": "TF189",
+    "category": "Human Body",
+    "question": "The adult human spine usually has 24 movable vertebrae.",
+    "answer": true,
+    "explanation": "The adult human spine usually has 24 movable vertebrae.",
+    "factGroup": "F095"
+  },
+  {
+    "id": "TF190",
+    "category": "Human Body",
+    "question": "The adult human spine usually has 14 movable vertebrae.",
+    "answer": false,
+    "explanation": "Actually, The adult human spine usually has 24 movable vertebrae.",
+    "factGroup": "F095"
+  },
+  {
+    "id": "TF191",
+    "category": "Human Body",
+    "question": "The iris controls the size of the pupil.",
+    "answer": true,
+    "explanation": "The iris controls the size of the pupil.",
+    "factGroup": "F096"
+  },
+  {
+    "id": "TF192",
+    "category": "Human Body",
+    "question": "The lens controls the size of the pupil by opening and closing it.",
+    "answer": false,
+    "explanation": "Actually, The iris controls the size of the pupil.",
+    "factGroup": "F096"
+  },
+  {
+    "id": "TF193",
+    "category": "Human Body",
+    "question": "The diaphragm is the main muscle used in quiet breathing.",
+    "answer": true,
+    "explanation": "The diaphragm is the main muscle used in quiet breathing.",
+    "factGroup": "F097"
+  },
+  {
+    "id": "TF194",
+    "category": "Human Body",
+    "question": "The biceps is the main muscle used in quiet breathing.",
+    "answer": false,
+    "explanation": "Actually, The diaphragm is the main muscle used in quiet breathing.",
+    "factGroup": "F097"
+  },
+  {
+    "id": "TF195",
+    "category": "Human Body",
+    "question": "The human heart has four chambers.",
+    "answer": true,
+    "explanation": "The human heart has four chambers.",
+    "factGroup": "F098"
+  },
+  {
+    "id": "TF196",
+    "category": "Human Body",
+    "question": "The human heart has six chambers.",
+    "answer": false,
+    "explanation": "Actually, The human heart has four chambers.",
+    "factGroup": "F098"
+  },
+  {
+    "id": "TF197",
+    "category": "Human Body",
+    "question": "The eardrum separates the outer ear from the middle ear.",
+    "answer": true,
+    "explanation": "The eardrum separates the outer ear from the middle ear.",
+    "factGroup": "F099"
+  },
+  {
+    "id": "TF198",
+    "category": "Human Body",
+    "question": "The eardrum separates the middle ear from the inner ear.",
+    "answer": false,
+    "explanation": "Actually, The eardrum separates the outer ear from the middle ear.",
+    "factGroup": "F099"
+  },
+  {
+    "id": "TF199",
+    "category": "Human Body",
+    "question": "The small intestine is generally longer than the large intestine.",
+    "answer": true,
+    "explanation": "The small intestine is generally longer than the large intestine.",
+    "factGroup": "F100"
+  },
+  {
+    "id": "TF200",
+    "category": "Human Body",
+    "question": "The large intestine is generally longer than the small intestine.",
+    "answer": false,
+    "explanation": "Actually, The small intestine is generally longer than the large intestine.",
+    "factGroup": "F100"
+  }
+]

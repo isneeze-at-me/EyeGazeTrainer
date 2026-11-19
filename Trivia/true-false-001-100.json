@@ -1,0 +1,802 @@
+[
+  {
+    "id": "TF001",
+    "category": "Animals",
+    "question": "A platypus lays eggs despite being a mammal.",
+    "answer": true,
+    "explanation": "A platypus lays eggs despite being a mammal.",
+    "factGroup": "F001"
+  },
+  {
+    "id": "TF002",
+    "category": "Animals",
+    "question": "A platypus gives birth to live young like most mammals.",
+    "answer": false,
+    "explanation": "Actually, A platypus lays eggs despite being a mammal.",
+    "factGroup": "F001"
+  },
+  {
+    "id": "TF003",
+    "category": "Animals",
+    "question": "The African elephant has larger ears than the Asian elephant.",
+    "answer": true,
+    "explanation": "The African elephant has larger ears than the Asian elephant.",
+    "factGroup": "F002"
+  },
+  {
+    "id": "TF004",
+    "category": "Animals",
+    "question": "The Asian elephant generally has larger ears than the African elephant.",
+    "answer": false,
+    "explanation": "Actually, The African elephant has larger ears than the Asian elephant.",
+    "factGroup": "F002"
+  },
+  {
+    "id": "TF005",
+    "category": "Animals",
+    "question": "A camel's hump stores fat rather than water.",
+    "answer": true,
+    "explanation": "A camel's hump stores fat rather than water.",
+    "factGroup": "F003"
+  },
+  {
+    "id": "TF006",
+    "category": "Animals",
+    "question": "A camel's hump stores water rather than fat.",
+    "answer": false,
+    "explanation": "Actually, A camel's hump stores fat rather than water.",
+    "factGroup": "F003"
+  },
+  {
+    "id": "TF007",
+    "category": "Animals",
+    "question": "The fingerprints of a koala can resemble human fingerprints.",
+    "answer": true,
+    "explanation": "The fingerprints of a koala can resemble human fingerprints.",
+    "factGroup": "F004"
+  },
+  {
+    "id": "TF008",
+    "category": "Animals",
+    "question": "Koalas have completely smooth fingertips without fingerprints.",
+    "answer": false,
+    "explanation": "Actually, The fingerprints of a koala can resemble human fingerprints.",
+    "factGroup": "F004"
+  },
+  {
+    "id": "TF009",
+    "category": "Animals",
+    "question": "A giant panda's diet consists mostly of bamboo.",
+    "answer": true,
+    "explanation": "A giant panda's diet consists mostly of bamboo.",
+    "factGroup": "F005"
+  },
+  {
+    "id": "TF010",
+    "category": "Animals",
+    "question": "A giant panda's diet consists mostly of eucalyptus leaves.",
+    "answer": false,
+    "explanation": "Actually, A giant panda's diet consists mostly of bamboo.",
+    "factGroup": "F005"
+  },
+  {
+    "id": "TF011",
+    "category": "Animals",
+    "question": "A polar bear's skin is black beneath its fur.",
+    "answer": true,
+    "explanation": "A polar bear's skin is black beneath its fur.",
+    "factGroup": "F006"
+  },
+  {
+    "id": "TF012",
+    "category": "Animals",
+    "question": "A polar bear's skin is white beneath its fur.",
+    "answer": false,
+    "explanation": "Actually, A polar bear's skin is black beneath its fur.",
+    "factGroup": "F006"
+  },
+  {
+    "id": "TF013",
+    "category": "Animals",
+    "question": "A narwhal's long tusk is an enlarged tooth.",
+    "answer": true,
+    "explanation": "A narwhal's long tusk is an enlarged tooth.",
+    "factGroup": "F007"
+  },
+  {
+    "id": "TF014",
+    "category": "Animals",
+    "question": "A narwhal's long tusk is a modified horn made of bone.",
+    "answer": false,
+    "explanation": "Actually, A narwhal's long tusk is an enlarged tooth.",
+    "factGroup": "F007"
+  },
+  {
+    "id": "TF015",
+    "category": "Animals",
+    "question": "A wombat produces droppings that are often cube-shaped.",
+    "answer": true,
+    "explanation": "A wombat produces droppings that are often cube-shaped.",
+    "factGroup": "F008"
+  },
+  {
+    "id": "TF016",
+    "category": "Animals",
+    "question": "A wombat produces droppings that are naturally spherical like marbles.",
+    "answer": false,
+    "explanation": "Actually, A wombat produces droppings that are often cube-shaped.",
+    "factGroup": "F008"
+  },
+  {
+    "id": "TF017",
+    "category": "Animals",
+    "question": "A cheetah's claws are less retractable than those of most other cats.",
+    "answer": true,
+    "explanation": "A cheetah's claws are less retractable than those of most other cats.",
+    "factGroup": "F009"
+  },
+  {
+    "id": "TF018",
+    "category": "Animals",
+    "question": "A cheetah can retract its claws fully like a typical house cat.",
+    "answer": false,
+    "explanation": "Actually, A cheetah's claws are less retractable than those of most other cats.",
+    "factGroup": "F009"
+  },
+  {
+    "id": "TF019",
+    "category": "Animals",
+    "question": "A giraffe has the same number of neck vertebrae as a human.",
+    "answer": true,
+    "explanation": "A giraffe has the same number of neck vertebrae as a human.",
+    "factGroup": "F010"
+  },
+  {
+    "id": "TF020",
+    "category": "Animals",
+    "question": "A giraffe has more neck vertebrae than a human.",
+    "answer": false,
+    "explanation": "Actually, A giraffe has the same number of neck vertebrae as a human.",
+    "factGroup": "F010"
+  },
+  {
+    "id": "TF021",
+    "category": "Ocean Life",
+    "question": "An octopus has three hearts.",
+    "answer": true,
+    "explanation": "An octopus has three hearts.",
+    "factGroup": "F011"
+  },
+  {
+    "id": "TF022",
+    "category": "Ocean Life",
+    "question": "An octopus has two hearts.",
+    "answer": false,
+    "explanation": "Actually, An octopus has three hearts.",
+    "factGroup": "F011"
+  },
+  {
+    "id": "TF023",
+    "category": "Ocean Life",
+    "question": "A blue whale's heart is unusually large compared with that of most animals.",
+    "answer": true,
+    "explanation": "A blue whale's heart is unusually large compared with that of most animals.",
+    "factGroup": "F012"
+  },
+  {
+    "id": "TF024",
+    "category": "Ocean Life",
+    "question": "A blue whale's heart is smaller than a human heart.",
+    "answer": false,
+    "explanation": "Actually, A blue whale's heart is unusually large compared with that of most animals.",
+    "factGroup": "F012"
+  },
+  {
+    "id": "TF025",
+    "category": "Ocean Life",
+    "question": "Male seahorses carry developing young in a brood pouch.",
+    "answer": true,
+    "explanation": "Male seahorses carry developing young in a brood pouch.",
+    "factGroup": "F013"
+  },
+  {
+    "id": "TF026",
+    "category": "Ocean Life",
+    "question": "Female seahorses carry developing young in a brood pouch.",
+    "answer": false,
+    "explanation": "Actually, Male seahorses carry developing young in a brood pouch.",
+    "factGroup": "F013"
+  },
+  {
+    "id": "TF027",
+    "category": "Ocean Life",
+    "question": "A sea star can use tube feet to move.",
+    "answer": true,
+    "explanation": "A sea star can use tube feet to move.",
+    "factGroup": "F014"
+  },
+  {
+    "id": "TF028",
+    "category": "Ocean Life",
+    "question": "A sea star moves by beating a pair of fins.",
+    "answer": false,
+    "explanation": "Actually, A sea star can use tube feet to move.",
+    "factGroup": "F014"
+  },
+  {
+    "id": "TF029",
+    "category": "Ocean Life",
+    "question": "Some species of sharks must keep swimming to move enough water over their gills.",
+    "answer": true,
+    "explanation": "Some species of sharks must keep swimming to move enough water over their gills.",
+    "factGroup": "F015"
+  },
+  {
+    "id": "TF030",
+    "category": "Ocean Life",
+    "question": "Every species of shark must keep swimming constantly to breathe.",
+    "answer": false,
+    "explanation": "Actually, Some species of sharks must keep swimming to move enough water over their gills.",
+    "factGroup": "F015"
+  },
+  {
+    "id": "TF031",
+    "category": "Ocean Life",
+    "question": "A sea cucumber can expel internal organs as a defense.",
+    "answer": true,
+    "explanation": "A sea cucumber can expel internal organs as a defense.",
+    "factGroup": "F016"
+  },
+  {
+    "id": "TF032",
+    "category": "Ocean Life",
+    "question": "Sea cucumbers defend themselves mainly by shooting venom from stingers.",
+    "answer": false,
+    "explanation": "Actually, A sea cucumber can expel internal organs as a defense.",
+    "factGroup": "F016"
+  },
+  {
+    "id": "TF033",
+    "category": "Ocean Life",
+    "question": "The giant squid has two long feeding tentacles in addition to its eight arms.",
+    "answer": true,
+    "explanation": "The giant squid has two long feeding tentacles in addition to its eight arms.",
+    "factGroup": "F017"
+  },
+  {
+    "id": "TF034",
+    "category": "Ocean Life",
+    "question": "The giant squid has ten arms and no specialized feeding tentacles.",
+    "answer": false,
+    "explanation": "Actually, The giant squid has two long feeding tentacles in addition to its eight arms.",
+    "factGroup": "F017"
+  },
+  {
+    "id": "TF035",
+    "category": "Ocean Life",
+    "question": "Sea otters sometimes use rocks to crack open shellfish.",
+    "answer": true,
+    "explanation": "Sea otters sometimes use rocks to crack open shellfish.",
+    "factGroup": "F018"
+  },
+  {
+    "id": "TF036",
+    "category": "Ocean Life",
+    "question": "Sea otters use their teeth alone and never use rocks to open shellfish.",
+    "answer": false,
+    "explanation": "Actually, Sea otters sometimes use rocks to crack open shellfish.",
+    "factGroup": "F018"
+  },
+  {
+    "id": "TF037",
+    "category": "Ocean Life",
+    "question": "A coral polyp belongs to the same animal group as jellyfish.",
+    "answer": true,
+    "explanation": "A coral polyp belongs to the same animal group as jellyfish.",
+    "factGroup": "F019"
+  },
+  {
+    "id": "TF038",
+    "category": "Ocean Life",
+    "question": "A coral polyp belongs to the same animal group as clams.",
+    "answer": false,
+    "explanation": "Actually, A coral polyp belongs to the same animal group as jellyfish.",
+    "factGroup": "F019"
+  },
+  {
+    "id": "TF039",
+    "category": "Ocean Life",
+    "question": "Most adult sea turtles cannot pull their heads inside their shells.",
+    "answer": true,
+    "explanation": "Most adult sea turtles cannot pull their heads inside their shells.",
+    "factGroup": "F020"
+  },
+  {
+    "id": "TF040",
+    "category": "Ocean Life",
+    "question": "Adult sea turtles routinely retract their heads completely into their shells.",
+    "answer": false,
+    "explanation": "Actually, Most adult sea turtles cannot pull their heads inside their shells.",
+    "factGroup": "F020"
+  },
+  {
+    "id": "TF041",
+    "category": "Birds",
+    "question": "A hummingbird can fly backward by changing how its wings beat.",
+    "answer": true,
+    "explanation": "A hummingbird can fly backward by changing how its wings beat.",
+    "factGroup": "F021"
+  },
+  {
+    "id": "TF042",
+    "category": "Birds",
+    "question": "A hummingbird cannot fly backward under its own power.",
+    "answer": false,
+    "explanation": "Actually, A hummingbird can fly backward by changing how its wings beat.",
+    "factGroup": "F021"
+  },
+  {
+    "id": "TF043",
+    "category": "Birds",
+    "question": "An albatross can glide for long distances using air currents.",
+    "answer": true,
+    "explanation": "An albatross can glide for long distances using air currents.",
+    "factGroup": "F022"
+  },
+  {
+    "id": "TF044",
+    "category": "Birds",
+    "question": "An albatross must flap its wings continuously throughout long ocean flights.",
+    "answer": false,
+    "explanation": "Actually, An albatross can glide for long distances using air currents.",
+    "factGroup": "F022"
+  },
+  {
+    "id": "TF045",
+    "category": "Birds",
+    "question": "The ostrich has only two toes on each foot.",
+    "answer": true,
+    "explanation": "The ostrich has only two toes on each foot.",
+    "factGroup": "F023"
+  },
+  {
+    "id": "TF046",
+    "category": "Birds",
+    "question": "The ostrich has four toes on each foot.",
+    "answer": false,
+    "explanation": "Actually, The ostrich has only two toes on each foot.",
+    "factGroup": "F023"
+  },
+  {
+    "id": "TF047",
+    "category": "Birds",
+    "question": "Penguins have solid, dense bones that help them dive.",
+    "answer": true,
+    "explanation": "Penguins have solid, dense bones that help them dive.",
+    "factGroup": "F024"
+  },
+  {
+    "id": "TF048",
+    "category": "Birds",
+    "question": "Penguins have especially hollow bones that make diving easier.",
+    "answer": false,
+    "explanation": "Actually, Penguins have solid, dense bones that help them dive.",
+    "factGroup": "F024"
+  },
+  {
+    "id": "TF049",
+    "category": "Birds",
+    "question": "The male emperor penguin incubates the egg on its feet.",
+    "answer": true,
+    "explanation": "The male emperor penguin incubates the egg on its feet.",
+    "factGroup": "F025"
+  },
+  {
+    "id": "TF050",
+    "category": "Birds",
+    "question": "The female emperor penguin incubates the egg on her feet through the winter.",
+    "answer": false,
+    "explanation": "Actually, The male emperor penguin incubates the egg on its feet.",
+    "factGroup": "F025"
+  },
+  {
+    "id": "TF051",
+    "category": "Birds",
+    "question": "A woodpecker's tongue can extend a considerable distance beyond its beak.",
+    "answer": true,
+    "explanation": "A woodpecker's tongue can extend a considerable distance beyond its beak.",
+    "factGroup": "F026"
+  },
+  {
+    "id": "TF052",
+    "category": "Birds",
+    "question": "A woodpecker's tongue cannot reach beyond the tip of its beak.",
+    "answer": false,
+    "explanation": "Actually, A woodpecker's tongue can extend a considerable distance beyond its beak.",
+    "factGroup": "F026"
+  },
+  {
+    "id": "TF053",
+    "category": "Birds",
+    "question": "A puffin can hold several small fish in its beak at once.",
+    "answer": true,
+    "explanation": "A puffin can hold several small fish in its beak at once.",
+    "factGroup": "F027"
+  },
+  {
+    "id": "TF054",
+    "category": "Birds",
+    "question": "A puffin can hold only one small fish at a time in its beak.",
+    "answer": false,
+    "explanation": "Actually, A puffin can hold several small fish in its beak at once.",
+    "factGroup": "F027"
+  },
+  {
+    "id": "TF055",
+    "category": "Birds",
+    "question": "Owls cannot move their eyes freely in their sockets as humans can.",
+    "answer": true,
+    "explanation": "Owls cannot move their eyes freely in their sockets as humans can.",
+    "factGroup": "F028"
+  },
+  {
+    "id": "TF056",
+    "category": "Birds",
+    "question": "Owls can roll their eyes freely in their sockets like humans.",
+    "answer": false,
+    "explanation": "Actually, Owls cannot move their eyes freely in their sockets as humans can.",
+    "factGroup": "F028"
+  },
+  {
+    "id": "TF057",
+    "category": "Birds",
+    "question": "Many migratory birds use Earth's magnetic field to help navigate.",
+    "answer": true,
+    "explanation": "Many migratory birds use Earth's magnetic field to help navigate.",
+    "factGroup": "F029"
+  },
+  {
+    "id": "TF058",
+    "category": "Birds",
+    "question": "Migratory birds can navigate only by following river shorelines.",
+    "answer": false,
+    "explanation": "Actually, Many migratory birds use Earth's magnetic field to help navigate.",
+    "factGroup": "F029"
+  },
+  {
+    "id": "TF059",
+    "category": "Birds",
+    "question": "A flamingo's pink coloring comes from pigments in its diet.",
+    "answer": true,
+    "explanation": "A flamingo's pink coloring comes from pigments in its diet.",
+    "factGroup": "F030"
+  },
+  {
+    "id": "TF060",
+    "category": "Birds",
+    "question": "A flamingo's pink coloring comes primarily from minerals in its drinking water.",
+    "answer": false,
+    "explanation": "Actually, A flamingo's pink coloring comes from pigments in its diet.",
+    "factGroup": "F030"
+  },
+  {
+    "id": "TF061",
+    "category": "Insects & Bugs",
+    "question": "A butterfly tastes with sensors on its feet.",
+    "answer": true,
+    "explanation": "A butterfly tastes with sensors on its feet.",
+    "factGroup": "F031"
+  },
+  {
+    "id": "TF062",
+    "category": "Insects & Bugs",
+    "question": "A butterfly tastes mainly with sensors on the tips of its wings.",
+    "answer": false,
+    "explanation": "Actually, A butterfly tastes with sensors on its feet.",
+    "factGroup": "F031"
+  },
+  {
+    "id": "TF063",
+    "category": "Insects & Bugs",
+    "question": "Dragonflies have two pairs of wings.",
+    "answer": true,
+    "explanation": "Dragonflies have two pairs of wings.",
+    "factGroup": "F032"
+  },
+  {
+    "id": "TF064",
+    "category": "Insects & Bugs",
+    "question": "Dragonflies have three pairs of wings.",
+    "answer": false,
+    "explanation": "Actually, Dragonflies have two pairs of wings.",
+    "factGroup": "F032"
+  },
+  {
+    "id": "TF065",
+    "category": "Insects & Bugs",
+    "question": "A honeybee has five eyes, including three small simple eyes.",
+    "answer": true,
+    "explanation": "A honeybee has five eyes, including three small simple eyes.",
+    "factGroup": "F033"
+  },
+  {
+    "id": "TF066",
+    "category": "Insects & Bugs",
+    "question": "A honeybee has only two eyes in total.",
+    "answer": false,
+    "explanation": "Actually, A honeybee has five eyes, including three small simple eyes.",
+    "factGroup": "F033"
+  },
+  {
+    "id": "TF067",
+    "category": "Insects & Bugs",
+    "question": "A termite is more closely related to a cockroach than to an ant.",
+    "answer": true,
+    "explanation": "A termite is more closely related to a cockroach than to an ant.",
+    "factGroup": "F034"
+  },
+  {
+    "id": "TF068",
+    "category": "Insects & Bugs",
+    "question": "A termite is more closely related to an ant than to a cockroach.",
+    "answer": false,
+    "explanation": "Actually, A termite is more closely related to a cockroach than to an ant.",
+    "factGroup": "F034"
+  },
+  {
+    "id": "TF069",
+    "category": "Insects & Bugs",
+    "question": "A ladybug's spotted wing covers protect its flying wings.",
+    "answer": true,
+    "explanation": "A ladybug's spotted wing covers protect its flying wings.",
+    "factGroup": "F035"
+  },
+  {
+    "id": "TF070",
+    "category": "Insects & Bugs",
+    "question": "A ladybug flies using its spotted outer wing covers alone.",
+    "answer": false,
+    "explanation": "Actually, A ladybug's spotted wing covers protect its flying wings.",
+    "factGroup": "F035"
+  },
+  {
+    "id": "TF071",
+    "category": "Insects & Bugs",
+    "question": "Some ants farm fungus for food.",
+    "answer": true,
+    "explanation": "Some ants farm fungus for food.",
+    "factGroup": "F036"
+  },
+  {
+    "id": "TF072",
+    "category": "Insects & Bugs",
+    "question": "No species of ant cultivates fungus as a food source.",
+    "answer": false,
+    "explanation": "Actually, Some ants farm fungus for food.",
+    "factGroup": "F036"
+  },
+  {
+    "id": "TF073",
+    "category": "Insects & Bugs",
+    "question": "A cricket hears sounds with organs located on its front legs.",
+    "answer": true,
+    "explanation": "A cricket hears sounds with organs located on its front legs.",
+    "factGroup": "F037"
+  },
+  {
+    "id": "TF074",
+    "category": "Insects & Bugs",
+    "question": "A cricket hears sounds using ears at the ends of its antennae.",
+    "answer": false,
+    "explanation": "Actually, A cricket hears sounds with organs located on its front legs.",
+    "factGroup": "F037"
+  },
+  {
+    "id": "TF075",
+    "category": "Insects & Bugs",
+    "question": "A mantis can turn its head to look around.",
+    "answer": true,
+    "explanation": "A mantis can turn its head to look around.",
+    "factGroup": "F038"
+  },
+  {
+    "id": "TF076",
+    "category": "Insects & Bugs",
+    "question": "A mantis has a rigid head that cannot turn.",
+    "answer": false,
+    "explanation": "Actually, A mantis can turn its head to look around.",
+    "factGroup": "F038"
+  },
+  {
+    "id": "TF077",
+    "category": "Insects & Bugs",
+    "question": "The larvae of some firefly species can produce light.",
+    "answer": true,
+    "explanation": "The larvae of some firefly species can produce light.",
+    "factGroup": "F039"
+  },
+  {
+    "id": "TF078",
+    "category": "Insects & Bugs",
+    "question": "Only fully grown fireflies can produce light.",
+    "answer": false,
+    "explanation": "Actually, The larvae of some firefly species can produce light.",
+    "factGroup": "F039"
+  },
+  {
+    "id": "TF079",
+    "category": "Insects & Bugs",
+    "question": "A spider's silk is made from proteins.",
+    "answer": true,
+    "explanation": "A spider's silk is made from proteins.",
+    "factGroup": "F040"
+  },
+  {
+    "id": "TF080",
+    "category": "Insects & Bugs",
+    "question": "Spider silk is made mainly from plant cellulose.",
+    "answer": false,
+    "explanation": "Actually, A spider's silk is made from proteins.",
+    "factGroup": "F040"
+  },
+  {
+    "id": "TF081",
+    "category": "Dinosaurs & Fossils",
+    "question": "Stegosaurus lived long before Tyrannosaurus rex.",
+    "answer": true,
+    "explanation": "Stegosaurus lived long before Tyrannosaurus rex.",
+    "factGroup": "F041"
+  },
+  {
+    "id": "TF082",
+    "category": "Dinosaurs & Fossils",
+    "question": "Stegosaurus and Tyrannosaurus rex lived during the same geological period.",
+    "answer": false,
+    "explanation": "Actually, Stegosaurus lived long before Tyrannosaurus rex.",
+    "factGroup": "F041"
+  },
+  {
+    "id": "TF083",
+    "category": "Dinosaurs & Fossils",
+    "question": "Triceratops lived near the end of the Cretaceous Period.",
+    "answer": true,
+    "explanation": "Triceratops lived near the end of the Cretaceous Period.",
+    "factGroup": "F042"
+  },
+  {
+    "id": "TF084",
+    "category": "Dinosaurs & Fossils",
+    "question": "Triceratops lived during the early Jurassic Period.",
+    "answer": false,
+    "explanation": "Actually, Triceratops lived near the end of the Cretaceous Period.",
+    "factGroup": "F042"
+  },
+  {
+    "id": "TF085",
+    "category": "Dinosaurs & Fossils",
+    "question": "Pterosaurs were flying reptiles, not dinosaurs.",
+    "answer": true,
+    "explanation": "Pterosaurs were flying reptiles, not dinosaurs.",
+    "factGroup": "F043"
+  },
+  {
+    "id": "TF086",
+    "category": "Dinosaurs & Fossils",
+    "question": "Pterosaurs were a group of flying dinosaurs.",
+    "answer": false,
+    "explanation": "Actually, Pterosaurs were flying reptiles, not dinosaurs.",
+    "factGroup": "F043"
+  },
+  {
+    "id": "TF087",
+    "category": "Dinosaurs & Fossils",
+    "question": "Many dinosaurs had air-filled spaces in some of their bones.",
+    "answer": true,
+    "explanation": "Many dinosaurs had air-filled spaces in some of their bones.",
+    "factGroup": "F044"
+  },
+  {
+    "id": "TF088",
+    "category": "Dinosaurs & Fossils",
+    "question": "Every dinosaur had completely solid bones without air spaces.",
+    "answer": false,
+    "explanation": "Actually, Many dinosaurs had air-filled spaces in some of their bones.",
+    "factGroup": "F044"
+  },
+  {
+    "id": "TF089",
+    "category": "Dinosaurs & Fossils",
+    "question": "Archaeopteryx had both feathers and teeth.",
+    "answer": true,
+    "explanation": "Archaeopteryx had both feathers and teeth.",
+    "factGroup": "F045"
+  },
+  {
+    "id": "TF090",
+    "category": "Dinosaurs & Fossils",
+    "question": "Archaeopteryx had feathers but no teeth.",
+    "answer": false,
+    "explanation": "Actually, Archaeopteryx had both feathers and teeth.",
+    "factGroup": "F045"
+  },
+  {
+    "id": "TF091",
+    "category": "Dinosaurs & Fossils",
+    "question": "The name Velociraptor means 'swift thief.'",
+    "answer": true,
+    "explanation": "The name Velociraptor means 'swift thief.'",
+    "factGroup": "F046"
+  },
+  {
+    "id": "TF092",
+    "category": "Dinosaurs & Fossils",
+    "question": "The name Velociraptor means 'giant lizard.'",
+    "answer": false,
+    "explanation": "Actually, The name Velociraptor means 'swift thief.'",
+    "factGroup": "F046"
+  },
+  {
+    "id": "TF093",
+    "category": "Dinosaurs & Fossils",
+    "question": "Amber can preserve ancient insects trapped in hardened tree resin.",
+    "answer": true,
+    "explanation": "Amber can preserve ancient insects trapped in hardened tree resin.",
+    "factGroup": "F047"
+  },
+  {
+    "id": "TF094",
+    "category": "Dinosaurs & Fossils",
+    "question": "Amber forms mainly when seawater freezes around dead insects.",
+    "answer": false,
+    "explanation": "Actually, Amber can preserve ancient insects trapped in hardened tree resin.",
+    "factGroup": "F047"
+  },
+  {
+    "id": "TF095",
+    "category": "Dinosaurs & Fossils",
+    "question": "A fossil footprint is an example of a trace fossil.",
+    "answer": true,
+    "explanation": "A fossil footprint is an example of a trace fossil.",
+    "factGroup": "F048"
+  },
+  {
+    "id": "TF096",
+    "category": "Dinosaurs & Fossils",
+    "question": "A fossil footprint is a body fossil made from an animal's skeleton.",
+    "answer": false,
+    "explanation": "Actually, A fossil footprint is an example of a trace fossil.",
+    "factGroup": "F048"
+  },
+  {
+    "id": "TF097",
+    "category": "Dinosaurs & Fossils",
+    "question": "Ankylosaurus had a heavy tail club.",
+    "answer": true,
+    "explanation": "Ankylosaurus had a heavy tail club.",
+    "factGroup": "F049"
+  },
+  {
+    "id": "TF098",
+    "category": "Dinosaurs & Fossils",
+    "question": "Ankylosaurus had a long pointed horn at the end of its tail.",
+    "answer": false,
+    "explanation": "Actually, Ankylosaurus had a heavy tail club.",
+    "factGroup": "F049"
+  },
+  {
+    "id": "TF099",
+    "category": "Dinosaurs & Fossils",
+    "question": "Tyrannosaurus rex lived closer in time to humans than to Stegosaurus.",
+    "answer": true,
+    "explanation": "Tyrannosaurus rex lived closer in time to humans than to Stegosaurus.",
+    "factGroup": "F050"
+  },
+  {
+    "id": "TF100",
+    "category": "Dinosaurs & Fossils",
+    "question": "Tyrannosaurus rex lived closer in time to Stegosaurus than to humans.",
+    "answer": false,
+    "explanation": "Actually, Tyrannosaurus rex lived closer in time to humans than to Stegosaurus.",
+    "factGroup": "F050"
+  }
+]

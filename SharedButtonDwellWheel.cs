@@ -9,7 +9,7 @@ using Windows.UI.Xaml.Shapes;
 namespace EyeGazeApiViability
 {
     /// <summary>
-    /// Shared circular gaze-dwell wheel for all future button controls.
+    /// Shared circular gaze-dwell wheel for buttons and training targets.
     /// Adapted from HomesteadInfluencer ApprovedDwellWheelControl:
     /// one neutral track + clockwise progress from 12 o'clock, no bars.
     /// The wheel is visual only: the page owns dwell timing and activation.
@@ -23,7 +23,6 @@ namespace EyeGazeApiViability
         private readonly Canvas overlay;
         private readonly Canvas wheel;
         private readonly Path progressArc;
-        private Button activeButton;
 
         public SharedButtonDwellWheel(Canvas overlay)
         {
@@ -76,13 +75,27 @@ namespace EyeGazeApiViability
                 return;
             }
 
-            activeButton = button;
             Point origin = button.TransformToVisual(overlay)
                                  .TransformPoint(new Point(0, 0));
-            double centerX = origin.X + button.ActualWidth * 0.5;
-            double centerY = origin.Y + button.ActualHeight * 0.5;
-            Canvas.SetLeft(wheel, centerX - wheel.Width * 0.5);
-            Canvas.SetTop(wheel, centerY - wheel.Height * 0.5);
+            PresentAt(new Point(origin.X + button.ActualWidth * 0.5,
+                                origin.Y + button.ActualHeight * 0.5), progress);
+        }
+
+        /// <summary>
+        /// Use the identical radial wheel for non-button training targets.
+        /// Center coordinates are relative to the shared cursor overlay.
+        /// </summary>
+        public void PresentAt(Point centerPoint, double progress)
+        {
+            if (double.IsNaN(centerPoint.X) || double.IsNaN(centerPoint.Y) ||
+                double.IsInfinity(centerPoint.X) || double.IsInfinity(centerPoint.Y))
+            {
+                Hide();
+                return;
+            }
+
+            Canvas.SetLeft(wheel, centerPoint.X - wheel.Width * 0.5);
+            Canvas.SetTop(wheel, centerPoint.Y - wheel.Height * 0.5);
 
             double p = Math.Max(0, Math.Min(1, progress));
             double center = wheel.Width * 0.5;
@@ -131,7 +144,6 @@ namespace EyeGazeApiViability
 
         public void Hide()
         {
-            activeButton = null;
             progressArc.Data = null;
             wheel.Visibility = Visibility.Collapsed;
         }

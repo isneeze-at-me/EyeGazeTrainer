@@ -105,7 +105,9 @@ namespace EyeGazeTrainer.OverlayCompanion
             if (!string.Equals(className.ToString(), "ApplicationFrameWindow",
                                StringComparison.Ordinal)) return false;
             GetWindowText(hWnd, title, title.Capacity);
-            return string.Equals(title.ToString(), "Eye Gaze API Viability",
+            return string.Equals(title.ToString(), "Eye Gaze Trainer",
+                                 StringComparison.Ordinal) ||
+                   string.Equals(title.ToString(), "Eye Gaze API Viability",
                                  StringComparison.Ordinal);
         }
 

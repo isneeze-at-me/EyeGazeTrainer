@@ -1,0 +1,802 @@
+[
+  {
+    "id": "TF201",
+    "category": "Simple Science",
+    "question": "An object can float when it displaces enough fluid to balance its weight.",
+    "answer": true,
+    "explanation": "An object can float when it displaces enough fluid to balance its weight.",
+    "factGroup": "F101"
+  },
+  {
+    "id": "TF202",
+    "category": "Simple Science",
+    "question": "An object floats only when it contains trapped air.",
+    "answer": false,
+    "explanation": "Actually, An object can float when it displaces enough fluid to balance its weight.",
+    "factGroup": "F101"
+  },
+  {
+    "id": "TF203",
+    "category": "Simple Science",
+    "question": "Copper is a better conductor of electricity than rubber.",
+    "answer": true,
+    "explanation": "Copper is a better conductor of electricity than rubber.",
+    "factGroup": "F102"
+  },
+  {
+    "id": "TF204",
+    "category": "Simple Science",
+    "question": "Rubber is a better conductor of electricity than copper.",
+    "answer": false,
+    "explanation": "Actually, Copper is a better conductor of electricity than rubber.",
+    "factGroup": "F102"
+  },
+  {
+    "id": "TF205",
+    "category": "Simple Science",
+    "question": "Sound generally travels faster in water than in air.",
+    "answer": true,
+    "explanation": "Sound generally travels faster in water than in air.",
+    "factGroup": "F103"
+  },
+  {
+    "id": "TF206",
+    "category": "Simple Science",
+    "question": "Sound generally travels more slowly in water than in air.",
+    "answer": false,
+    "explanation": "Actually, Sound generally travels faster in water than in air.",
+    "factGroup": "F103"
+  },
+  {
+    "id": "TF207",
+    "category": "Simple Science",
+    "question": "Diamond and graphite are both made of carbon.",
+    "answer": true,
+    "explanation": "Diamond and graphite are both made of carbon.",
+    "factGroup": "F104"
+  },
+  {
+    "id": "TF208",
+    "category": "Simple Science",
+    "question": "Diamond is made of carbon while graphite is made of silicon.",
+    "answer": false,
+    "explanation": "Actually, Diamond and graphite are both made of carbon.",
+    "factGroup": "F104"
+  },
+  {
+    "id": "TF209",
+    "category": "Simple Science",
+    "question": "The pH of pure water at 25 degrees Celsius is about 7.",
+    "answer": true,
+    "explanation": "The pH of pure water at 25 degrees Celsius is about 7.",
+    "factGroup": "F105"
+  },
+  {
+    "id": "TF210",
+    "category": "Simple Science",
+    "question": "The pH of pure water at 25 degrees Celsius is about 2.",
+    "answer": false,
+    "explanation": "Actually, The pH of pure water at 25 degrees Celsius is about 7.",
+    "factGroup": "F105"
+  },
+  {
+    "id": "TF211",
+    "category": "Simple Science",
+    "question": "An object's mass stays the same on Earth and the Moon.",
+    "answer": true,
+    "explanation": "An object's mass stays the same on Earth and the Moon.",
+    "factGroup": "F106"
+  },
+  {
+    "id": "TF212",
+    "category": "Simple Science",
+    "question": "An object's mass becomes about one-sixth as large on the Moon.",
+    "answer": false,
+    "explanation": "Actually, An object's mass stays the same on Earth and the Moon.",
+    "factGroup": "F106"
+  },
+  {
+    "id": "TF213",
+    "category": "Simple Science",
+    "question": "The three common states of matter are solid, liquid and gas.",
+    "answer": true,
+    "explanation": "The three common states of matter are solid, liquid and gas.",
+    "factGroup": "F107"
+  },
+  {
+    "id": "TF214",
+    "category": "Simple Science",
+    "question": "The three common states of matter are solid, liquid and energy.",
+    "answer": false,
+    "explanation": "Actually, The three common states of matter are solid, liquid and gas.",
+    "factGroup": "F107"
+  },
+  {
+    "id": "TF215",
+    "category": "Simple Science",
+    "question": "A prism separates white light because different wavelengths refract by different amounts.",
+    "answer": true,
+    "explanation": "A prism separates white light because different wavelengths refract by different amounts.",
+    "factGroup": "F108"
+  },
+  {
+    "id": "TF216",
+    "category": "Simple Science",
+    "question": "A prism separates white light because each color moves through the prism along the same path.",
+    "answer": false,
+    "explanation": "Actually, A prism separates white light because different wavelengths refract by different amounts.",
+    "factGroup": "F108"
+  },
+  {
+    "id": "TF217",
+    "category": "Simple Science",
+    "question": "Iron can rust when it reacts with oxygen in the presence of moisture.",
+    "answer": true,
+    "explanation": "Iron can rust when it reacts with oxygen in the presence of moisture.",
+    "factGroup": "F109"
+  },
+  {
+    "id": "TF218",
+    "category": "Simple Science",
+    "question": "Iron can rust only when it is placed in direct sunlight.",
+    "answer": false,
+    "explanation": "Actually, Iron can rust when it reacts with oxygen in the presence of moisture.",
+    "factGroup": "F109"
+  },
+  {
+    "id": "TF219",
+    "category": "Simple Science",
+    "question": "The speed of light in a vacuum is greater than the speed of sound in air.",
+    "answer": true,
+    "explanation": "The speed of light in a vacuum is greater than the speed of sound in air.",
+    "factGroup": "F110"
+  },
+  {
+    "id": "TF220",
+    "category": "Simple Science",
+    "question": "The speed of sound in air is greater than the speed of light in a vacuum.",
+    "answer": false,
+    "explanation": "Actually, The speed of light in a vacuum is greater than the speed of sound in air.",
+    "factGroup": "F110"
+  },
+  {
+    "id": "TF221",
+    "category": "Math & Shapes",
+    "question": "A prime number has exactly two positive factors.",
+    "answer": true,
+    "explanation": "A prime number has exactly two positive factors.",
+    "factGroup": "F111"
+  },
+  {
+    "id": "TF222",
+    "category": "Math & Shapes",
+    "question": "A prime number has exactly three positive factors.",
+    "answer": false,
+    "explanation": "Actually, A prime number has exactly two positive factors.",
+    "factGroup": "F111"
+  },
+  {
+    "id": "TF223",
+    "category": "Math & Shapes",
+    "question": "The interior angles of a triangle add up to 180 degrees in flat geometry.",
+    "answer": true,
+    "explanation": "The interior angles of a triangle add up to 180 degrees in flat geometry.",
+    "factGroup": "F112"
+  },
+  {
+    "id": "TF224",
+    "category": "Math & Shapes",
+    "question": "The interior angles of a triangle add up to 270 degrees in flat geometry.",
+    "answer": false,
+    "explanation": "Actually, The interior angles of a triangle add up to 180 degrees in flat geometry.",
+    "factGroup": "F112"
+  },
+  {
+    "id": "TF225",
+    "category": "Math & Shapes",
+    "question": "A regular octagon has eight equal sides.",
+    "answer": true,
+    "explanation": "A regular octagon has eight equal sides.",
+    "factGroup": "F113"
+  },
+  {
+    "id": "TF226",
+    "category": "Math & Shapes",
+    "question": "A regular octagon has six equal sides.",
+    "answer": false,
+    "explanation": "Actually, A regular octagon has eight equal sides.",
+    "factGroup": "F113"
+  },
+  {
+    "id": "TF227",
+    "category": "Math & Shapes",
+    "question": "The square root of 144 is 12.",
+    "answer": true,
+    "explanation": "The square root of 144 is 12.",
+    "factGroup": "F114"
+  },
+  {
+    "id": "TF228",
+    "category": "Math & Shapes",
+    "question": "The square root of 144 is 14.",
+    "answer": false,
+    "explanation": "Actually, The square root of 144 is 12.",
+    "factGroup": "F114"
+  },
+  {
+    "id": "TF229",
+    "category": "Math & Shapes",
+    "question": "The number zero is neither positive nor negative.",
+    "answer": true,
+    "explanation": "The number zero is neither positive nor negative.",
+    "factGroup": "F115"
+  },
+  {
+    "id": "TF230",
+    "category": "Math & Shapes",
+    "question": "The number zero is a positive number.",
+    "answer": false,
+    "explanation": "Actually, The number zero is neither positive nor negative.",
+    "factGroup": "F115"
+  },
+  {
+    "id": "TF231",
+    "category": "Math & Shapes",
+    "question": "A kilometer contains 1,000 meters.",
+    "answer": true,
+    "explanation": "A kilometer contains 1,000 meters.",
+    "factGroup": "F116"
+  },
+  {
+    "id": "TF232",
+    "category": "Math & Shapes",
+    "question": "A kilometer contains 100 meters.",
+    "answer": false,
+    "explanation": "Actually, A kilometer contains 1,000 meters.",
+    "factGroup": "F116"
+  },
+  {
+    "id": "TF233",
+    "category": "Math & Shapes",
+    "question": "The perimeter of a square with side length 6 is 24 units.",
+    "answer": true,
+    "explanation": "The perimeter of a square with side length 6 is 24 units.",
+    "factGroup": "F117"
+  },
+  {
+    "id": "TF234",
+    "category": "Math & Shapes",
+    "question": "The perimeter of a square with side length 6 is 36 units.",
+    "answer": false,
+    "explanation": "Actually, The perimeter of a square with side length 6 is 24 units.",
+    "factGroup": "F117"
+  },
+  {
+    "id": "TF235",
+    "category": "Math & Shapes",
+    "question": "A probability of 0.5 is equivalent to a 50 percent chance.",
+    "answer": true,
+    "explanation": "A probability of 0.5 is equivalent to a 50 percent chance.",
+    "factGroup": "F118"
+  },
+  {
+    "id": "TF236",
+    "category": "Math & Shapes",
+    "question": "A probability of 0.5 is equivalent to a 5 percent chance.",
+    "answer": false,
+    "explanation": "Actually, A probability of 0.5 is equivalent to a 50 percent chance.",
+    "factGroup": "F118"
+  },
+  {
+    "id": "TF237",
+    "category": "Math & Shapes",
+    "question": "In a right triangle, the hypotenuse is opposite the right angle.",
+    "answer": true,
+    "explanation": "In a right triangle, the hypotenuse is opposite the right angle.",
+    "factGroup": "F119"
+  },
+  {
+    "id": "TF238",
+    "category": "Math & Shapes",
+    "question": "In a right triangle, the hypotenuse is one of the two sides that form the right angle.",
+    "answer": false,
+    "explanation": "Actually, In a right triangle, the hypotenuse is opposite the right angle.",
+    "factGroup": "F119"
+  },
+  {
+    "id": "TF239",
+    "category": "Math & Shapes",
+    "question": "The number 91 is not prime because it is divisible by 7.",
+    "answer": true,
+    "explanation": "The number 91 is not prime because it is divisible by 7.",
+    "factGroup": "F120"
+  },
+  {
+    "id": "TF240",
+    "category": "Math & Shapes",
+    "question": "The number 91 is prime because it is not divisible by 7.",
+    "answer": false,
+    "explanation": "Actually, The number 91 is not prime because it is divisible by 7.",
+    "factGroup": "F120"
+  },
+  {
+    "id": "TF241",
+    "category": "Colors & Light",
+    "question": "Mixing red and green light produces yellow light.",
+    "answer": true,
+    "explanation": "Mixing red and green light produces yellow light.",
+    "factGroup": "F121"
+  },
+  {
+    "id": "TF242",
+    "category": "Colors & Light",
+    "question": "Mixing red and green light produces cyan light.",
+    "answer": false,
+    "explanation": "Actually, Mixing red and green light produces yellow light.",
+    "factGroup": "F121"
+  },
+  {
+    "id": "TF243",
+    "category": "Colors & Light",
+    "question": "Cyan is a secondary color in the additive RGB color model.",
+    "answer": true,
+    "explanation": "Cyan is a secondary color in the additive RGB color model.",
+    "factGroup": "F122"
+  },
+  {
+    "id": "TF244",
+    "category": "Colors & Light",
+    "question": "Cyan is a primary color in the additive RGB color model.",
+    "answer": false,
+    "explanation": "Actually, Cyan is a secondary color in the additive RGB color model.",
+    "factGroup": "F122"
+  },
+  {
+    "id": "TF245",
+    "category": "Colors & Light",
+    "question": "A convex lens can focus parallel rays of light.",
+    "answer": true,
+    "explanation": "A convex lens can focus parallel rays of light.",
+    "factGroup": "F123"
+  },
+  {
+    "id": "TF246",
+    "category": "Colors & Light",
+    "question": "A concave lens normally focuses parallel rays of light to a point on the far side.",
+    "answer": false,
+    "explanation": "Actually, A convex lens can focus parallel rays of light.",
+    "factGroup": "F123"
+  },
+  {
+    "id": "TF247",
+    "category": "Colors & Light",
+    "question": "Blue light has a shorter wavelength than red light.",
+    "answer": true,
+    "explanation": "Blue light has a shorter wavelength than red light.",
+    "factGroup": "F124"
+  },
+  {
+    "id": "TF248",
+    "category": "Colors & Light",
+    "question": "Blue light has a longer wavelength than red light.",
+    "answer": false,
+    "explanation": "Actually, Blue light has a shorter wavelength than red light.",
+    "factGroup": "F124"
+  },
+  {
+    "id": "TF249",
+    "category": "Colors & Light",
+    "question": "A rainbow's colors arise from refraction, reflection and dispersion inside droplets.",
+    "answer": true,
+    "explanation": "A rainbow's colors arise from refraction, reflection and dispersion inside droplets.",
+    "factGroup": "F125"
+  },
+  {
+    "id": "TF250",
+    "category": "Colors & Light",
+    "question": "A rainbow's colors arise because rain droplets contain colored pigments.",
+    "answer": false,
+    "explanation": "Actually, A rainbow's colors arise from refraction, reflection and dispersion inside droplets.",
+    "factGroup": "F125"
+  },
+  {
+    "id": "TF251",
+    "category": "Colors & Light",
+    "question": "Ultraviolet light has a shorter wavelength than visible violet light.",
+    "answer": true,
+    "explanation": "Ultraviolet light has a shorter wavelength than visible violet light.",
+    "factGroup": "F126"
+  },
+  {
+    "id": "TF252",
+    "category": "Colors & Light",
+    "question": "Ultraviolet light has a longer wavelength than visible red light.",
+    "answer": false,
+    "explanation": "Actually, Ultraviolet light has a shorter wavelength than visible violet light.",
+    "factGroup": "F126"
+  },
+  {
+    "id": "TF253",
+    "category": "Colors & Light",
+    "question": "The visible spectrum is only a small part of the electromagnetic spectrum.",
+    "answer": true,
+    "explanation": "The visible spectrum is only a small part of the electromagnetic spectrum.",
+    "factGroup": "F127"
+  },
+  {
+    "id": "TF254",
+    "category": "Colors & Light",
+    "question": "The visible spectrum includes every type of electromagnetic radiation.",
+    "answer": false,
+    "explanation": "Actually, The visible spectrum is only a small part of the electromagnetic spectrum.",
+    "factGroup": "F127"
+  },
+  {
+    "id": "TF255",
+    "category": "Colors & Light",
+    "question": "A camera's aperture controls how much light enters through the lens.",
+    "answer": true,
+    "explanation": "A camera's aperture controls how much light enters through the lens.",
+    "factGroup": "F128"
+  },
+  {
+    "id": "TF256",
+    "category": "Colors & Light",
+    "question": "A camera's aperture controls the focal length by moving the image sensor.",
+    "answer": false,
+    "explanation": "Actually, A camera's aperture controls how much light enters through the lens.",
+    "factGroup": "F128"
+  },
+  {
+    "id": "TF257",
+    "category": "Colors & Light",
+    "question": "The apparent bending of a straw in water is an example of refraction.",
+    "answer": true,
+    "explanation": "The apparent bending of a straw in water is an example of refraction.",
+    "factGroup": "F129"
+  },
+  {
+    "id": "TF258",
+    "category": "Colors & Light",
+    "question": "The apparent bending of a straw in water is an example of magnetism.",
+    "answer": false,
+    "explanation": "Actually, The apparent bending of a straw in water is an example of refraction.",
+    "factGroup": "F129"
+  },
+  {
+    "id": "TF259",
+    "category": "Colors & Light",
+    "question": "The color of an opaque object depends partly on which wavelengths it reflects.",
+    "answer": true,
+    "explanation": "The color of an opaque object depends partly on which wavelengths it reflects.",
+    "factGroup": "F130"
+  },
+  {
+    "id": "TF260",
+    "category": "Colors & Light",
+    "question": "The color of an opaque object depends only on which wavelengths it absorbs and never reflects.",
+    "answer": false,
+    "explanation": "Actually, The color of an opaque object depends partly on which wavelengths it reflects.",
+    "factGroup": "F130"
+  },
+  {
+    "id": "TF261",
+    "category": "Music",
+    "question": "A standard concert flute is normally pitched in C.",
+    "answer": true,
+    "explanation": "A standard concert flute is normally pitched in C.",
+    "factGroup": "F131"
+  },
+  {
+    "id": "TF262",
+    "category": "Music",
+    "question": "A standard concert flute is normally pitched in B-flat.",
+    "answer": false,
+    "explanation": "Actually, A standard concert flute is normally pitched in C.",
+    "factGroup": "F131"
+  },
+  {
+    "id": "TF263",
+    "category": "Music",
+    "question": "The bass clef is also known as the F clef.",
+    "answer": true,
+    "explanation": "The bass clef is also known as the F clef.",
+    "factGroup": "F132"
+  },
+  {
+    "id": "TF264",
+    "category": "Music",
+    "question": "The bass clef is also known as the G clef.",
+    "answer": false,
+    "explanation": "Actually, The bass clef is also known as the F clef.",
+    "factGroup": "F132"
+  },
+  {
+    "id": "TF265",
+    "category": "Music",
+    "question": "A timpani is a percussion instrument that can be tuned to specific pitches.",
+    "answer": true,
+    "explanation": "A timpani is a percussion instrument that can be tuned to specific pitches.",
+    "factGroup": "F133"
+  },
+  {
+    "id": "TF266",
+    "category": "Music",
+    "question": "A timpani is a percussion instrument that produces no definite pitch.",
+    "answer": false,
+    "explanation": "Actually, A timpani is a percussion instrument that can be tuned to specific pitches.",
+    "factGroup": "F133"
+  },
+  {
+    "id": "TF267",
+    "category": "Music",
+    "question": "A semitone is the distance between adjacent keys on a piano keyboard.",
+    "answer": true,
+    "explanation": "A semitone is the distance between adjacent keys on a piano keyboard.",
+    "factGroup": "F134"
+  },
+  {
+    "id": "TF268",
+    "category": "Music",
+    "question": "A whole tone is the distance between adjacent keys on a piano keyboard.",
+    "answer": false,
+    "explanation": "Actually, A semitone is the distance between adjacent keys on a piano keyboard.",
+    "factGroup": "F134"
+  },
+  {
+    "id": "TF269",
+    "category": "Music",
+    "question": "A trumpet produces sound primarily through the vibration of the player's lips.",
+    "answer": true,
+    "explanation": "A trumpet produces sound primarily through the vibration of the player's lips.",
+    "factGroup": "F135"
+  },
+  {
+    "id": "TF270",
+    "category": "Music",
+    "question": "A trumpet produces sound primarily through a vibrating wooden reed.",
+    "answer": false,
+    "explanation": "Actually, A trumpet produces sound primarily through the vibration of the player's lips.",
+    "factGroup": "F135"
+  },
+  {
+    "id": "TF271",
+    "category": "Music",
+    "question": "A standard violin has four strings.",
+    "answer": true,
+    "explanation": "A standard violin has four strings.",
+    "factGroup": "F136"
+  },
+  {
+    "id": "TF272",
+    "category": "Music",
+    "question": "A standard violin has five strings.",
+    "answer": false,
+    "explanation": "Actually, A standard violin has four strings.",
+    "factGroup": "F136"
+  },
+  {
+    "id": "TF273",
+    "category": "Music",
+    "question": "A time signature of 3/4 indicates three quarter-note beats per measure.",
+    "answer": true,
+    "explanation": "A time signature of 3/4 indicates three quarter-note beats per measure.",
+    "factGroup": "F137"
+  },
+  {
+    "id": "TF274",
+    "category": "Music",
+    "question": "A time signature of 3/4 indicates four quarter-note beats per measure.",
+    "answer": false,
+    "explanation": "Actually, A time signature of 3/4 indicates three quarter-note beats per measure.",
+    "factGroup": "F137"
+  },
+  {
+    "id": "TF275",
+    "category": "Music",
+    "question": "An octave spans twelve equal semitone steps in modern equal temperament.",
+    "answer": true,
+    "explanation": "An octave spans twelve equal semitone steps in modern equal temperament.",
+    "factGroup": "F138"
+  },
+  {
+    "id": "TF276",
+    "category": "Music",
+    "question": "An octave spans eight equal semitone steps in modern equal temperament.",
+    "answer": false,
+    "explanation": "Actually, An octave spans twelve equal semitone steps in modern equal temperament.",
+    "factGroup": "F138"
+  },
+  {
+    "id": "TF277",
+    "category": "Music",
+    "question": "The oboe uses a double reed.",
+    "answer": true,
+    "explanation": "The oboe uses a double reed.",
+    "factGroup": "F139"
+  },
+  {
+    "id": "TF278",
+    "category": "Music",
+    "question": "The oboe uses a single reed.",
+    "answer": false,
+    "explanation": "Actually, The oboe uses a double reed.",
+    "factGroup": "F139"
+  },
+  {
+    "id": "TF279",
+    "category": "Music",
+    "question": "The musical term 'crescendo' means gradually getting louder.",
+    "answer": true,
+    "explanation": "The musical term 'crescendo' means gradually getting louder.",
+    "factGroup": "F140"
+  },
+  {
+    "id": "TF280",
+    "category": "Music",
+    "question": "The musical term 'crescendo' means gradually getting slower.",
+    "answer": false,
+    "explanation": "Actually, The musical term 'crescendo' means gradually getting louder.",
+    "factGroup": "F140"
+  },
+  {
+    "id": "TF281",
+    "category": "Art & Crafts",
+    "question": "A fresco is painted onto freshly applied wet plaster.",
+    "answer": true,
+    "explanation": "A fresco is painted onto freshly applied wet plaster.",
+    "factGroup": "F141"
+  },
+  {
+    "id": "TF282",
+    "category": "Art & Crafts",
+    "question": "A fresco is painted exclusively onto dry wooden panels.",
+    "answer": false,
+    "explanation": "Actually, A fresco is painted onto freshly applied wet plaster.",
+    "factGroup": "F141"
+  },
+  {
+    "id": "TF283",
+    "category": "Art & Crafts",
+    "question": "The complementary color of blue on a traditional artist's color wheel is orange.",
+    "answer": true,
+    "explanation": "The complementary color of blue on a traditional artist's color wheel is orange.",
+    "factGroup": "F142"
+  },
+  {
+    "id": "TF284",
+    "category": "Art & Crafts",
+    "question": "The complementary color of blue on a traditional artist's color wheel is purple.",
+    "answer": false,
+    "explanation": "Actually, The complementary color of blue on a traditional artist's color wheel is orange.",
+    "factGroup": "F142"
+  },
+  {
+    "id": "TF285",
+    "category": "Art & Crafts",
+    "question": "A linocut print is made from a design carved into linoleum.",
+    "answer": true,
+    "explanation": "A linocut print is made from a design carved into linoleum.",
+    "factGroup": "F143"
+  },
+  {
+    "id": "TF286",
+    "category": "Art & Crafts",
+    "question": "A linocut print is made by weaving strands of linen.",
+    "answer": false,
+    "explanation": "Actually, A linocut print is made from a design carved into linoleum.",
+    "factGroup": "F143"
+  },
+  {
+    "id": "TF287",
+    "category": "Art & Crafts",
+    "question": "The technique of stippling creates images using many small dots.",
+    "answer": true,
+    "explanation": "The technique of stippling creates images using many small dots.",
+    "factGroup": "F144"
+  },
+  {
+    "id": "TF288",
+    "category": "Art & Crafts",
+    "question": "The technique of stippling creates images using long continuous ribbons of paint.",
+    "answer": false,
+    "explanation": "Actually, The technique of stippling creates images using many small dots.",
+    "factGroup": "F144"
+  },
+  {
+    "id": "TF289",
+    "category": "Art & Crafts",
+    "question": "The term 'chiaroscuro' describes strong contrasts of light and dark.",
+    "answer": true,
+    "explanation": "The term 'chiaroscuro' describes strong contrasts of light and dark.",
+    "factGroup": "F145"
+  },
+  {
+    "id": "TF290",
+    "category": "Art & Crafts",
+    "question": "The term 'chiaroscuro' describes painting exclusively in shades of blue.",
+    "answer": false,
+    "explanation": "Actually, The term 'chiaroscuro' describes strong contrasts of light and dark.",
+    "factGroup": "F145"
+  },
+  {
+    "id": "TF291",
+    "category": "Art & Crafts",
+    "question": "A triptych is an artwork made of three connected panels.",
+    "answer": true,
+    "explanation": "A triptych is an artwork made of three connected panels.",
+    "factGroup": "F146"
+  },
+  {
+    "id": "TF292",
+    "category": "Art & Crafts",
+    "question": "A diptych is an artwork made of three connected panels.",
+    "answer": false,
+    "explanation": "Actually, A triptych is an artwork made of three connected panels.",
+    "factGroup": "F146"
+  },
+  {
+    "id": "TF293",
+    "category": "Art & Crafts",
+    "question": "The primary colors of traditional subtractive painting are often taught as red, yellow and blue.",
+    "answer": true,
+    "explanation": "The primary colors of traditional subtractive painting are often taught as red, yellow and blue.",
+    "factGroup": "F147"
+  },
+  {
+    "id": "TF294",
+    "category": "Art & Crafts",
+    "question": "The primary colors of traditional subtractive painting are often taught as green, orange and purple.",
+    "answer": false,
+    "explanation": "Actually, The primary colors of traditional subtractive painting are often taught as red, yellow and blue.",
+    "factGroup": "F147"
+  },
+  {
+    "id": "TF295",
+    "category": "Art & Crafts",
+    "question": "Papier-mâché uses paper and a binding paste to build shapes.",
+    "answer": true,
+    "explanation": "Papier-mâché uses paper and a binding paste to build shapes.",
+    "factGroup": "F148"
+  },
+  {
+    "id": "TF296",
+    "category": "Art & Crafts",
+    "question": "Papier-mâché uses melted metal to build shapes.",
+    "answer": false,
+    "explanation": "Actually, Papier-mâché uses paper and a binding paste to build shapes.",
+    "factGroup": "F148"
+  },
+  {
+    "id": "TF297",
+    "category": "Art & Crafts",
+    "question": "A vanishing point helps artists create linear perspective.",
+    "answer": true,
+    "explanation": "A vanishing point helps artists create linear perspective.",
+    "factGroup": "F149"
+  },
+  {
+    "id": "TF298",
+    "category": "Art & Crafts",
+    "question": "A vanishing point is used only to create abstract color gradients.",
+    "answer": false,
+    "explanation": "Actually, A vanishing point helps artists create linear perspective.",
+    "factGroup": "F149"
+  },
+  {
+    "id": "TF299",
+    "category": "Art & Crafts",
+    "question": "The ancient technique of encaustic painting uses heated wax.",
+    "answer": true,
+    "explanation": "The ancient technique of encaustic painting uses heated wax.",
+    "factGroup": "F150"
+  },
+  {
+    "id": "TF300",
+    "category": "Art & Crafts",
+    "question": "The ancient technique of encaustic painting uses frozen ink.",
+    "answer": false,
+    "explanation": "Actually, The ancient technique of encaustic painting uses heated wax.",
+    "factGroup": "F150"
+  }
+]

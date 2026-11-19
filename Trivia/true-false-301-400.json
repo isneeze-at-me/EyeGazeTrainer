@@ -1,0 +1,802 @@
+[
+  {
+    "id": "TF301",
+    "category": "Books & Stories",
+    "question": "The first book in C. S. Lewis's Chronicles of Narnia by publication order is The Lion, the Witch and the Wardrobe.",
+    "answer": true,
+    "explanation": "The first book in C. S. Lewis's Chronicles of Narnia by publication order is The Lion, the Witch and the Wardrobe.",
+    "factGroup": "F151"
+  },
+  {
+    "id": "TF302",
+    "category": "Books & Stories",
+    "question": "The first book in C. S. Lewis's Chronicles of Narnia by publication order is The Magician's Nephew.",
+    "answer": false,
+    "explanation": "Actually, The first book in C. S. Lewis's Chronicles of Narnia by publication order is The Lion, the Witch and the Wardrobe.",
+    "factGroup": "F151"
+  },
+  {
+    "id": "TF303",
+    "category": "Books & Stories",
+    "question": "Lewis Carroll wrote Alice's Adventures in Wonderland.",
+    "answer": true,
+    "explanation": "Lewis Carroll wrote Alice's Adventures in Wonderland.",
+    "factGroup": "F152"
+  },
+  {
+    "id": "TF304",
+    "category": "Books & Stories",
+    "question": "J. M. Barrie wrote Alice's Adventures in Wonderland.",
+    "answer": false,
+    "explanation": "Actually, Lewis Carroll wrote Alice's Adventures in Wonderland.",
+    "factGroup": "F152"
+  },
+  {
+    "id": "TF305",
+    "category": "Books & Stories",
+    "question": "The original Pinocchio story was written by Carlo Collodi.",
+    "answer": true,
+    "explanation": "The original Pinocchio story was written by Carlo Collodi.",
+    "factGroup": "F153"
+  },
+  {
+    "id": "TF306",
+    "category": "Books & Stories",
+    "question": "The original Pinocchio story was written by Hans Christian Andersen.",
+    "answer": false,
+    "explanation": "Actually, The original Pinocchio story was written by Carlo Collodi.",
+    "factGroup": "F153"
+  },
+  {
+    "id": "TF307",
+    "category": "Books & Stories",
+    "question": "Anne of Green Gables was written by Lucy Maud Montgomery.",
+    "answer": true,
+    "explanation": "Anne of Green Gables was written by Lucy Maud Montgomery.",
+    "factGroup": "F154"
+  },
+  {
+    "id": "TF308",
+    "category": "Books & Stories",
+    "question": "Anne of Green Gables was written by Louisa May Alcott.",
+    "answer": false,
+    "explanation": "Actually, Anne of Green Gables was written by Lucy Maud Montgomery.",
+    "factGroup": "F154"
+  },
+  {
+    "id": "TF309",
+    "category": "Books & Stories",
+    "question": "The character Sherlock Holmes was created by Arthur Conan Doyle.",
+    "answer": true,
+    "explanation": "The character Sherlock Holmes was created by Arthur Conan Doyle.",
+    "factGroup": "F155"
+  },
+  {
+    "id": "TF310",
+    "category": "Books & Stories",
+    "question": "The character Sherlock Holmes was created by Agatha Christie.",
+    "answer": false,
+    "explanation": "Actually, The character Sherlock Holmes was created by Arthur Conan Doyle.",
+    "factGroup": "F155"
+  },
+  {
+    "id": "TF311",
+    "category": "Books & Stories",
+    "question": "A haiku traditionally has three lines in the familiar English-language 5-7-5 syllable pattern.",
+    "answer": true,
+    "explanation": "A haiku traditionally has three lines in the familiar English-language 5-7-5 syllable pattern.",
+    "factGroup": "F156"
+  },
+  {
+    "id": "TF312",
+    "category": "Books & Stories",
+    "question": "A haiku traditionally has four lines in the familiar English-language 5-7-5-7 syllable pattern.",
+    "answer": false,
+    "explanation": "Actually, A haiku traditionally has three lines in the familiar English-language 5-7-5 syllable pattern.",
+    "factGroup": "F156"
+  },
+  {
+    "id": "TF313",
+    "category": "Books & Stories",
+    "question": "The Hundred Acre Wood is a setting in Winnie-the-Pooh stories.",
+    "answer": true,
+    "explanation": "The Hundred Acre Wood is a setting in Winnie-the-Pooh stories.",
+    "factGroup": "F157"
+  },
+  {
+    "id": "TF314",
+    "category": "Books & Stories",
+    "question": "The Hundred Acre Wood is a setting in The Wind in the Willows.",
+    "answer": false,
+    "explanation": "Actually, The Hundred Acre Wood is a setting in Winnie-the-Pooh stories.",
+    "factGroup": "F157"
+  },
+  {
+    "id": "TF315",
+    "category": "Books & Stories",
+    "question": "Gulliver's Travels was written by Jonathan Swift.",
+    "answer": true,
+    "explanation": "Gulliver's Travels was written by Jonathan Swift.",
+    "factGroup": "F158"
+  },
+  {
+    "id": "TF316",
+    "category": "Books & Stories",
+    "question": "Gulliver's Travels was written by Daniel Defoe.",
+    "answer": false,
+    "explanation": "Actually, Gulliver's Travels was written by Jonathan Swift.",
+    "factGroup": "F158"
+  },
+  {
+    "id": "TF317",
+    "category": "Books & Stories",
+    "question": "A palindrome reads the same forward and backward, ignoring spacing and punctuation.",
+    "answer": true,
+    "explanation": "A palindrome reads the same forward and backward, ignoring spacing and punctuation.",
+    "factGroup": "F159"
+  },
+  {
+    "id": "TF318",
+    "category": "Books & Stories",
+    "question": "An anagram reads the same forward and backward, ignoring spacing and punctuation.",
+    "answer": false,
+    "explanation": "Actually, A palindrome reads the same forward and backward, ignoring spacing and punctuation.",
+    "factGroup": "F159"
+  },
+  {
+    "id": "TF319",
+    "category": "Books & Stories",
+    "question": "The book The Secret Garden was written by Frances Hodgson Burnett.",
+    "answer": true,
+    "explanation": "The book The Secret Garden was written by Frances Hodgson Burnett.",
+    "factGroup": "F160"
+  },
+  {
+    "id": "TF320",
+    "category": "Books & Stories",
+    "question": "The book The Secret Garden was written by Beatrix Potter.",
+    "answer": false,
+    "explanation": "Actually, The book The Secret Garden was written by Frances Hodgson Burnett.",
+    "factGroup": "F160"
+  },
+  {
+    "id": "TF321",
+    "category": "Sports & Games",
+    "question": "The standard chessboard has 32 light squares and 32 dark squares.",
+    "answer": true,
+    "explanation": "The standard chessboard has 32 light squares and 32 dark squares.",
+    "factGroup": "F161"
+  },
+  {
+    "id": "TF322",
+    "category": "Sports & Games",
+    "question": "The standard chessboard has 30 light squares and 34 dark squares.",
+    "answer": false,
+    "explanation": "Actually, The standard chessboard has 32 light squares and 32 dark squares.",
+    "factGroup": "F161"
+  },
+  {
+    "id": "TF323",
+    "category": "Sports & Games",
+    "question": "In chess, a knight moves in an L-shaped pattern.",
+    "answer": true,
+    "explanation": "In chess, a knight moves in an L-shaped pattern.",
+    "factGroup": "F162"
+  },
+  {
+    "id": "TF324",
+    "category": "Sports & Games",
+    "question": "In chess, a bishop moves in an L-shaped pattern.",
+    "answer": false,
+    "explanation": "Actually, In chess, a knight moves in an L-shaped pattern.",
+    "factGroup": "F162"
+  },
+  {
+    "id": "TF325",
+    "category": "Sports & Games",
+    "question": "A standard tennis tiebreak is normally won by reaching at least seven points with a two-point margin.",
+    "answer": true,
+    "explanation": "A standard tennis tiebreak is normally won by reaching at least seven points with a two-point margin.",
+    "factGroup": "F163"
+  },
+  {
+    "id": "TF326",
+    "category": "Sports & Games",
+    "question": "A standard tennis tiebreak is normally won by reaching at least five points with a two-point margin.",
+    "answer": false,
+    "explanation": "Actually, A standard tennis tiebreak is normally won by reaching at least seven points with a two-point margin.",
+    "factGroup": "F163"
+  },
+  {
+    "id": "TF327",
+    "category": "Sports & Games",
+    "question": "The five Olympic rings represent the union of the world's inhabited continents.",
+    "answer": true,
+    "explanation": "The five Olympic rings represent the union of the world's inhabited continents.",
+    "factGroup": "F164"
+  },
+  {
+    "id": "TF328",
+    "category": "Sports & Games",
+    "question": "The five Olympic rings represent the five oceans.",
+    "answer": false,
+    "explanation": "Actually, The five Olympic rings represent the union of the world's inhabited continents.",
+    "factGroup": "F164"
+  },
+  {
+    "id": "TF329",
+    "category": "Sports & Games",
+    "question": "In baseball, a regulation game normally has nine innings.",
+    "answer": true,
+    "explanation": "In baseball, a regulation game normally has nine innings.",
+    "factGroup": "F165"
+  },
+  {
+    "id": "TF330",
+    "category": "Sports & Games",
+    "question": "In baseball, a regulation game normally has seven innings.",
+    "answer": false,
+    "explanation": "Actually, In baseball, a regulation game normally has nine innings.",
+    "factGroup": "F165"
+  },
+  {
+    "id": "TF331",
+    "category": "Sports & Games",
+    "question": "In volleyball, a team may normally use up to three contacts to return the ball, not counting a block.",
+    "answer": true,
+    "explanation": "In volleyball, a team may normally use up to three contacts to return the ball, not counting a block.",
+    "factGroup": "F166"
+  },
+  {
+    "id": "TF332",
+    "category": "Sports & Games",
+    "question": "In volleyball, a team may normally use up to five contacts to return the ball, not counting a block.",
+    "answer": false,
+    "explanation": "Actually, In volleyball, a team may normally use up to three contacts to return the ball, not counting a block.",
+    "factGroup": "F166"
+  },
+  {
+    "id": "TF333",
+    "category": "Sports & Games",
+    "question": "In chess, a pawn can move two squares forward from its starting square if both squares are clear.",
+    "answer": true,
+    "explanation": "In chess, a pawn can move two squares forward from its starting square if both squares are clear.",
+    "factGroup": "F167"
+  },
+  {
+    "id": "TF334",
+    "category": "Sports & Games",
+    "question": "In chess, a pawn can move three squares forward from its starting square if all are clear.",
+    "answer": false,
+    "explanation": "Actually, In chess, a pawn can move two squares forward from its starting square if both squares are clear.",
+    "factGroup": "F167"
+  },
+  {
+    "id": "TF335",
+    "category": "Sports & Games",
+    "question": "A badminton shuttlecock has a cork base and a skirt of feathers or synthetic material.",
+    "answer": true,
+    "explanation": "A badminton shuttlecock has a cork base and a skirt of feathers or synthetic material.",
+    "factGroup": "F168"
+  },
+  {
+    "id": "TF336",
+    "category": "Sports & Games",
+    "question": "A badminton shuttlecock has a rubber ball core covered with thick felt.",
+    "answer": false,
+    "explanation": "Actually, A badminton shuttlecock has a cork base and a skirt of feathers or synthetic material.",
+    "factGroup": "F168"
+  },
+  {
+    "id": "TF337",
+    "category": "Sports & Games",
+    "question": "A standard outdoor running track has a lap distance of 400 meters in lane one.",
+    "answer": true,
+    "explanation": "A standard outdoor running track has a lap distance of 400 meters in lane one.",
+    "factGroup": "F169"
+  },
+  {
+    "id": "TF338",
+    "category": "Sports & Games",
+    "question": "A standard outdoor running track has a lap distance of 500 meters in lane one.",
+    "answer": false,
+    "explanation": "Actually, a standard outdoor running track has a lap distance of 400 meters in lane one.",
+    "factGroup": "F169"
+  },
+  {
+    "id": "TF339",
+    "category": "Sports & Games",
+    "question": "In a standard game of Monopoly, passing GO awards 200 in game money.",
+    "answer": true,
+    "explanation": "In a standard game of Monopoly, passing GO awards 200 in game money.",
+    "factGroup": "F170"
+  },
+  {
+    "id": "TF340",
+    "category": "Sports & Games",
+    "question": "In a standard game of Monopoly, passing GO awards 500 in game money.",
+    "answer": false,
+    "explanation": "Actually, In a standard game of Monopoly, passing GO awards 200 in game money.",
+    "factGroup": "F170"
+  },
+  {
+    "id": "TF341",
+    "category": "Food & Cooking",
+    "question": "Baking soda releases carbon dioxide when it reacts with an acid.",
+    "answer": true,
+    "explanation": "Baking soda releases carbon dioxide when it reacts with an acid.",
+    "factGroup": "F171"
+  },
+  {
+    "id": "TF342",
+    "category": "Food & Cooking",
+    "question": "Baking soda releases oxygen when it reacts with an acid.",
+    "answer": false,
+    "explanation": "Actually, Baking soda releases carbon dioxide when it reacts with an acid.",
+    "factGroup": "F171"
+  },
+  {
+    "id": "TF343",
+    "category": "Food & Cooking",
+    "question": "The Maillard reaction contributes to the browning of toasted bread.",
+    "answer": true,
+    "explanation": "The Maillard reaction contributes to the browning of toasted bread.",
+    "factGroup": "F172"
+  },
+  {
+    "id": "TF344",
+    "category": "Food & Cooking",
+    "question": "The Maillard reaction is the process that turns liquid water into steam.",
+    "answer": false,
+    "explanation": "Actually, The Maillard reaction contributes to the browning of toasted bread.",
+    "factGroup": "F172"
+  },
+  {
+    "id": "TF345",
+    "category": "Food & Cooking",
+    "question": "Saffron is harvested from the stigmas of a crocus flower.",
+    "answer": true,
+    "explanation": "Saffron is harvested from the stigmas of a crocus flower.",
+    "factGroup": "F173"
+  },
+  {
+    "id": "TF346",
+    "category": "Food & Cooking",
+    "question": "Saffron is harvested from the bark of a cinnamon tree.",
+    "answer": false,
+    "explanation": "Actually, Saffron is harvested from the stigmas of a crocus flower.",
+    "factGroup": "F173"
+  },
+  {
+    "id": "TF347",
+    "category": "Food & Cooking",
+    "question": "Cornstarch can thicken sauces as its starch granules gelatinize when heated.",
+    "answer": true,
+    "explanation": "Cornstarch can thicken sauces as its starch granules gelatinize when heated.",
+    "factGroup": "F174"
+  },
+  {
+    "id": "TF348",
+    "category": "Food & Cooking",
+    "question": "Cornstarch thickens sauces mainly by forming bubbles of nitrogen gas.",
+    "answer": false,
+    "explanation": "Actually, Cornstarch can thicken sauces as its starch granules gelatinize when heated.",
+    "factGroup": "F174"
+  },
+  {
+    "id": "TF349",
+    "category": "Food & Cooking",
+    "question": "The bubbles in traditional sparkling water are carbon dioxide.",
+    "answer": true,
+    "explanation": "The bubbles in traditional sparkling water are carbon dioxide.",
+    "factGroup": "F175"
+  },
+  {
+    "id": "TF350",
+    "category": "Food & Cooking",
+    "question": "The bubbles in traditional sparkling water are oxygen.",
+    "answer": false,
+    "explanation": "Actually, The bubbles in traditional sparkling water are carbon dioxide.",
+    "factGroup": "F175"
+  },
+  {
+    "id": "TF351",
+    "category": "Food & Cooking",
+    "question": "Vanilla beans are seed pods produced by orchids.",
+    "answer": true,
+    "explanation": "Vanilla beans are seed pods produced by orchids.",
+    "factGroup": "F176"
+  },
+  {
+    "id": "TF352",
+    "category": "Food & Cooking",
+    "question": "Vanilla beans are seed pods produced by lilies.",
+    "answer": false,
+    "explanation": "Actually, Vanilla beans are seed pods produced by orchids.",
+    "factGroup": "F176"
+  },
+  {
+    "id": "TF353",
+    "category": "Food & Cooking",
+    "question": "Cream of tartar is a potassium salt of tartaric acid.",
+    "answer": true,
+    "explanation": "Cream of tartar is a potassium salt of tartaric acid.",
+    "factGroup": "F177"
+  },
+  {
+    "id": "TF354",
+    "category": "Food & Cooking",
+    "question": "Cream of tartar is a powdered form of dairy cream.",
+    "answer": false,
+    "explanation": "Actually, Cream of tartar is a potassium salt of tartaric acid.",
+    "factGroup": "F177"
+  },
+  {
+    "id": "TF355",
+    "category": "Food & Cooking",
+    "question": "The Swiss cheese called Emmental often has holes formed by gas during ripening.",
+    "answer": true,
+    "explanation": "The Swiss cheese called Emmental often has holes formed by gas during ripening.",
+    "factGroup": "F178"
+  },
+  {
+    "id": "TF356",
+    "category": "Food & Cooking",
+    "question": "The holes in Emmental cheese are drilled into it after ripening.",
+    "answer": false,
+    "explanation": "Actually, The Swiss cheese called Emmental often has holes formed by gas during ripening.",
+    "factGroup": "F178"
+  },
+  {
+    "id": "TF357",
+    "category": "Food & Cooking",
+    "question": "Yeast produces carbon dioxide during bread fermentation.",
+    "answer": true,
+    "explanation": "Yeast produces carbon dioxide during bread fermentation.",
+    "factGroup": "F179"
+  },
+  {
+    "id": "TF358",
+    "category": "Food & Cooking",
+    "question": "Yeast produces helium during bread fermentation.",
+    "answer": false,
+    "explanation": "Actually, Yeast produces carbon dioxide during bread fermentation.",
+    "factGroup": "F179"
+  },
+  {
+    "id": "TF359",
+    "category": "Food & Cooking",
+    "question": "The process of caramelization involves heating sugars.",
+    "answer": true,
+    "explanation": "The process of caramelization involves heating sugars.",
+    "factGroup": "F180"
+  },
+  {
+    "id": "TF360",
+    "category": "Food & Cooking",
+    "question": "The process of caramelization involves freezing sugars.",
+    "answer": false,
+    "explanation": "Actually, The process of caramelization involves heating sugars.",
+    "factGroup": "F180"
+  },
+  {
+    "id": "TF361",
+    "category": "World Geography",
+    "question": "The capital of Canada is Ottawa.",
+    "answer": true,
+    "explanation": "The capital of Canada is Ottawa.",
+    "factGroup": "F181"
+  },
+  {
+    "id": "TF362",
+    "category": "World Geography",
+    "question": "The capital of Canada is Toronto.",
+    "answer": false,
+    "explanation": "Actually, The capital of Canada is Ottawa.",
+    "factGroup": "F181"
+  },
+  {
+    "id": "TF363",
+    "category": "World Geography",
+    "question": "The Danube River flows through Vienna and Budapest.",
+    "answer": true,
+    "explanation": "The Danube River flows through Vienna and Budapest.",
+    "factGroup": "F182"
+  },
+  {
+    "id": "TF364",
+    "category": "World Geography",
+    "question": "The Rhine River flows through Vienna and Budapest.",
+    "answer": false,
+    "explanation": "Actually, The Danube River flows through Vienna and Budapest.",
+    "factGroup": "F182"
+  },
+  {
+    "id": "TF365",
+    "category": "World Geography",
+    "question": "The world's largest island that is not considered a continent is Greenland.",
+    "answer": true,
+    "explanation": "The world's largest island that is not considered a continent is Greenland.",
+    "factGroup": "F183"
+  },
+  {
+    "id": "TF366",
+    "category": "World Geography",
+    "question": "The world's largest island that is not considered a continent is Madagascar.",
+    "answer": false,
+    "explanation": "Actually, The world's largest island that is not considered a continent is Greenland.",
+    "factGroup": "F183"
+  },
+  {
+    "id": "TF367",
+    "category": "World Geography",
+    "question": "The Atacama Desert is primarily in northern Chile.",
+    "answer": true,
+    "explanation": "The Atacama Desert is primarily in northern Chile.",
+    "factGroup": "F184"
+  },
+  {
+    "id": "TF368",
+    "category": "World Geography",
+    "question": "The Atacama Desert is primarily in southern Brazil.",
+    "answer": false,
+    "explanation": "Actually, The Atacama Desert is primarily in northern Chile.",
+    "factGroup": "F184"
+  },
+  {
+    "id": "TF369",
+    "category": "World Geography",
+    "question": "The country of Lesotho is entirely surrounded by South Africa.",
+    "answer": true,
+    "explanation": "The country of Lesotho is entirely surrounded by South Africa.",
+    "factGroup": "F185"
+  },
+  {
+    "id": "TF370",
+    "category": "World Geography",
+    "question": "The country of Lesotho is entirely surrounded by Botswana.",
+    "answer": false,
+    "explanation": "Actually, The country of Lesotho is entirely surrounded by South Africa.",
+    "factGroup": "F185"
+  },
+  {
+    "id": "TF371",
+    "category": "World Geography",
+    "question": "Lake Baikal is the world's deepest freshwater lake.",
+    "answer": true,
+    "explanation": "Lake Baikal is the world's deepest freshwater lake.",
+    "factGroup": "F186"
+  },
+  {
+    "id": "TF372",
+    "category": "World Geography",
+    "question": "Lake Victoria is the world's deepest freshwater lake.",
+    "answer": false,
+    "explanation": "Actually, Lake Baikal is the world's deepest freshwater lake.",
+    "factGroup": "F186"
+  },
+  {
+    "id": "TF373",
+    "category": "World Geography",
+    "question": "The Strait of Gibraltar separates Spain from Morocco.",
+    "answer": true,
+    "explanation": "The Strait of Gibraltar separates Spain from Morocco.",
+    "factGroup": "F187"
+  },
+  {
+    "id": "TF374",
+    "category": "World Geography",
+    "question": "The Strait of Gibraltar separates Italy from Greece.",
+    "answer": false,
+    "explanation": "Actually, The Strait of Gibraltar separates Spain from Morocco.",
+    "factGroup": "F187"
+  },
+  {
+    "id": "TF375",
+    "category": "World Geography",
+    "question": "The Andes mountain range runs along western South America.",
+    "answer": true,
+    "explanation": "The Andes mountain range runs along western South America.",
+    "factGroup": "F188"
+  },
+  {
+    "id": "TF376",
+    "category": "World Geography",
+    "question": "The Andes mountain range runs along eastern Africa.",
+    "answer": false,
+    "explanation": "Actually, The Andes mountain range runs along western South America.",
+    "factGroup": "F188"
+  },
+  {
+    "id": "TF377",
+    "category": "World Geography",
+    "question": "The capital city of New Zealand is Wellington.",
+    "answer": true,
+    "explanation": "The capital city of New Zealand is Wellington.",
+    "factGroup": "F189"
+  },
+  {
+    "id": "TF378",
+    "category": "World Geography",
+    "question": "The capital city of New Zealand is Auckland.",
+    "answer": false,
+    "explanation": "Actually, The capital city of New Zealand is Wellington.",
+    "factGroup": "F189"
+  },
+  {
+    "id": "TF379",
+    "category": "World Geography",
+    "question": "The River Thames flows through London.",
+    "answer": true,
+    "explanation": "The River Thames flows through London.",
+    "factGroup": "F190"
+  },
+  {
+    "id": "TF380",
+    "category": "World Geography",
+    "question": "The River Seine flows through London.",
+    "answer": false,
+    "explanation": "Actually, The River Thames flows through London.",
+    "factGroup": "F190"
+  },
+  {
+    "id": "TF381",
+    "category": "Famous Landmarks",
+    "question": "The Eiffel Tower was built for the 1889 World's Fair.",
+    "answer": true,
+    "explanation": "The Eiffel Tower was built for the 1889 World's Fair.",
+    "factGroup": "F191"
+  },
+  {
+    "id": "TF382",
+    "category": "Famous Landmarks",
+    "question": "The Eiffel Tower was built for the 1900 World's Fair.",
+    "answer": false,
+    "explanation": "Actually, The Eiffel Tower was built for the 1889 World's Fair.",
+    "factGroup": "F191"
+  },
+  {
+    "id": "TF383",
+    "category": "Famous Landmarks",
+    "question": "The Taj Mahal is a marble mausoleum in Agra.",
+    "answer": true,
+    "explanation": "The Taj Mahal is a marble mausoleum in Agra.",
+    "factGroup": "F192"
+  },
+  {
+    "id": "TF384",
+    "category": "Famous Landmarks",
+    "question": "The Taj Mahal is a marble palace in Jaipur.",
+    "answer": false,
+    "explanation": "Actually, The Taj Mahal is a marble mausoleum in Agra.",
+    "factGroup": "F192"
+  },
+  {
+    "id": "TF385",
+    "category": "Famous Landmarks",
+    "question": "The Great Sphinx of Giza has the body of a lion.",
+    "answer": true,
+    "explanation": "The Great Sphinx of Giza has the body of a lion.",
+    "factGroup": "F193"
+  },
+  {
+    "id": "TF386",
+    "category": "Famous Landmarks",
+    "question": "The Great Sphinx of Giza has the body of a horse.",
+    "answer": false,
+    "explanation": "Actually, The Great Sphinx of Giza has the body of a lion.",
+    "factGroup": "F193"
+  },
+  {
+    "id": "TF387",
+    "category": "Famous Landmarks",
+    "question": "The Leaning Tower of Pisa was built as a bell tower.",
+    "answer": true,
+    "explanation": "The Leaning Tower of Pisa was built as a bell tower.",
+    "factGroup": "F194"
+  },
+  {
+    "id": "TF388",
+    "category": "Famous Landmarks",
+    "question": "The Leaning Tower of Pisa was built as a lighthouse.",
+    "answer": false,
+    "explanation": "Actually, The Leaning Tower of Pisa was built as a bell tower.",
+    "factGroup": "F194"
+  },
+  {
+    "id": "TF389",
+    "category": "Famous Landmarks",
+    "question": "The Statue of Liberty was a gift from France to the United States.",
+    "answer": true,
+    "explanation": "The Statue of Liberty was a gift from France to the United States.",
+    "factGroup": "F195"
+  },
+  {
+    "id": "TF390",
+    "category": "Famous Landmarks",
+    "question": "The Statue of Liberty was a gift from Italy to the United States.",
+    "answer": false,
+    "explanation": "Actually, The Statue of Liberty was a gift from France to the United States.",
+    "factGroup": "F195"
+  },
+  {
+    "id": "TF391",
+    "category": "Famous Landmarks",
+    "question": "Machu Picchu was built by the Inca civilization.",
+    "answer": true,
+    "explanation": "Machu Picchu was built by the Inca civilization.",
+    "factGroup": "F196"
+  },
+  {
+    "id": "TF392",
+    "category": "Famous Landmarks",
+    "question": "Machu Picchu was built by the ancient Romans.",
+    "answer": false,
+    "explanation": "Actually, Machu Picchu was built by the Inca civilization.",
+    "factGroup": "F196"
+  },
+  {
+    "id": "TF393",
+    "category": "Famous Landmarks",
+    "question": "The Sydney Opera House is known for its sail-like roof shells.",
+    "answer": true,
+    "explanation": "The Sydney Opera House is known for its sail-like roof shells.",
+    "factGroup": "F197"
+  },
+  {
+    "id": "TF394",
+    "category": "Famous Landmarks",
+    "question": "The Sydney Opera House is known for a single glass pyramid roof.",
+    "answer": false,
+    "explanation": "Actually, The Sydney Opera House is known for its sail-like roof shells.",
+    "factGroup": "F197"
+  },
+  {
+    "id": "TF395",
+    "category": "Famous Landmarks",
+    "question": "The Parthenon stands on the Acropolis in Athens.",
+    "answer": true,
+    "explanation": "The Parthenon stands on the Acropolis in Athens.",
+    "factGroup": "F198"
+  },
+  {
+    "id": "TF396",
+    "category": "Famous Landmarks",
+    "question": "The Parthenon stands on the Acropolis in Rome.",
+    "answer": false,
+    "explanation": "Actually, The Parthenon stands on the Acropolis in Athens.",
+    "factGroup": "F198"
+  },
+  {
+    "id": "TF397",
+    "category": "Famous Landmarks",
+    "question": "The Golden Gate Bridge is a suspension bridge.",
+    "answer": true,
+    "explanation": "The Golden Gate Bridge is a suspension bridge.",
+    "factGroup": "F199"
+  },
+  {
+    "id": "TF398",
+    "category": "Famous Landmarks",
+    "question": "The Golden Gate Bridge is a stone arch bridge.",
+    "answer": false,
+    "explanation": "Actually, The Golden Gate Bridge is a suspension bridge.",
+    "factGroup": "F199"
+  },
+  {
+    "id": "TF399",
+    "category": "Famous Landmarks",
+    "question": "Angkor Wat is located in Cambodia.",
+    "answer": true,
+    "explanation": "Angkor Wat is located in Cambodia.",
+    "factGroup": "F200"
+  },
+  {
+    "id": "TF400",
+    "category": "Famous Landmarks",
+    "question": "Angkor Wat is located in Thailand.",
+    "answer": false,
+    "explanation": "Actually, Angkor Wat is located in Cambodia.",
+    "factGroup": "F200"
+  }
+]
