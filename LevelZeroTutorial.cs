@@ -364,9 +364,18 @@ namespace EyeGazeApiViability
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested)
                 return;
             DateTimeOffset now = DateTimeOffset.UtcNow;
+            // Each accessible activity has a hard one-minute practice
+            // limit after its spoken explanation. The coach timer continues
+            // even without incoming eye tracking frames.
             if (levelZeroStage == LevelZeroStage.Explore)
             {
                 if (movementWaitingForInstructions) return;
+                if ((now - movementStepStarted).TotalSeconds >=
+                    LevelZeroMaximumStepSeconds)
+                {
+                    SkipLevelZeroMovementStep();
+                    return;
+                }
                 if ((now - lastMovementCoach).TotalSeconds < 12) return;
                 string coaching = null;
                 if (!levelZeroHadGaze ||
@@ -420,6 +429,20 @@ namespace EyeGazeApiViability
                 }
                 return;
             }
+            if (!levelZeroStageWaitingForInstructions &&
+                (now - levelZeroStageStarted).TotalSeconds >=
+                    LevelZeroMaximumStepSeconds)
+            {
+                if (levelZeroStage == LevelZeroStage.Pursue)
+                    GoToLevelZeroSelection(true);
+                else if (levelZeroStage == LevelZeroStage.Continue &&
+                         !levelZeroButtonExplanationPending)
+                {
+                    SpeakLevelZero("Good effort, let's move on to the training levels.", true);
+                    FinishLevelZero();
+                }
+                return;
+            }
             if (!levelZeroHadGaze || (now - levelZeroLastValid).TotalSeconds > 8)
                 return;
             double elapsed = (now - levelZeroStageStarted).TotalSeconds;
@@ -453,6 +476,31 @@ namespace EyeGazeApiViability
                     levelZeroCoachedButton = true;
                     SpeakLevelZero("You're close. Keep your eyes on the house button until the circle finishes.");
                 }
+            }
+        }
+
+        private void SkipLevelZeroMovementStep()
+        {
+            if (levelZeroStage != LevelZeroStage.Explore ||
+                movementWaitingForInstructions) return;
+
+            switch (movementStep)
+            {
+                case MovementStep.Discover:
+                    NextMovementStep(MovementStep.Vertical,
+                        "Good effort, let's move on. Now practice looking up toward the top of the screen, then down toward the bottom. Try fifteen seconds of up and down movement.");
+                    break;
+                case MovementStep.Vertical:
+                    NextMovementStep(MovementStep.Horizontal,
+                        "Good effort, let's move on. Next, look left and right. Try fifteen seconds of side to side movement.");
+                    break;
+                case MovementStep.Horizontal:
+                    NextMovementStep(MovementStep.Circles,
+                        "Good effort, let's move on. Now try drawing big, comfortable circles with your eyes around the middle of the screen for fifteen seconds.");
+                    break;
+                case MovementStep.Circles:
+                    GoToLevelZeroPursuit(true);
+                    break;
             }
         }
 
@@ -734,7 +782,8 @@ namespace EyeGazeApiViability
         private void OnLevelZeroRendering(object sender, object args)
         {
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested) return;
-            if (levelZeroStage != LevelZeroStage.Pursue) return;
+            if (levelZeroStage != LevelZeroStage.Pursue ||
+                levelZeroStageWaitingForInstructions) return;
             DateTimeOffset now = DateTimeOffset.UtcNow;
             double elapsed = (now - levelZeroStageStarted).TotalSeconds;
             double w = LevelZeroCanvas.ActualWidth, h = LevelZeroCanvas.ActualHeight;
@@ -802,7 +851,8 @@ namespace EyeGazeApiViability
             }
             else if (levelZeroStage == LevelZeroStage.Pursue)
             {
-                if (!levelZeroHadGaze ||
+                if (levelZeroStageWaitingForInstructions ||
+                    !levelZeroHadGaze ||
                     (now - levelZeroLastPursuitSample).TotalMilliseconds < 150)
                     return;
                 levelZeroLastPursuitSample = now;
@@ -829,24 +879,30 @@ namespace EyeGazeApiViability
             return count;
         }
 
-        private void GoToLevelZeroPursuit()
+        private void GoToLevelZeroPursuit(bool skipped = false)
         {
             if (levelZeroStage != LevelZeroStage.Explore) return;
             levelZeroStage = LevelZeroStage.Pursue;
             levelZeroStageStarted = DateTimeOffset.UtcNow;
+            levelZeroStageWaitingForInstructions = true;
             StartLevelZeroRendering();
             LevelZeroPursuitTarget.Visibility = Visibility.Visible;
             LevelZeroPursuitCenter.Visibility = Visibility.Visible;
             levelZeroFeedbackQueue.Clear();
-            SpeakLevelZero("Excellent work! You practiced moving up and down, left and right, and drawing circles. Next, follow the glowing circle as it moves around the screen. Keep your eyes on the circle and let the cursor follow.", true);
+            string explanation = skipped
+                ? "Good effort, let's move on. A glowing circle will move around the screen. Follow it with your eyes and keep your cursor nearby."
+                : "Excellent work! You practiced moving up and down, left and right, and drawing circles. Next, follow the glowing circle as it moves around the screen. Keep your eyes on the circle and let the cursor follow.";
+            levelZeroStageInstructionSpeech = explanation;
+            SpeakLevelZero(explanation, true);
         }
 
-        private void GoToLevelZeroSelection()
+        private void GoToLevelZeroSelection(bool skipped = false)
         {
             if (levelZeroStage != LevelZeroStage.Pursue) return;
             levelZeroStage = LevelZeroStage.Continue;
             StopLevelZeroRendering();
             levelZeroStageStarted = DateTimeOffset.UtcNow;
+            levelZeroStageWaitingForInstructions = true;
             LevelZeroPursuitTarget.Visibility = Visibility.Collapsed;
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
             LevelZeroContinueButton.Visibility = Visibility.Collapsed;
@@ -854,7 +910,11 @@ namespace EyeGazeApiViability
             levelZeroCoachedPursuit = false;
             levelZeroCoachedButton = false;
             levelZeroFeedbackQueue.Clear();
-            SpeakLevelZero("Fantastic! You've learned how to follow a moving target. One final step. A large house button will appear. It takes you to the Levels screen, where you can start Level One. Look at the button and keep looking until the circular ring fills. Give it a try!", true);
+            string explanation = skipped
+                ? "Good effort, let's move on. One final step. A large house button will appear. Look toward it and keep looking until the circular ring fills to open your training levels."
+                : "Fantastic! You've learned how to follow a moving target. One final step. A large house button will appear. It takes you to the Levels screen, where you can start Level One. Look at the button and keep looking until the circular ring fills. Give it a try!";
+            levelZeroStageInstructionSpeech = explanation;
+            SpeakLevelZero(explanation, true);
         }
 
         private void OnLevelZeroReplay(object sender, RoutedEventArgs e)
