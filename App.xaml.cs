@@ -5,7 +5,6 @@ using Windows.ApplicationModel.Activation;
 using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.ViewManagement;
 
 namespace EyeGazeApiViability
 {
@@ -13,8 +12,6 @@ namespace EyeGazeApiViability
     {
         private bool windowEventsRegistered;
         private bool overlayHelperLaunchAttempted;
-        private string overlaySessionId;
-        private const string OverlaySessionFile = "eyegazetrainer-overlay-session.id";
 
         public App()
         {
@@ -27,21 +24,6 @@ namespace EyeGazeApiViability
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
             TraceLifecycle("OnLaunched START, previousState=" + e.PreviousExecutionState);
-            // Replace any previous session token BEFORE making our window
-            // visible, so older helpers disengage before the new launch.
-            BeginOverlaySession();
-            try
-            {
-                // Prefer a full-screen window at the moment UWP creates it,
-                // avoiding a brief small-window launch where supported.
-                ApplicationView.PreferredLaunchWindowingMode =
-                    ApplicationViewWindowingMode.FullScreen;
-            }
-            catch (Exception ex)
-            {
-                TraceLifecycle("Fullscreen launch preference unavailable: " +
-                               ex.GetType().Name);
-            }
             var frame = Window.Current.Content as Frame;
             if (frame == null)
             {
@@ -57,84 +39,23 @@ namespace EyeGazeApiViability
                 windowEventsRegistered = true;
             }
 
-            // Windows reads this preference during activation. Calling
-            // TryEnterFullScreenMode after Activate was too late and caused
-            // the app to appear briefly as a small window first.
-            try
-            {
-                ApplicationView.PreferredLaunchWindowingMode =
-                    ApplicationViewWindowingMode.FullScreen;
-                TraceLifecycle("Preferred startup windowing mode: FullScreen");
-            }
-            catch (Exception ex)
-            {
-                TraceLifecycle("Fullscreen preference unavailable: " +
-                               ex.GetType().Name);
-            }
-
             if (frame.Content == null)
             {
                 TraceLifecycle("Navigate to gaze screen");
                 frame.Navigate(typeof(LevelOnePreview));
             }
 
-            // Request immersive mode before making the window visible.
-            // The launch preference above also covers subsequent cold starts.
-            try
-            {
-                bool fullScreen = ApplicationView.GetForCurrentView()
-                    .TryEnterFullScreenMode();
-                TraceLifecycle("Fullscreen pre-activation accepted=" + fullScreen);
-            }
-            catch (Exception ex)
-            {
-                TraceLifecycle("Fullscreen request unavailable: " +
-                               ex.GetType().Name);
-            }
             Window.Current.Activate();
             TraceLifecycle("Window.Activate completed");
-            // Do NOT launch the gaze-aware companion here. The splash now
-            // delays tracker startup, so marking this window at activation
-            // can make TD Control release its overlay/device too early.
-            // LevelOnePreview starts it after a real gaze sample arrives.
+            TryStartOverlayCompanion();
         }
 
         // The helper operates on this app's own foreground window, not the
         // gaze APIs or TD Control. Never delay or fail gaze startup if absent.
-        private void BeginOverlaySession()
-        {
-            if (!string.IsNullOrEmpty(overlaySessionId)) return;
-            try
-            {
-                overlaySessionId = Guid.NewGuid().ToString("N");
-                File.WriteAllText(
-                    Path.Combine(ApplicationData.Current.LocalFolder.Path,
-                                 OverlaySessionFile), overlaySessionId);
-                TraceLifecycle("Overlay session token created before activation");
-            }
-            catch (Exception ex)
-            {
-                overlaySessionId = null;
-                TraceLifecycle("Overlay session setup failed: " +
-                               ex.GetType().Name);
-            }
-        }
-
-        internal static void StartOverlayCompanionAfterValidGaze()
-        {
-            var app = Application.Current as App;
-            if (app != null) app.TryStartOverlayCompanion();
-        }
-
         private async void TryStartOverlayCompanion()
         {
             if (overlayHelperLaunchAttempted) return;
             overlayHelperLaunchAttempted = true;
-            if (string.IsNullOrEmpty(overlaySessionId))
-            {
-                TraceLifecycle("Overlay helper skipped: session setup failed");
-                return;
-            }
             try
             {
                 TraceLifecycle("Overlay companion launch requested");
@@ -143,7 +64,6 @@ namespace EyeGazeApiViability
             }
             catch (Exception ex)
             {
-                EndOverlaySession();
                 // Unavailable full-trust support means TD Control's circle stays
                 // visible. All UWP gaze and controlled-exit behavior is intact.
                 TraceLifecycle("Overlay companion unavailable: " + ex.GetType().Name +
@@ -207,31 +127,7 @@ namespace EyeGazeApiViability
 
         private void OnWindowClosed(object sender, Windows.UI.Core.CoreWindowEventArgs e)
         {
-            EndOverlaySession();
             TraceLifecycle("Window.Closed");
-        }
-
-        internal static void EndOverlaySession()
-        {
-            var app = Application.Current as App;
-            if (app == null || string.IsNullOrEmpty(app.overlaySessionId))
-                return;
-            try
-            {
-                string path = Path.Combine(ApplicationData.Current.LocalFolder.Path,
-                                           OverlaySessionFile);
-                // Never delete a token written by a newer launch.
-                if (File.Exists(path) &&
-                    File.ReadAllText(path) == app.overlaySessionId)
-                    File.Delete(path);
-                TraceLifecycle("Overlay session ended");
-            }
-            catch (Exception ex)
-            {
-                TraceLifecycle("Overlay session cleanup failed: " +
-                               ex.GetType().Name);
-            }
-            app.overlaySessionId = null;
         }
 
         internal static void TraceLifecycle(string message)
