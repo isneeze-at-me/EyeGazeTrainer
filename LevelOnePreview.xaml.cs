@@ -208,10 +208,14 @@ namespace EyeGazeApiViability
             BuildSkillsGrid();
             SelectSkillsCategory(0);
             allLevelButtons = new[] { LevelOneButton, LevelTwoButton,
-                LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton };
-            levelsButtons = new[] { LevelOneButton, LevelTwoButton,
-                LevelThreeButton, LevelFourButton, LevelFiveButton,
-                LevelSixButton, LevelZeroReplayButton, LevelsBackButton };
+                LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton,
+                Level7Button, Level8Button, Level9Button, Level10Button,
+                Level11Button, Level12Button, Level13Button, Level14Button };
+            levelsButtons = new[] { LevelZeroReplayButton, LevelOneButton,
+                LevelTwoButton, LevelThreeButton, LevelFourButton, LevelFiveButton,
+                LevelSixButton, Level7Button, Level8Button, Level9Button,
+                Level10Button, Level11Button, Level12Button, Level13Button,
+                Level14Button, LevelsBackButton };
             lessonButtons = new[] { LessonBackButton };
             levelZeroContinueButtons = new[] { LevelZeroContinueButton };
             bonusButtons = new[] { BonusBackButton, BonusTrueButton, BonusFalseButton };
@@ -564,7 +568,11 @@ namespace EyeGazeApiViability
                 OnLevelOne(null, null);
             else if (target == LevelTwoButton || target == LevelThreeButton ||
                      target == LevelFourButton || target == LevelFiveButton ||
-                     target == LevelSixButton)
+                     target == LevelSixButton || target == Level7Button ||
+                     target == Level8Button || target == Level9Button ||
+                     target == Level10Button || target == Level11Button ||
+                     target == Level12Button || target == Level13Button ||
+                     target == Level14Button)
                 OnPlaceholderLevel(target, null);
             else if (target == ShorterButton)
                 OnReferenceShorter(null, null);
