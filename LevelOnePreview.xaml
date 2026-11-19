@@ -116,7 +116,9 @@
         <Grid.RowDefinitions>
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
-          <RowDefinition Height="Auto"/>
+          <!-- Reserve a fixed 200-pixel row so the EXIT control itself
+               visibly doubles in height, not just its minimum-size hint. -->
+          <RowDefinition Height="200"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*"/>
@@ -146,7 +148,7 @@
                 Grid.Row="2" Grid.ColumnSpan="2" Content="EXIT" Click="OnExitRequested"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
-                MinHeight="200"/>
+                Height="200" MinHeight="200"/>
       </Grid>
       <TextBlock x:Name="HomeNoticeText" Grid.Row="2" FontSize="18"
                  TextAlignment="Center" Foreground="#FBBF24"
