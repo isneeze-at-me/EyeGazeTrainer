@@ -298,8 +298,15 @@ namespace EyeGazeApiViability
                 if (!levelZeroHadGaze ||
                     (now - levelZeroLastValid).TotalSeconds > 6)
                     coaching = "I'm not detecting your eye cursor just yet. Try looking at the middle of the screen.";
-                else if (!hasActualMovement)
-                    coaching = "Let's get that cursor moving. Look up, down, or across the screen. No need to hold your gaze in one place.";
+                else if (movementStep == MovementStep.Discover)
+                {
+                    // Free exploration is intentionally free. Do not redirect
+                    // direction or praise tiny gaze drift. Coach only after
+                    // there has been no meaningful motion for seven seconds.
+                    if (!hasActualMovement ||
+                        (now - lastMovement).TotalSeconds > 7)
+                        coaching = "Try moving your eyes around the screen. Even a slow, comfortable movement is fine. Watch the eye cursor follow you.";
+                }
                 else if ((now - lastMovement).TotalSeconds > 7)
                     coaching = "Your cursor has been resting. Whenever you're ready, " +
                         MovementInstruction();
@@ -427,15 +434,27 @@ namespace EyeGazeApiViability
                 hasPreviousMotionPoint = true;
                 return;
             }
-            double dx = (gaze.X - previousMotionPoint.X) / width;
-            double dy = (gaze.Y - previousMotionPoint.Y) / height;
+            // Direction classification must use the same physical X/Y scale.
+            // Dividing X by screen width and Y by screen height incorrectly
+            // labels left/right motion as up/down on wide displays.
+            double dxPixels = gaze.X - previousMotionPoint.X;
+            double dyPixels = gaze.Y - previousMotionPoint.Y;
+            double dx = dxPixels / width;
+            double dy = dyPixels / height;
             previousMotionPoint = gaze;
             double displacement = Math.Sqrt(dx * dx + dy * dy);
-            if (displacement < .012 || displacement > .32) return;
+            if (displacement > .32) return; // Likely a tracking jump.
+
+            // A tiny change is not evidence of intentional movement.
+            // A less stringent threshold is reserved for later directions
+            // so slow but deliberate vertical/horizontal motion still counts.
+            double threshold = movementStep == MovementStep.Discover
+                ? .025 : .012;
+            if (displacement < threshold) return;
             hasActualMovement = true;
             lastMovement = now;
-            bool vertical = Math.Abs(dy) > 1.4 * Math.Abs(dx);
-            bool horizontal = Math.Abs(dx) > 1.4 * Math.Abs(dy);
+            bool vertical = Math.Abs(dyPixels) > 1.8 * Math.Abs(dxPixels);
+            bool horizontal = Math.Abs(dxPixels) > 1.8 * Math.Abs(dyPixels);
             if (vertical) verticalSamples++;
             else if (horizontal) horizontalSamples++;
             else diagonalSamples++;
