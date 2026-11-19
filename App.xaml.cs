@@ -93,10 +93,10 @@ namespace EyeGazeApiViability
             }
             Window.Current.Activate();
             TraceLifecycle("Window.Activate completed");
-            // Restore the original gaze-aware compatibility helper. Its
-            // window-title check now supports Eye Gaze Trainer and it applies
-            // only the proven 0x2 marker; no changes to TD Control itself.
-            TryStartOverlayCompanion();
+            // Do NOT launch the gaze-aware companion here. The splash now
+            // delays tracker startup, so marking this window at activation
+            // can make TD Control release its overlay/device too early.
+            // LevelOnePreview starts it after a real gaze sample arrives.
         }
 
         // The helper operates on this app's own foreground window, not the
@@ -118,6 +118,12 @@ namespace EyeGazeApiViability
                 TraceLifecycle("Overlay session setup failed: " +
                                ex.GetType().Name);
             }
+        }
+
+        internal static void StartOverlayCompanionAfterValidGaze()
+        {
+            var app = Application.Current as App;
+            if (app != null) app.TryStartOverlayCompanion();
         }
 
         private async void TryStartOverlayCompanion()
