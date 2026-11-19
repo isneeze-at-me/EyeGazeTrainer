@@ -271,9 +271,16 @@
           <RowDefinition Height="84"/>
           <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBlock Text="SKILL MEASUREMENTS" Grid.Row="0" FontSize="25"
-                   FontWeight="Bold" TextAlignment="Center" Foreground="White"
-                   Margin="0,0,0,2"/>
+        <Grid Grid.Row="0" Margin="0,0,0,2">
+          <TextBlock Text="SKILL MEASUREMENTS" FontSize="25"
+                     FontWeight="Bold" TextAlignment="Center" Foreground="White"
+                     VerticalAlignment="Center"/>
+          <Button x:Name="LevelZeroMoreButton" Content="MORE"
+                  Style="{StaticResource SecondaryGazeButton}"
+                  Click="OnLevelZeroMore" HorizontalAlignment="Right"
+                  VerticalAlignment="Center" MinWidth="160" MinHeight="64"
+                  FontSize="22" FontWeight="Bold"/>
+        </Grid>
         <Grid Grid.Row="1" ColumnSpacing="12">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
@@ -405,10 +412,11 @@
             <StackPanel VerticalAlignment="Center" Spacing="12">
               <TextBlock Text="INDIVIDUAL SESSIONS" Foreground="White"
                          FontSize="23" FontWeight="Bold" TextAlignment="Center"/>
-              <TextBlock Text="NA" Foreground="White" FontSize="32"
-                         FontWeight="Bold" TextAlignment="Center"/>
-              <TextBlock Text="Session dates, duration, level, activity, completed trials and settings snapshot will appear here after session tracking is added."
-                         Foreground="#E2E8F0" FontSize="17" TextWrapping="Wrap"
+              <TextBlock x:Name="LevelZeroSessionCountText" Text="LEVEL 0: 0 recorded sessions"
+                         Foreground="White" FontSize="23" FontWeight="Bold"
+                         TextAlignment="Center"/>
+              <TextBlock x:Name="LevelZeroSessionHistoryText"
+                         Foreground="#E2E8F0" FontSize="19" TextWrapping="Wrap"
                          TextAlignment="Center"/>
             </StackPanel>
           </Border>
@@ -417,10 +425,8 @@
             <StackPanel VerticalAlignment="Center" Spacing="12">
               <TextBlock Text="SESSION COMPARISONS" Foreground="White"
                          FontSize="23" FontWeight="Bold" TextAlignment="Center"/>
-              <TextBlock Text="NA" Foreground="White" FontSize="32"
-                         FontWeight="Bold" TextAlignment="Center"/>
-              <TextBlock Text="Early, middle and late performance; previous-session comparisons; matched-task trends and fatigue observations."
-                         Foreground="#E2E8F0" FontSize="17" TextWrapping="Wrap"
+              <TextBlock x:Name="LevelZeroSessionComparisonText"
+                         Foreground="#E2E8F0" FontSize="16" TextWrapping="Wrap"
                          TextAlignment="Center"/>
             </StackPanel>
           </Border>
