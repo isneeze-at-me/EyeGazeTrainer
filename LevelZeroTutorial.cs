@@ -36,6 +36,8 @@ namespace EyeGazeApiViability
         private int recentCorrectSweeps, recentOtherAxisSweeps, recentDiagonalSweeps;
         private LevelZeroStage levelZeroStage;
         private bool levelZeroRenderingSubscribed;
+        private DateTimeOffset levelZeroLastRenderedAt;
+        private Point levelZeroLastRenderedTarget = new Point(double.NaN, double.NaN);
         private DispatcherTimer levelZeroCoachTimer;
         private DateTimeOffset levelZeroStarted;
         private DateTimeOffset levelZeroStageStarted;
@@ -851,6 +853,8 @@ namespace EyeGazeApiViability
         private void StartLevelZeroRendering()
         {
             if (levelZeroRenderingSubscribed) return;
+            levelZeroLastRenderedAt = default(DateTimeOffset);
+            levelZeroLastRenderedTarget = new Point(double.NaN, double.NaN);
             CompositionTarget.Rendering += OnLevelZeroRendering;
             levelZeroRenderingSubscribed = true;
         }
@@ -871,6 +875,11 @@ namespace EyeGazeApiViability
                 Math.Min(w - LevelZeroPursuitRadius, x));
             y = Math.Max(LevelZeroPursuitRadius,
                 Math.Min(h - LevelZeroPursuitRadius, y));
+            // Avoid four XAML layout-property writes for subpixel motion.
+            // Keep gaze collision/diagnostic math independent of this visual.
+            if (Math.Abs(x - levelZeroLastRenderedTarget.X) < 0.35 &&
+                Math.Abs(y - levelZeroLastRenderedTarget.Y) < 0.35) return;
+            levelZeroLastRenderedTarget = new Point(x, y);
             Canvas.SetLeft(LevelZeroPursuitTarget, x - LevelZeroPursuitRadius);
             Canvas.SetTop(LevelZeroPursuitTarget, y - LevelZeroPursuitRadius);
             Canvas.SetLeft(LevelZeroPursuitCenter, x - 9);
@@ -927,6 +936,11 @@ namespace EyeGazeApiViability
             if (levelZeroStage != LevelZeroStage.Pursue ||
                 levelZeroStageWaitingForInstructions) return;
             DateTimeOffset now = DateTimeOffset.UtcNow;
+            // A 120/144 Hz screen must not force pursuit layout updates at
+            // every refresh. Approximately 60 Hz retains smooth motion.
+            if (levelZeroLastRenderedAt != default(DateTimeOffset) &&
+                (now - levelZeroLastRenderedAt).TotalMilliseconds < 15) return;
+            levelZeroLastRenderedAt = now;
             double elapsed = (now - levelZeroStageStarted).TotalSeconds;
             double w = LevelZeroCanvas.ActualWidth, h = LevelZeroCanvas.ActualHeight;
             if (w < 350 || h < 280) return;
