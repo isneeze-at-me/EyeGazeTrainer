@@ -88,13 +88,10 @@ namespace EyeGazeApiViability
             }
             Window.Current.Activate();
             TraceLifecycle("Window.Activate completed");
-            // SAFETY: suspend the experimental gaze-aware window helper
-            // until its behavior with PCEye 5 and TD Control is verified.
-            // The added 0x2 window style/property may interfere with gaze
-            // device availability. Do not modify TD Control or its window.
-            // The helper now waits for fresh, coordinate-free gaze
-            // heartbeats before marking the window, and reverses its own
-            // window changes if input stops. No user action is required.
+            // Request automatic TD Control overlay handoff. The packaged
+            // helper waits for verified live gaze before marking only this
+            // app's window, and rolls back its marker if gaze stops.
+            // No TD Control setting, process, or window is modified.
             TryStartOverlayCompanion();
         }
 
