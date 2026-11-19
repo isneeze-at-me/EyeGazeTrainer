@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -13,6 +14,12 @@ namespace EyeGazeTrainer.OverlayCompanion
         // Draft Tolt/Tobii gaze-aware convention. Also WS_EX_NOPARENTNOTIFY.
         private const int GazeAwareBit = 0x2;
         private const int MaxSeconds = 8 * 60 * 60;
+        private const int ErrorInsufficientBuffer = 122;
+        private const string SessionFile = "eyegazetrainer-overlay-session.id";
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        private static extern int GetCurrentPackageFamilyName(
+            ref int length, StringBuilder familyName);
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
@@ -30,6 +37,12 @@ namespace EyeGazeTrainer.OverlayCompanion
         [STAThread]
         private static void Main()
         {
+            // A companion left running after a previous launch must never
+            // attach to a later session or race with its new companion.
+            string sessionPath = FindSessionPath();
+            string sessionId = ReadSessionId(sessionPath);
+            if (string.IsNullOrEmpty(sessionId)) return;
+
             IntPtr changed = IntPtr.Zero;
             IntPtr seen = IntPtr.Zero;
             DateTime started = DateTime.UtcNow;
@@ -38,6 +51,10 @@ namespace EyeGazeTrainer.OverlayCompanion
             {
                 while ((DateTime.UtcNow - started).TotalSeconds < MaxSeconds)
                 {
+                    // MainPage removes the token only after gaze cleanup.
+                    // A new launch replaces it, forcing prior helpers to
+                    // release their owned window state and terminate.
+                    if (ReadSessionId(sessionPath) != sessionId) break;
                     IntPtr foreground = GetForegroundWindow();
                     bool target = IsTarget(foreground);
                     if (changed != IntPtr.Zero && (foreground != changed || !target))
@@ -84,6 +101,36 @@ namespace EyeGazeTrainer.OverlayCompanion
             {
                 if (changed != IntPtr.Zero) Restore(changed);
             }
+        }
+
+        private static string FindSessionPath()
+        {
+            try
+            {
+                int length = 0;
+                if (GetCurrentPackageFamilyName(ref length, null) !=
+                    ErrorInsufficientBuffer || length <= 1)
+                    return null;
+                var family = new StringBuilder(length);
+                if (GetCurrentPackageFamilyName(ref length, family) != 0)
+                    return null;
+                return Path.Combine(
+                    Environment.GetFolderPath(
+                        Environment.SpecialFolder.LocalApplicationData),
+                    "Packages", family.ToString(), "LocalState", SessionFile);
+            }
+            catch { return null; }
+        }
+
+        private static string ReadSessionId(string path)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(path) || !File.Exists(path))
+                    return null;
+                return File.ReadAllText(path).Trim();
+            }
+            catch { return null; }
         }
 
         private static bool IsTarget(IntPtr hWnd)
