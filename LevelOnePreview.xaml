@@ -146,7 +146,7 @@
                 Grid.Row="2" Grid.ColumnSpan="2" Content="EXIT" Click="OnExitRequested"
                 FontSize="30" FontWeight="Bold" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"
-                MinHeight="100"/>
+                MinHeight="200"/>
       </Grid>
       <TextBlock x:Name="HomeNoticeText" Grid.Row="2" FontSize="18"
                  TextAlignment="Center" Foreground="#FBBF24"
