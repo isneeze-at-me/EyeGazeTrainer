@@ -101,10 +101,9 @@ namespace EyeGazeApiViability
                 var values = ApplicationData.Current.LocalSettings.Values;
                 if (values.TryGetValue(LevelZeroDoneKey, out done) &&
                     done is bool && (bool)done) return false;
-                // Do not reroute established Level 1 users into new onboarding.
-                return !trainingProgress.IsCompleted(1) &&
-                       trainingReport.CompletedRuns == 0 &&
-                       gazeProfile.Acquisitions == 0;
+                // Startup routing is based on Level 0 completion only.
+                // Other training activity must not silently skip onboarding.
+                return true;
             }
             catch (Exception) { return false; }
         }
