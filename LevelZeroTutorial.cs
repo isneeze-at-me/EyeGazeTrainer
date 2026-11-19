@@ -62,6 +62,9 @@ namespace EyeGazeApiViability
         private bool levelZeroCoachedPursuit, levelZeroCoachedButton;
         private bool levelZeroVerticalPraised;
         private bool levelZeroButtonExplanationPending;
+        private bool levelZeroStageWaitingForInstructions;
+        private string levelZeroStageInstructionSpeech;
+        private const double LevelZeroMaximumStepSeconds = 60;
         private readonly System.Collections.Generic.Queue<string> levelZeroFeedbackQueue =
             new System.Collections.Generic.Queue<string>();
         private TaskCompletionSource<bool> levelZeroPlaybackCompletion;
@@ -109,6 +112,8 @@ namespace EyeGazeApiViability
             levelZeroPendingInstruction = null;
             levelZeroFeedbackQueue.Clear();
             levelZeroButtonExplanationPending = false;
+            levelZeroStageWaitingForInstructions = false;
+            levelZeroStageInstructionSpeech = null;
             levelZeroSpeechUnavailable = false;
             levelZeroCoachedHorizontal = levelZeroCoachedVertical =
                 levelZeroCoachedCorner = levelZeroCoachedPursuit =
@@ -165,6 +170,8 @@ namespace EyeGazeApiViability
             levelZeroPendingInstruction = null;
             levelZeroFeedbackQueue.Clear();
             levelZeroButtonExplanationPending = false;
+            levelZeroStageWaitingForInstructions = false;
+            levelZeroStageInstructionSpeech = null;
             movementWaitingForInstructions = false;
             movementInstructionSpeech = null;
             levelZeroGuidanceStarted = false;
@@ -206,8 +213,7 @@ namespace EyeGazeApiViability
                 return;
             if (levelZeroSpeechUnavailable)
             {
-                // Speech failure must not strand an eye-gaze-only learner
-                // permanently before a movement exercise.
+                // Speech failure must not strand an eye-gaze-only learner.
                 if (movementWaitingForInstructions &&
                     words == movementInstructionSpeech)
                 {
@@ -215,6 +221,16 @@ namespace EyeGazeApiViability
                     movementWaitingForInstructions = false;
                     movementInstructionSpeech = null;
                 }
+                if (levelZeroStageWaitingForInstructions &&
+                    words == levelZeroStageInstructionSpeech)
+                {
+                    levelZeroStageStarted = DateTimeOffset.UtcNow;
+                    levelZeroStageWaitingForInstructions = false;
+                    levelZeroStageInstructionSpeech = null;
+                }
+                if (levelZeroButtonExplanationPending &&
+                    levelZeroStage == LevelZeroStage.Continue)
+                    RevealLevelZeroContinueButton();
                 return;
             }
             if (essential)
@@ -310,6 +326,14 @@ namespace EyeGazeApiViability
                         movementWaitingForInstructions = false;
                         movementInstructionSpeech = null;
                     }
+                    if (levelZeroStageWaitingForInstructions &&
+                        words == levelZeroStageInstructionSpeech &&
+                        (playedToEnd || levelZeroSpeechUnavailable))
+                    {
+                        levelZeroStageStarted = DateTimeOffset.UtcNow;
+                        levelZeroStageWaitingForInstructions = false;
+                        levelZeroStageInstructionSpeech = null;
+                    }
                     levelZeroPlaybackCompletion = null;
                     levelZeroSpeechBusy = false;
                     if (currentScreen == AppScreen.LevelZero && !exitRequested)
@@ -323,8 +347,7 @@ namespace EyeGazeApiViability
                         else if (levelZeroButtonExplanationPending &&
                                  levelZeroStage == LevelZeroStage.Continue)
                         {
-                            levelZeroButtonExplanationPending = false;
-                            LevelZeroContinueButton.Visibility = Visibility.Visible;
+                            RevealLevelZeroContinueButton();
                         }
                         else if (levelZeroFeedbackQueue.Count > 0)
                         {
