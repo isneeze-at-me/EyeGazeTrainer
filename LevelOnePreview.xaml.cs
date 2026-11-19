@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Devices.Input.Preview;
 using Windows.Foundation;
@@ -57,6 +58,7 @@ namespace EyeGazeApiViability
             { "Level 0", "Targets", "Dwell", "Tracking", "Endurance", "Function" };
         private Button[] skillCategoryButtons;
         private int selectedSkillCategory;
+        private bool levelZeroShowingExtra;
         private readonly TextBlock[] skillMetricNames = new TextBlock[6];
         private readonly TextBlock[] skillMetricValues = new TextBlock[6];
         private readonly TextBlock[] skillMetricStatuses = new TextBlock[6];
@@ -205,7 +207,7 @@ namespace EyeGazeApiViability
                 DiagnosticsOverviewTabButton, DiagnosticsSkillsTabButton,
                 DiagnosticsMapsTabButton, DiagnosticsSessionsTabButton,
                 SkillsIntroButton, SkillsTargetsButton, SkillsDwellButton, SkillsTrackingButton,
-                SkillsEnduranceButton, SkillsFunctionButton };
+                SkillsEnduranceButton, SkillsFunctionButton, LevelZeroMoreButton };
             BuildDiagnosticGrids();
             BuildSkillsGrid();
             SelectSkillsCategory(0);
@@ -510,6 +512,7 @@ namespace EyeGazeApiViability
             if (lastGazeAt != default(DateTimeOffset) &&
                 now - lastGazeAt > TimeSpan.FromMilliseconds(500))
             {
+                ObserveLevelZeroDwellTarget(false);
                 bonusButtonMeasurement.CancelHold();
                 gazeControlTarget = null;
                 gazeControlTriggered = false;
@@ -519,6 +522,7 @@ namespace EyeGazeApiViability
             Button target = FindGazeButton(stabilizedPoint, rawPoint);
             if (target == null)
             {
+                ObserveLevelZeroDwellTarget(false);
                 bonusButtonMeasurement.CancelHold();
                 gazeControlTarget = null;
                 gazeControlTriggered = false;
@@ -545,6 +549,7 @@ namespace EyeGazeApiViability
             }
             if (gazeControlTarget != target)
             {
+                ObserveLevelZeroDwellTarget(false);
                 if (target == LevelZeroContinueButton &&
                     currentScreen == AppScreen.LevelZero)
                     levelZeroDwellAttempts++;
@@ -554,6 +559,8 @@ namespace EyeGazeApiViability
                 if (IsBonusAnswer(target)) bonusButtonMeasurement.BeginTarget(now);
                 gazeControlTriggered = false;
             }
+            if (target == LevelZeroContinueButton && !gazeControlTriggered)
+                ObserveLevelZeroDwellTarget(true);
             if (gazeControlTriggered) return;
             if (IsBonusAnswer(target)) bonusButtonMeasurement.Observe(rawPoint, now, true);
             double progress = (now - gazeControlEnteredAt).TotalMilliseconds /
@@ -561,6 +568,8 @@ namespace EyeGazeApiViability
             buttonDwellWheel.Present(target, progress);
             if (progress < 1.0) return;
             gazeControlTriggered = true;
+            if (target == LevelZeroContinueButton)
+                FinishLevelZeroDiagnosticDwell();
             lastActivatedGazePosition = rawPoint;
             buttonDwellWheel.Hide();
             // New screen buttons re-arm after intentional eye movement.
@@ -581,6 +590,8 @@ namespace EyeGazeApiViability
                 SelectDiagnosticsTab(target);
             else if (target == TherapistExportButton)
                 OnExportTherapistReport(null, null);
+            else if (target == LevelZeroMoreButton)
+                OnLevelZeroMore(null, null);
             else if (target == LevelZeroContinueButton)
                 OnLevelZeroContinue(null, null);
             else if (target == SkillsIntroButton || target == SkillsTargetsButton ||
@@ -976,16 +987,33 @@ namespace EyeGazeApiViability
             SelectSkillsCategory(Array.IndexOf(skillCategoryButtons, sender as Button));
         }
 
+        private void OnLevelZeroMore(object sender, RoutedEventArgs e)
+        {
+            if (currentScreen != AppScreen.Diagnostics ||
+                selectedDiagnosticsTab != DiagnosticsTab.Skills ||
+                selectedSkillCategory != 0 || stopping || exitRequested) return;
+            levelZeroShowingExtra = !levelZeroShowingExtra;
+            SelectSkillsCategory(0);
+        }
+
         private void SelectSkillsCategory(int category)
         {
             if (category < 0 || category >= SkillMetrics.Length) return;
+            if (selectedSkillCategory != category) levelZeroShowingExtra = false;
             selectedSkillCategory = category;
+            bool extra = category == 0 && levelZeroShowingExtra;
+            LevelZeroMoreButton.Visibility = category == 0 ?
+                Visibility.Visible : Visibility.Collapsed;
+            LevelZeroMoreButton.Content = extra ? "BASIC" : "MORE";
             for (int i = 0; i < 6; i++)
             {
-                string[] parts = SkillMetrics[category][i].Split('|');
+                string[] parts = extra ? new[] {
+                    LevelZeroExtraLabels[i], LevelZeroExtraDetails[i] } :
+                    SkillMetrics[category][i].Split('|');
                 skillMetricNames[i].Text = parts[0];
                 skillMetricDetails[i].Text = parts[1];
-                string observed = category == 0 ? LevelZeroMetricValue(i) : "NA";
+                string observed = category == 0 ?
+                    (extra ? LevelZeroExtraValue(i) : LevelZeroMetricValue(i)) : "NA";
                 skillMetricValues[i].Text = observed;
                 skillMetricStatuses[i].Text = observed == "NA"
                     ? "NOT YET RECORDED" : "RECORDED IN LEVEL 0";
@@ -1026,6 +1054,8 @@ namespace EyeGazeApiViability
             DiagnosticsSessionsPanel.Visibility =
                 selectedDiagnosticsTab == DiagnosticsTab.Sessions
                     ? Visibility.Visible : Visibility.Collapsed;
+            if (selectedDiagnosticsTab == DiagnosticsTab.Sessions)
+                RefreshLevelZeroSessionHistory();
 
             DiagnosticsOverviewTabButton.Style = (Style)Resources[
                 selectedDiagnosticsTab == DiagnosticsTab.Overview
@@ -1039,6 +1069,20 @@ namespace EyeGazeApiViability
             DiagnosticsSessionsTabButton.Style = (Style)Resources[
                 selectedDiagnosticsTab == DiagnosticsTab.Sessions
                     ? "PrimaryGazeButton" : "SecondaryGazeButton"];
+        }
+
+        private void RefreshLevelZeroSessionHistory()
+        {
+            string[] recent = LastLevelZeroSessions(3);
+            LevelZeroSessionCountText.Text = "LEVEL 0: " +
+                LevelZeroHistoryLines().Length + " recorded sessions";
+            LevelZeroSessionHistoryText.Text = recent.Length == 0
+                ? "Complete Level 0 to record dated summaries." :
+                string.Join("\\n", recent.Select(x => x.Split('|')[0].Trim()));
+            LevelZeroSessionComparisonText.Text = recent.Length < 2
+                ? "Complete Level 0 again to compare sessions." :
+                "Latest and previous session:\\n" +
+                recent[0] + "\\n" + recent[1];
         }
 
         private void ShowTherapistExportConfirmation(string fileName)
@@ -1093,7 +1137,9 @@ namespace EyeGazeApiViability
                     SkillMetrics, TherapistSkillCategoryNames,
                     new[] { LevelZeroMetricValue(0), LevelZeroMetricValue(1),
                             LevelZeroMetricValue(2), LevelZeroMetricValue(3),
-                            LevelZeroMetricValue(4), LevelZeroMetricValue(5) });
+                            LevelZeroMetricValue(4), LevelZeroMetricValue(5) },
+                    Enumerable.Range(0, 6).Select(LevelZeroExtraValue).ToArray(),
+                    LastLevelZeroSessions(100));
 
                 string name = "EyeGazeTrainer_TherapistReport_" +
                     now.ToString("yyyyMMdd_HHmmss") + ".txt";
