@@ -167,6 +167,7 @@ namespace EyeGazeApiViability
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
             LevelZeroContinueButton.Visibility = Visibility.Collapsed;
             ShowScreen(AppScreen.LevelZero);
+            UpdateLevelZeroMovementGuide();
             // Coaching continues even when the learner is not moving gaze.
             levelZeroCoachTimer = new DispatcherTimer
                 { Interval = TimeSpan.FromSeconds(1) };
@@ -225,6 +226,10 @@ namespace EyeGazeApiViability
             LevelZeroPursuitTarget.Visibility = Visibility.Collapsed;
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
             LevelZeroContinueButton.Visibility = Visibility.Collapsed;
+            LevelZeroMovementGuide.Visibility = Visibility.Collapsed;
+            LevelZeroVerticalGuide.Visibility = Visibility.Collapsed;
+            LevelZeroHorizontalGuide.Visibility = Visibility.Collapsed;
+            LevelZeroCircleGuide.Visibility = Visibility.Collapsed;
             LevelZeroEyeCursor.Visibility = Visibility.Collapsed;
         }
 
@@ -483,7 +488,7 @@ namespace EyeGazeApiViability
                 case MovementStep.Horizontal:
                     return "Try looking left, then right, and repeat.";
                 case MovementStep.Circles:
-                    return "Try tracing a big circle with your eyes.";
+                    return "Try making a comfortable circular movement with your eyes. You don't need to follow the displayed circle.";
                 default:
                     return "Try moving your eyes around the screen.";
             }
@@ -575,15 +580,15 @@ namespace EyeGazeApiViability
             {
                 case MovementStep.Discover:
                     NextMovementStep(MovementStep.Vertical,
-                        "Good effort, let's move on. Now practice looking up toward the top of the screen, then down toward the bottom. Try fifteen seconds of up and down movement.");
+                        "Good effort, let's move on. Follow the up and down arrow directions with your eyes for fifteen seconds. You don't need to look directly at the line.");
                     break;
                 case MovementStep.Vertical:
                     NextMovementStep(MovementStep.Horizontal,
-                        "Good effort, let's move on. Next, look left and right. Try fifteen seconds of side to side movement.");
+                        "Good effort, let's move on. Practice looking left and right for fifteen seconds. The arrows are only a guide.");
                     break;
                 case MovementStep.Horizontal:
                     NextMovementStep(MovementStep.Circles,
-                        "Good effort, let's move on. Now try drawing big, comfortable circles with your eyes around the middle of the screen for fifteen seconds.");
+                        "Good effort, let's move on. Practice making comfortable circles with your eyes for fifteen seconds. The circle is just a guide, not a target.");
                     break;
                 case MovementStep.Circles:
                     GoToLevelZeroPursuit(true);
@@ -600,7 +605,7 @@ namespace EyeGazeApiViability
                 case MovementStep.Horizontal:
                     return "For this exercise, look to the left, then right, and repeat.";
                 case MovementStep.Circles:
-                    return "For this exercise, move your eyes in a big, comfortable circle around the middle of the screen.";
+                    return "For this exercise, move your eyes in comfortable circles. The circle shown is just a visual guide.";
                 default:
                     return "look around the screen and move the eye cursor with you.";
             }
@@ -626,6 +631,25 @@ namespace EyeGazeApiViability
                 diagonalSamples = circleSamples = 0;
         }
 
+        private void UpdateLevelZeroMovementGuide()
+        {
+            // The guides illustrate the motion only: they are never read by
+            // gaze hit testing, diagnostics or lesson completion logic.
+            bool exploring = levelZeroStage == LevelZeroStage.Explore;
+            LevelZeroMovementGuide.Visibility =
+                exploring && movementStep != MovementStep.Discover
+                    ? Visibility.Visible : Visibility.Collapsed;
+            LevelZeroVerticalGuide.Visibility =
+                exploring && movementStep == MovementStep.Vertical
+                    ? Visibility.Visible : Visibility.Collapsed;
+            LevelZeroHorizontalGuide.Visibility =
+                exploring && movementStep == MovementStep.Horizontal
+                    ? Visibility.Visible : Visibility.Collapsed;
+            LevelZeroCircleGuide.Visibility =
+                exploring && movementStep == MovementStep.Circles
+                    ? Visibility.Visible : Visibility.Collapsed;
+        }
+
         private void NextMovementStep(MovementStep next, string instruction)
         {
             if (levelZeroStage != LevelZeroStage.Explore) return;
@@ -633,6 +657,7 @@ namespace EyeGazeApiViability
             movementWaitingForInstructions = true;
             movementInstructionSpeech = instruction;
             ResetMovementStep();
+            UpdateLevelZeroMovementGuide();
             levelZeroFeedbackQueue.Clear();
             SpeakLevelZero(instruction, true);
         }
@@ -713,7 +738,7 @@ namespace EyeGazeApiViability
                 RecordLevelZeroCorrectMovement(dt);
                 if (discoveryMotionSeconds >= 15.0 && stepTravel >= .50)
                     NextMovementStep(MovementStep.Vertical,
-                        "There you go! You're moving the cursor. Now look toward the top, then down toward the bottom. Let's practice fifteen seconds of actual up and down movement. Pauses and sideways movement won't count.");
+                        "There you go! You're moving the cursor. Now look toward the top, then down toward the bottom. The line with arrows shows the direction to practice. Move your eyes up and down for fifteen seconds.");
                 return;
             }
 
@@ -850,10 +875,10 @@ namespace EyeGazeApiViability
             {
                 if (movementStep == MovementStep.Vertical)
                     NextMovementStep(MovementStep.Horizontal,
-                        "Great work! You've completed fifteen seconds of up and down movement. Next, look left, then right, and repeat for fifteen seconds of actual side to side movement.");
+                        "Great work! You've completed fifteen seconds of up and down movement. Next, look left and right for fifteen seconds. The arrows show the direction to practice.");
                 else
                     NextMovementStep(MovementStep.Circles,
-                        "Excellent! You've practiced left and right. Now let's try circles for fifteen seconds of actual circular movement. Slowly trace a big circle with your eyes around the middle of the screen.");
+                        "Excellent! You've practiced left and right. Now let's try making comfortable circles with your eyes for fifteen seconds. The large circle is just a visual guide. You don't need to follow its outline.");
             }
         }
 
@@ -1060,6 +1085,7 @@ namespace EyeGazeApiViability
         {
             if (levelZeroStage != LevelZeroStage.Explore) return;
             levelZeroStage = LevelZeroStage.Pursue;
+            UpdateLevelZeroMovementGuide();
             levelZeroStageStarted = DateTimeOffset.UtcNow;
             levelZeroStageWaitingForInstructions = true;
             // Do not show or animate until the spoken directions complete.
