@@ -73,7 +73,7 @@
           Visibility="Collapsed">
       <Canvas x:Name="LevelZeroCanvas" Background="#080F1C"
               IsHitTestVisible="False">
-        <Ellipse x:Name="LevelZeroPursuitTarget" Width="124" Height="124"
+        <Ellipse x:Name="LevelZeroPursuitTarget" Width="220" Height="220"
                  Stroke="#6FC9F9" StrokeThickness="8" Fill="#203E5B"
                  Visibility="Collapsed"/>
         <Ellipse x:Name="LevelZeroPursuitCenter" Width="18" Height="18"
