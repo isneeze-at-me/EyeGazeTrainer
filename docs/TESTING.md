@@ -476,3 +476,13 @@ Need verification:
 5. Repeat Level 0 and verify Diagnostics → Sessions counts/history as before.
 
 No measured CPU/RAM savings, Microsoft certification outcome, or hardware stability claims are made.
+
+
+## Level Menu wording and display-edge cursor continuity (2026-11-19 — Test branch)
+
+- Level 0's spoken Home-button guidance now calls the destination the "Level Menu"; the corresponding button's screen-reader label says "Open Level Menu".
+- The previous out-of-view gaze branch reset the smoothing filter and hid the cursor on each sample. Near the screen edge, small gaze excursions could trigger repeated resets and visibility flips.
+- Edge samples now drive a **visual-only** clamped and smoothed cursor. The app still interrupts training holds and excludes those samples from Level 0 and Level 1 measurements, preserving the original no-scoring-outside-the-display rule.
+- Cursor rendering also clamps coordinates within the overlay instead of hiding the cursor when the smoothed point exceeds the drawing area.
+
+**Hardware checks required:** gaze slowly across all four edges and corners, return inward repeatedly, look toward the Back/Exit boundaries, verify look-away rearm and no accidental target completions, then complete a full Level 0 and Level 1 session. Also test 60/120 Hz displays, repeated launch/exit with TD Control, and mouse fallback. Validate with PCEye 5; source review cannot establish the actual reduction in choppiness.
