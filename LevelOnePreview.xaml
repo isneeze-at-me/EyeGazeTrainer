@@ -88,6 +88,29 @@
               Visibility="Collapsed"
               AutomationProperties.Name="Open Level Menu"
               Click="OnLevelZeroContinue"/>
+      <!-- Noninteractive, fully automatic celebration after Home is selected.
+           No additional dwell/click skill is required to continue. -->
+      <Grid x:Name="LevelZeroCompletionPanel" Visibility="Collapsed"
+            Background="#101827" IsHitTestVisible="False">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MaxWidth="1050" Margin="48" Spacing="26">
+          <TextBlock Text="INTRODUCTION COMPLETE!"
+                     Foreground="#69E6FF" FontSize="55" FontWeight="Bold"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock Text="Congratulations on completing your introduction!"
+                     Foreground="White" FontSize="32" FontWeight="SemiBold"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock Text="You have six more lessons to continue your eye-gaze training."
+                     Foreground="White" FontSize="29"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock Text="Replay any level as often as you like, because practice makes perfect!"
+                     Foreground="#9CE4F8" FontSize="29"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock Text="Opening the Level Menu automatically…"
+                     Foreground="#D4E6F8" FontSize="21"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Grid>
       <!-- Speech plays through a nonvisual Windows MediaPlayer instance. -->
     </Grid>
 
