@@ -1078,11 +1078,11 @@ namespace EyeGazeApiViability
                 LevelZeroHistoryLines().Length + " recorded sessions";
             LevelZeroSessionHistoryText.Text = recent.Length == 0
                 ? "Complete Level 0 to record dated summaries." :
-                string.Join("\\n", recent.Select(x => x.Split('|')[0].Trim()));
+                string.Join("\n", recent.Select(x => x.Split('|')[0].Trim()));
             LevelZeroSessionComparisonText.Text = recent.Length < 2
                 ? "Complete Level 0 again to compare sessions." :
-                "Latest and previous session:\\n" +
-                recent[0] + "\\n" + recent[1];
+                "Latest and previous session:\n" +
+                recent[0] + "\n" + recent[1];
         }
 
         private void ShowTherapistExportConfirmation(string fileName)
