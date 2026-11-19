@@ -566,7 +566,8 @@
     <Grid x:Name="LessonPanel" Background="Black" Visibility="Collapsed">
       <!-- One visible target at a time, positioned on the black canvas. -->
       <Canvas x:Name="TrainingCanvas" Background="Black" SizeChanged="OnCanvasSized"
-              PointerMoved="OnPointerMoved" PointerEntered="OnPointerMoved">
+              PointerMoved="OnPointerMoved" PointerEntered="OnPointerMoved"
+               PointerPressed="OnTrainingCanvasPointerPressed">
         <Ellipse x:Name="TargetRing" Width="116" Height="116"
                  Stroke="#FBBF24" StrokeThickness="8" Fill="#344358"
                  Visibility="Collapsed" IsHitTestVisible="False"/>
@@ -801,6 +802,24 @@
           </StackPanel>
         </StackPanel>
       </Viewbox>
+    </Grid>
+
+    <!-- Acknowledged with a normal mouse click; shown only when no tracker is found. -->
+    <Grid x:Name="NoTrackerNoticePanel" Visibility="Collapsed" Canvas.ZIndex="110"
+          Background="#E6091525" IsHitTestVisible="True">
+      <Border Background="#182B43" BorderBrush="#76B9F3" BorderThickness="3"
+              CornerRadius="16" Padding="32" MaxWidth="760"
+              HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32">
+        <StackPanel Spacing="24">
+          <TextBlock Text="NO EYE TRACKER DETECTED" FontSize="32" FontWeight="Bold"
+                     Foreground="White" TextAlignment="Center"/>
+          <TextBlock Text="This software requires Tobii PCEye 5 for training. No eye tracker detected. Switching to mouse control."
+                     FontSize="25" Foreground="White" TextWrapping="Wrap" TextAlignment="Center"/>
+          <Button Content="CONTINUE WITH MOUSE" Click="OnDismissNoTrackerNotice"
+                  Style="{StaticResource PrimaryGazeButton}" MinWidth="350" MinHeight="88"
+                  FontSize="24" HorizontalAlignment="Center"/>
+        </StackPanel>
+      </Border>
     </Grid>
 
     <Canvas x:Name="CursorOverlay" IsHitTestVisible="False"
