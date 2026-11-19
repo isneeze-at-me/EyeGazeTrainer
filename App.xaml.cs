@@ -25,6 +25,18 @@ namespace EyeGazeApiViability
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
             TraceLifecycle("OnLaunched START, previousState=" + e.PreviousExecutionState);
+            try
+            {
+                // Prefer a full-screen window at the moment UWP creates it,
+                // avoiding a brief small-window launch where supported.
+                ApplicationView.PreferredLaunchWindowingMode =
+                    ApplicationViewWindowingMode.FullScreen;
+            }
+            catch (Exception ex)
+            {
+                TraceLifecycle("Fullscreen launch preference unavailable: " +
+                               ex.GetType().Name);
+            }
             var frame = Window.Current.Content as Frame;
             if (frame == null)
             {
