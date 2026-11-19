@@ -716,6 +716,70 @@
     </Grid>
 
 
+    <!-- Immersive startup branding. The scalable paths and type echo the
+         approved Eye Gaze Trainer logo without relying on a bitmap asset. -->
+    <Grid x:Name="StartupSplashPanel" Background="#050B14"
+          Canvas.ZIndex="100" IsHitTestVisible="True">
+      <Viewbox Stretch="Uniform" HorizontalAlignment="Center"
+               VerticalAlignment="Center" Margin="60">
+        <StackPanel Width="1100" HorizontalAlignment="Center">
+          <Grid Width="620" Height="315" HorizontalAlignment="Center">
+            <Path Data="M 30,200 C 176,32 435,-11 595,201 C 420,98 214,98 30,200"
+                  Stretch="None">
+              <Path.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                  <GradientStop Color="#1877FC" Offset="0"/>
+                  <GradientStop Color="#3DE8EE" Offset="1"/>
+                </LinearGradientBrush>
+              </Path.Fill>
+            </Path>
+            <Path Data="M 75,218 C 205,316 405,330 557,210 C 426,373 193,345 75,218"
+                  Stretch="None">
+              <Path.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                  <GradientStop Color="#1676FA" Offset="0"/>
+                  <GradientStop Color="#3CE7F2" Offset="1"/>
+                </LinearGradientBrush>
+              </Path.Fill>
+            </Path>
+            <Ellipse Width="235" Height="235" HorizontalAlignment="Center"
+                     VerticalAlignment="Center" StrokeThickness="29">
+              <Ellipse.Stroke>
+                <LinearGradientBrush StartPoint="0,1" EndPoint="1,0">
+                  <GradientStop Color="#075796" Offset="0"/>
+                  <GradientStop Color="#179BEF" Offset="1"/>
+                </LinearGradientBrush>
+              </Ellipse.Stroke>
+            </Ellipse>
+            <Ellipse Width="62" Height="62" Fill="#21E8F1"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <Canvas Width="185" Height="185" HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+              <Path Data="M 25,63 L 25,35 Q 25,25 35,25 L 62,25"
+                    Stroke="#28F4FF" StrokeThickness="10"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+              <Path Data="M 123,25 L 150,25 Q 160,25 160,35 L 160,63"
+                    Stroke="#28F4FF" StrokeThickness="10"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+              <Path Data="M 25,122 L 25,150 Q 25,160 35,160 L 62,160"
+                    Stroke="#28F4FF" StrokeThickness="10"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+              <Path Data="M 123,160 L 150,160 Q 160,160 160,150 L 160,122"
+                    Stroke="#28F4FF" StrokeThickness="10"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+            </Canvas>
+          </Grid>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                      Spacing="20" Margin="0,28,0,0">
+            <TextBlock Text="Eye Gaze" Foreground="#F7FBFF"
+                       FontSize="107" FontWeight="Bold"/>
+            <TextBlock Text="Trainer" Foreground="#30E6ED"
+                       FontSize="107" FontWeight="Bold"/>
+          </StackPanel>
+        </StackPanel>
+      </Viewbox>
+    </Grid>
+
     <Canvas x:Name="CursorOverlay" IsHitTestVisible="False"
             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
             Canvas.ZIndex="30">
