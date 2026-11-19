@@ -1171,6 +1171,10 @@ namespace EyeGazeApiViability
 
         private void UpdateLevelBadges()
         {
+            // Level 0 uses its own persisted completion flag because the
+            // introductory tutorial is not part of TrainingProgress levels 1–6.
+            LevelZeroReplayButton.Content = "LEVEL 0" +
+                (ShouldStartLevelZero() ? "" : "  COMPLETED");
             for (int i = 0; i < allLevelButtons.Length; i++)
             {
                 bool done = trainingProgress.IsCompleted(i + 1);
