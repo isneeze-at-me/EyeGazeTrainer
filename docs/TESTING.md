@@ -493,3 +493,13 @@ No measured CPU/RAM savings, Microsoft certification outcome, or hardware stabil
 After the Level 0 Home selection, a full-screen noninteractive congratulations message is displayed and spoken, explaining that six more lessons follow and levels may be replayed as often as desired. It automatically advances to the Level Menu when the utterance completes; no new input skill is required. If speech is already unavailable, it shows the message for nine seconds. A 35-second safety limit prevents indefinite waiting if playback never finishes. The ordinary gaze-owner/TD Control exit sequencing is unchanged.
 
 Validation required: finish Level 0 with PCEye 5, verify no inadvertent Home reactivation, message readability and complete narration, automatic Level Menu transition, practice replay, speech failure fallback, and safe exit/relaunch. Source checks only; not yet built or hardware tested.
+
+
+## Level 0 directional practice guides (2026-11-19 — Test branch)
+
+- Removed the spoken phrase "Pauses and sideways movement won't count" from the first up/down practice instruction.
+- Added a large centered vertical line with arrowheads at both ends during Vertical, a horizontal line with arrowheads during Horizontal, and a large circle during Circles.
+- The guides are noninteractive and hidden during Discover, Pursue, Continue, completion, and when leaving Level 0. No gaze hitbox, scoring data, dwell timer, progress counter, or event handler is attached to them.
+- Circle detection uses turning of the gaze movement vector instead of angular position about the display center, so a learner can make circles away from the drawing. The existing sustained-motion, directional sector, and sample-count checks still apply.
+
+Required tests: check guide visibility throughout transitions, all window aspect ratios, on/off center circular movements, slow and fast movements, no accidental completion by staring at or tracing a guide, the later moving-target pursuit activity, narrated instructions, and repeated sessions. Build and PCEye 5 hardware testing remain pending.
