@@ -1082,7 +1082,7 @@ namespace EyeGazeApiViability
             levelZeroFeedbackQueue.Clear();
             string explanation = skipped
                 ? "Good effort, let's move on. One final step. A large Home button will appear. Look toward it and keep looking until the circular ring fills to open your training levels."
-                : "Fantastic! You've learned how to follow a moving target. One final step. A large Home button will appear. It takes you to the Levels screen, where you can start Level One. Look at the button and keep looking until the circular ring fills. Give it a try!";
+                : "Fantastic! You've learned how to follow a moving target. One final step. A large Home button will appear. It takes you to the Level Menu, where you can start Level One. Look at the button and keep looking until the circular ring fills. Give it a try!";
             levelZeroStageInstructionSpeech = explanation;
             SpeakLevelZero(explanation, true);
         }
