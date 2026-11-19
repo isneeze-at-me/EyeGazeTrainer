@@ -27,6 +27,9 @@ namespace EyeGazeApiViability
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
             TraceLifecycle("OnLaunched START, previousState=" + e.PreviousExecutionState);
+            // Replace any previous session token BEFORE making our window
+            // visible, so older helpers disengage before the new launch.
+            BeginOverlaySession();
             try
             {
                 // Prefer a full-screen window at the moment UWP creates it,
@@ -98,19 +101,36 @@ namespace EyeGazeApiViability
 
         // The helper operates on this app's own foreground window, not the
         // gaze APIs or TD Control. Never delay or fail gaze startup if absent.
-        private async void TryStartOverlayCompanion()
+        private void BeginOverlaySession()
         {
-            if (overlayHelperLaunchAttempted) return;
-            overlayHelperLaunchAttempted = true;
+            if (!string.IsNullOrEmpty(overlaySessionId)) return;
             try
             {
-                // Bind exactly one companion lifetime to this launch. An
-                // abandoned companion from a prior run sees a different
-                // token on the next launch and restores its old window flag.
                 overlaySessionId = Guid.NewGuid().ToString("N");
                 File.WriteAllText(
                     Path.Combine(ApplicationData.Current.LocalFolder.Path,
                                  OverlaySessionFile), overlaySessionId);
+                TraceLifecycle("Overlay session token created before activation");
+            }
+            catch (Exception ex)
+            {
+                overlaySessionId = null;
+                TraceLifecycle("Overlay session setup failed: " +
+                               ex.GetType().Name);
+            }
+        }
+
+        private async void TryStartOverlayCompanion()
+        {
+            if (overlayHelperLaunchAttempted) return;
+            overlayHelperLaunchAttempted = true;
+            if (string.IsNullOrEmpty(overlaySessionId))
+            {
+                TraceLifecycle("Overlay helper skipped: session setup failed");
+                return;
+            }
+            try
+            {
                 TraceLifecycle("Overlay companion launch requested");
                 await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
                 TraceLifecycle("Overlay companion launch accepted");
