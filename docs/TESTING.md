@@ -486,3 +486,10 @@ No measured CPU/RAM savings, Microsoft certification outcome, or hardware stabil
 - Cursor rendering also clamps coordinates within the overlay instead of hiding the cursor when the smoothed point exceeds the drawing area.
 
 **Hardware checks required:** gaze slowly across all four edges and corners, return inward repeatedly, look toward the Back/Exit boundaries, verify look-away rearm and no accidental target completions, then complete a full Level 0 and Level 1 session. Also test 60/120 Hz displays, repeated launch/exit with TD Control, and mouse fallback. Validate with PCEye 5; source review cannot establish the actual reduction in choppiness.
+
+
+## Level 0 completion acknowledgement (2026-11-19 — Test branch)
+
+After the Level 0 Home selection, a full-screen noninteractive congratulations message is displayed and spoken, explaining that six more lessons follow and levels may be replayed as often as desired. It automatically advances to the Level Menu when the utterance completes; no new input skill is required. If speech is already unavailable, it shows the message for nine seconds. A 35-second safety limit prevents indefinite waiting if playback never finishes. The ordinary gaze-owner/TD Control exit sequencing is unchanged.
+
+Validation required: finish Level 0 with PCEye 5, verify no inadvertent Home reactivation, message readability and complete narration, automatic Level Menu transition, practice replay, speech failure fallback, and safe exit/relaunch. Source checks only; not yet built or hardware tested.
