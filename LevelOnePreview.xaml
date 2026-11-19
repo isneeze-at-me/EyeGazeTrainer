@@ -98,9 +98,12 @@
         <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
       <StackPanel Grid.Row="0" Spacing="6" Margin="0,2,0,14">
-        <TextBlock Text="EYEGAZETRAINER" FontSize="36" FontWeight="Bold"
+        <TextBlock Text="Eye Gaze Trainer" FontSize="36" FontWeight="Bold"
                    TextAlignment="Center" Foreground="White"/>
+        <!-- Keep the named accuracy value available to diagnostics logic,
+             but do not display it on the main menu. -->
         <TextBlock x:Name="AccuracyText" Text="ACCURACY —"
+                   Visibility="Collapsed" IsHitTestVisible="False"
                    FontSize="25" FontWeight="SemiBold" TextAlignment="Center"
                    TextWrapping="Wrap" Foreground="#86EFAC"/>
         <!-- Diagnostic status is available to the app but not shown as
