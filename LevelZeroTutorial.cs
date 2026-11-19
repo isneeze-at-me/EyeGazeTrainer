@@ -51,6 +51,7 @@ namespace EyeGazeApiViability
         private DateTimeOffset levelZeroCornerEntered;
         private int levelZeroCornerCandidateSamples;
         private DateTimeOffset levelZeroLastPursuitSample;
+        private Point levelZeroPursuitStartPoint;
         private string levelZeroPendingInstruction;
         private int levelZeroPursuitSamples, levelZeroCloseSamples;
         private int levelZeroDwellAttempts;
@@ -238,6 +239,8 @@ namespace EyeGazeApiViability
                     levelZeroStageStarted = DateTimeOffset.UtcNow;
                     levelZeroStageWaitingForInstructions = false;
                     levelZeroStageInstructionSpeech = null;
+                    if (levelZeroStage == LevelZeroStage.Pursue)
+                        BeginLevelZeroPursuitMotion();
                 }
                 if (levelZeroButtonExplanationPending &&
                     levelZeroStage == LevelZeroStage.Continue)
@@ -344,6 +347,8 @@ namespace EyeGazeApiViability
                         levelZeroStageStarted = DateTimeOffset.UtcNow;
                         levelZeroStageWaitingForInstructions = false;
                         levelZeroStageInstructionSpeech = null;
+                        if (levelZeroStage == LevelZeroStage.Pursue)
+                            BeginLevelZeroPursuitMotion();
                     }
                     levelZeroPlaybackCompletion = null;
                     levelZeroSpeechBusy = false;
@@ -797,6 +802,56 @@ namespace EyeGazeApiViability
             levelZeroRenderingSubscribed = false;
         }
 
+        private void PositionLevelZeroPursuitTarget(double x, double y)
+        {
+            // Keep the full moving target away from the display edges.
+            double w = LevelZeroCanvas.ActualWidth;
+            double h = LevelZeroCanvas.ActualHeight;
+            x = Math.Max(62, Math.Min(w - 62, x));
+            y = Math.Max(62, Math.Min(h - 62, y));
+            Canvas.SetLeft(LevelZeroPursuitTarget, x - 62);
+            Canvas.SetTop(LevelZeroPursuitTarget, y - 62);
+            Canvas.SetLeft(LevelZeroPursuitCenter, x - 9);
+            Canvas.SetTop(LevelZeroPursuitCenter, y - 9);
+        }
+
+        private void BeginLevelZeroPursuitMotion()
+        {
+            if (levelZeroStage != LevelZeroStage.Pursue) return;
+            double w = LevelZeroCanvas.ActualWidth;
+            double h = LevelZeroCanvas.ActualHeight;
+            if (w < 350 || h < 280)
+            {
+                w = Math.Max(350, RootLayout.ActualWidth);
+                h = Math.Max(280, RootLayout.ActualHeight);
+            }
+
+            // Match the visible stabilized eye cursor rather than beginning
+            // at an unrelated fixed center position.
+            Point gaze = new Point(w / 2, h / 2);
+            if (levelZeroHadGaze &&
+                (DateTimeOffset.UtcNow - levelZeroLastValid).TotalSeconds <= 3)
+            {
+                double x = Canvas.GetLeft(LevelZeroEyeCursor);
+                double y = Canvas.GetTop(LevelZeroEyeCursor);
+                if (!double.IsNaN(x) && !double.IsNaN(y) &&
+                    LevelZeroEyeCursor.Visibility == Visibility.Visible)
+                    gaze = new Point(x + 56, y + 32.5);
+                else
+                    gaze = mostRecentRawGazePosition;
+            }
+            levelZeroPursuitStartPoint = new Point(
+                Math.Max(62, Math.Min(w - 62, gaze.X)),
+                Math.Max(62, Math.Min(h - 62, gaze.Y)));
+            levelZeroStageStarted = DateTimeOffset.UtcNow;
+            levelZeroLastPursuitSample = DateTimeOffset.MinValue;
+            PositionLevelZeroPursuitTarget(
+                levelZeroPursuitStartPoint.X, levelZeroPursuitStartPoint.Y);
+            LevelZeroPursuitTarget.Visibility = Visibility.Visible;
+            LevelZeroPursuitCenter.Visibility = Visibility.Visible;
+            StartLevelZeroRendering();
+        }
+
         private void OnLevelZeroRendering(object sender, object args)
         {
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested) return;
@@ -806,13 +861,18 @@ namespace EyeGazeApiViability
             double elapsed = (now - levelZeroStageStarted).TotalSeconds;
             double w = LevelZeroCanvas.ActualWidth, h = LevelZeroCanvas.ActualHeight;
             if (w < 350 || h < 280) return;
-            // Wide, predictable sinusoidal sweeps with gentle vertical drift.
-            double cx = w * (0.5 + 0.32 * Math.Sin(elapsed * 0.38));
-            double cy = h * (0.5 + 0.21 * Math.Sin(elapsed * 0.24));
-            Canvas.SetLeft(LevelZeroPursuitTarget, cx - 62);
-            Canvas.SetTop(LevelZeroPursuitTarget, cy - 62);
-            Canvas.SetLeft(LevelZeroPursuitCenter, cx - 9);
-            Canvas.SetTop(LevelZeroPursuitCenter, cy - 9);
+            // Begin at the eye cursor, then smoothly blend into the
+            // familiar broad pursuit path. No discontinuity when the
+            // narration finishes or the first rendering frame arrives.
+            double desiredX = w * (0.5 + 0.32 * Math.Sin(elapsed * 0.38));
+            double desiredY = h * (0.5 + 0.21 * Math.Sin(elapsed * 0.24));
+            double blend = Math.Min(1.0, Math.Max(0.0, elapsed / 5.0));
+            blend = blend * blend * (3.0 - 2.0 * blend);
+            double cx = levelZeroPursuitStartPoint.X +
+                (desiredX - levelZeroPursuitStartPoint.X) * blend;
+            double cy = levelZeroPursuitStartPoint.Y +
+                (desiredY - levelZeroPursuitStartPoint.Y) * blend;
+            PositionLevelZeroPursuitTarget(cx, cy);
             if (elapsed >= 18 && levelZeroCloseSamples >= 20)
                 GoToLevelZeroSelection();
             else if (elapsed > 35 && levelZeroCloseSamples >= 6)
@@ -898,9 +958,11 @@ namespace EyeGazeApiViability
             levelZeroStage = LevelZeroStage.Pursue;
             levelZeroStageStarted = DateTimeOffset.UtcNow;
             levelZeroStageWaitingForInstructions = true;
-            StartLevelZeroRendering();
-            LevelZeroPursuitTarget.Visibility = Visibility.Visible;
-            LevelZeroPursuitCenter.Visibility = Visibility.Visible;
+            // Do not show or animate until the spoken directions complete.
+            // The target will first appear at the CURRENT cursor position.
+            StopLevelZeroRendering();
+            LevelZeroPursuitTarget.Visibility = Visibility.Collapsed;
+            LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
             levelZeroFeedbackQueue.Clear();
             string explanation = skipped
                 ? "Good effort, let's move on. A glowing circle will move around the screen. Follow it with your eyes and keep your cursor nearby."
