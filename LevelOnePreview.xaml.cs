@@ -160,6 +160,10 @@ namespace EyeGazeApiViability
         private bool completed;
         private bool exitRequested;
         private bool autoStartAttempted;
+        private volatile bool trackerSeenDuringEnumeration;
+        private bool trackerEnumerationFinished;
+        private bool mouseOnlyFallback;
+        private DispatcherTimer noTrackerNoticeTimer;
         private DispatcherTimer startupSplashTimer;
         private bool startupSplashCompleted;
         private const int StartupSplashDurationSeconds = 3;
@@ -243,7 +247,7 @@ namespace EyeGazeApiViability
 
         private void OnPageLoaded(object sender, RoutedEventArgs e)
         {
-            HideWindowsPointerCursor();
+            // Keep Windows mouse pointer available until gaze input starts.
             // Preserve the pre-splash initialization sequence: connect the
             // gaze watcher as soon as the page is loaded. The branding
             // overlay stays visible for its full three seconds independently.
@@ -304,7 +308,20 @@ namespace EyeGazeApiViability
             }
             if (startupSplashCompleted || stopping || exitRequested) return;
             startupSplashCompleted = true;
+            CompleteStartupAfterTrackerScan();
+        }
+
+        private void CompleteStartupAfterTrackerScan()
+        {
+            if (!startupSplashCompleted || !trackerEnumerationFinished ||
+                exitRequested || stopping) return;
             StartupSplashPanel.Visibility = Visibility.Collapsed;
+            if (!trackerSeenDuringEnumeration)
+            {
+                EnterMouseOnlyFallback();
+                return;
+            }
+            if (mouseOnlyFallback) return;
 
             // One gaze owner throughout the whole session, with no input
             // skill required to dismiss the splash. First-time learners
@@ -343,6 +360,7 @@ namespace EyeGazeApiViability
                 watcher.Added += OnDeviceAdded;
                 watcher.Updated += OnDeviceUpdated;
                 watcher.Removed += OnDeviceRemoved;
+                watcher.EnumerationCompleted += OnTrackerEnumerationCompleted;
                 watcher.Start();
                 watcherStarted = true;
                 Trace("END watcher start");
@@ -351,14 +369,88 @@ namespace EyeGazeApiViability
             {
                 Trace("ERROR watcher start: " + ex);
                 LiveStatusText.Visibility = Visibility.Visible;
-                LiveStatusText.Text = "Tracker setup failed: " + ex.GetType().Name +
-                                      ". Use EXIT for supervised cleanup.";
+                LiveStatusText.Text = "Tracker setup failed: " + ex.GetType().Name;
+                trackerEnumerationFinished = true;
+                CompleteStartupAfterTrackerScan();
             }
+        }
+
+        private void OnTrackerEnumerationCompleted(GazeDeviceWatcherPreview sender,
+                                                    object args)
+        {
+            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                if (exitRequested || stopping || mouseOnlyFallback) return;
+                trackerEnumerationFinished = true;
+                CompleteStartupAfterTrackerScan();
+            });
+        }
+
+        private void EnterMouseOnlyFallback()
+        {
+            if (mouseOnlyFallback || exitRequested || stopping) return;
+            mouseOnlyFallback = true;
+            live = false;
+            gazeSubscribed = false;
+            gazeSource = null;
+            // Stop only the app's watcher. Never alter TD Control.
+            if (watcher != null)
+            {
+                try
+                {
+                    watcher.Added -= OnDeviceAdded;
+                    watcher.Updated -= OnDeviceUpdated;
+                    watcher.Removed -= OnDeviceRemoved;
+                    watcher.EnumerationCompleted -= OnTrackerEnumerationCompleted;
+                    if (watcherStarted) watcher.Stop();
+                }
+                catch (Exception) { /* Keep mouse control available. */ }
+                watcherStarted = false;
+                watcher = null;
+            }
+            RestoreWindowsPointerCursor();
+            PreviewDot.Visibility = Visibility.Collapsed;
+            LevelZeroEyeCursor.Visibility = Visibility.Collapsed;
+            LevelZeroReplayButton.IsEnabled = false;
+            LevelZeroReplayButton.Visibility = Visibility.Collapsed;
+            ShowScreen(AppScreen.Menu);
+            LiveStatusText.Visibility = Visibility.Collapsed;
+            NoTrackerNoticePanel.Visibility = Visibility.Visible;
+            StopNoTrackerNoticeTimer();
+            noTrackerNoticeTimer = new DispatcherTimer
+                { Interval = TimeSpan.FromSeconds(10) };
+            noTrackerNoticeTimer.Tick += OnNoTrackerNoticeTimeout;
+            noTrackerNoticeTimer.Start();
+        }
+
+        private void OnNoTrackerNoticeTimeout(object sender, object e)
+        {
+            DismissNoTrackerNotice();
+        }
+
+        private void OnDismissNoTrackerNotice(object sender, RoutedEventArgs e)
+        {
+            DismissNoTrackerNotice();
+        }
+
+        private void DismissNoTrackerNotice()
+        {
+            StopNoTrackerNoticeTimer();
+            NoTrackerNoticePanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void StopNoTrackerNoticeTimer()
+        {
+            if (noTrackerNoticeTimer == null) return;
+            noTrackerNoticeTimer.Stop();
+            noTrackerNoticeTimer.Tick -= OnNoTrackerNoticeTimeout;
+            noTrackerNoticeTimer = null;
         }
 
         private void OnDeviceAdded(GazeDeviceWatcherPreview sender,
                                    GazeDeviceWatcherAddedPreviewEventArgs args)
         {
+            if (args.Device != null) trackerSeenDuringEnumeration = true;
             _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
                                     () => UseReadyDevice(args.Device));
         }
@@ -366,6 +458,7 @@ namespace EyeGazeApiViability
         private void OnDeviceUpdated(GazeDeviceWatcherPreview sender,
                                      GazeDeviceWatcherUpdatedPreviewEventArgs args)
         {
+            if (args.Device != null) trackerSeenDuringEnumeration = true;
             _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
                                     () => UseReadyDevice(args.Device));
         }
@@ -413,8 +506,8 @@ namespace EyeGazeApiViability
 
         private void UseReadyDevice(GazeDevicePreview device)
         {
-            if (!live || stopping || exitRequested || gazeSubscribed ||
-                device == null) return;
+            if (!live || stopping || exitRequested || mouseOnlyFallback ||
+                gazeSubscribed || device == null) return;
             if (!device.CanTrackEyes ||
                 device.ConfigurationState != GazeDeviceConfigurationStatePreview.Ready)
             {
@@ -436,6 +529,7 @@ namespace EyeGazeApiViability
                 newSource.GazeMoved += OnGazeMoved;
                 gazeSource = newSource;
                 gazeSubscribed = true;
+                HideWindowsPointerCursor();
                 Trace("END gaze source subscription");
                 LiveStatusText.Visibility = Visibility.Collapsed;
                 LiveStatusText.Text = "Eye tracking ready. Look at LEVELS to start.";
@@ -1386,6 +1480,16 @@ namespace EyeGazeApiViability
             ShowScreen(AppScreen.Menu);
         }
 
+        private void OnTrainingCanvasPointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            if (!mouseOnlyFallback || stopping || lessonIntroActive ||
+                currentScreen != AppScreen.Lesson) return;
+            var point = e.GetCurrentPoint(TrainingCanvas);
+            if (!point.Properties.IsLeftButtonPressed) return;
+            ProcessPosition(point.Position, point.Position, true);
+            e.Handled = true;
+        }
+
         private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
         {
             // Mouse preview remains available only when hardware is not engaged.
@@ -1393,9 +1497,12 @@ namespace EyeGazeApiViability
             Point canvasPoint = e.GetCurrentPoint(TrainingCanvas).Position;
             Point canvasOrigin = TrainingCanvas.TransformToVisual(this)
                                   .TransformPoint(new Point(0, 0));
-            UpdateCursor(new Point(canvasPoint.X + canvasOrigin.X,
-                                   canvasPoint.Y + canvasOrigin.Y));
-            ProcessPosition(canvasPoint, canvasPoint);
+            if (!mouseOnlyFallback)
+            {
+                UpdateCursor(new Point(canvasPoint.X + canvasOrigin.X,
+                                       canvasPoint.Y + canvasOrigin.Y));
+                ProcessPosition(canvasPoint, canvasPoint);
+            }
         }
 
         // This overlay belongs to the page, not the training canvas. It cannot
@@ -1433,7 +1540,7 @@ namespace EyeGazeApiViability
                 CursorOverlay.ActualHeight - DotDiameter));
         }
 
-        private void ProcessPosition(Point p, Point rawPoint)
+        private void ProcessPosition(Point p, Point rawPoint, bool mouseClick = false)
         {
             if (completed || exitRequested || stopping ||
                 currentScreen != AppScreen.Lesson || lessonIntroActive) return;
@@ -1470,7 +1577,8 @@ namespace EyeGazeApiViability
             }
 
             // A full 1000ms uninterrupted hold is required for acquisition.
-            bool acquired = targetMeasurement.Observe(rawPoint, now, true);
+            bool acquired = mouseOnlyFallback
+                ? mouseClick : targetMeasurement.Observe(rawPoint, now, true);
             UpdateTargetDwellVisual(inRing);
             if (!acquired) return;
             TargetRing.StrokeThickness = 8;
@@ -1938,6 +2046,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            DismissNoTrackerNotice();
             StopLevelZero();
             HideTherapistExportConfirmation();
             if (practiceTimer != null)
@@ -2106,6 +2215,7 @@ namespace EyeGazeApiViability
             // Navigation follows staged gaze release; make the Windows arrow
             // available again on the gaze-free closing page and desktop.
             RestoreWindowsPointerCursor();
+            StopNoTrackerNoticeTimer();
             StopLevelZero();
             HideTherapistExportConfirmation();
             if (practiceTimer != null)
