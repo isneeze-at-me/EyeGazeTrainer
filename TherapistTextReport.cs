@@ -93,7 +93,7 @@ namespace EyeGazeApiViability
             Field(b, "Recommendation evidence",
                 dwellRecommendation.SuccessfulAttempts + " completed / " +
                 dwellRecommendation.InterruptedAttempts + " interrupted target holds");
-            b.AppendLine("  Starting estimate: 500 ms; recalculated every 12 deliberate holds.");
+            b.AppendLine("  Starting estimate: 1500 ms; recalculated every 12 deliberate holds.");
             b.AppendLine("  Recommendation is not applied to the target or menu timers.");
             b.AppendLine("  Fixed-duration tasks do not validate a true optimum.");
             b.AppendLine("  Note: These are current settings, not historical session snapshots.");
