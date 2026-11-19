@@ -616,10 +616,21 @@ namespace EyeGazeApiViability
             if (p.X < 0 || p.Y < 0 ||
                 p.X > RootLayout.ActualWidth || p.Y > RootLayout.ActualHeight)
             {
-                cursorFilter.Reset();
+                // Eye trackers can report small excursions past the display
+                // border. Preserve filter continuity and keep the *visual*
+                // cursor at the nearest edge; do not treat those positions as
+                // valid training samples or accumulate target dwell.
+                double width = RootLayout.ActualWidth;
+                double height = RootLayout.ActualHeight;
+                if (width > 0 && height > 0)
+                {
+                    Point edge = new Point(
+                        Clamp(p.X, 0, width),
+                        Clamp(p.Y, 0, height));
+                    UpdateCursor(cursorFilter.Update(edge, DateTimeOffset.UtcNow));
+                }
                 RecordInterruptedTargetDwell(DateTimeOffset.UtcNow);
                 HideTargetDwellVisual();
-                PreviewDot.Visibility = Visibility.Collapsed;
                 buttonDwellWheel.Hide();
                 ProcessGazeControl(p, p);
                 e.Handled = true;
@@ -1587,12 +1598,11 @@ namespace EyeGazeApiViability
                                         .TransformPoint(new Point(0, 0));
             double x = viewPoint.X - origin.X;
             double y = viewPoint.Y - origin.Y;
-            if (x < 0 || y < 0 ||
-                x > CursorOverlay.ActualWidth || y > CursorOverlay.ActualHeight)
-            {
-                PreviewDot.Visibility = Visibility.Collapsed;
-                return;
-            }
+            // Clamp only the rendered cursor. This prevents boundary jitter
+            // from repeatedly hiding and showing the cursor when the tracker
+            // reports a position just outside the view.
+            x = Clamp(x, 0, CursorOverlay.ActualWidth);
+            y = Clamp(y, 0, CursorOverlay.ActualHeight);
 
             bool levelZero = currentScreen == AppScreen.LevelZero;
             if (levelZero)
