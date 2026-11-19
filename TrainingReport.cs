@@ -19,6 +19,7 @@ namespace EyeGazeApiViability
         private readonly List<double> jitter = new List<double>();
         private readonly List<double> smoothing = new List<double>();
         private double practiceSeconds;
+        private double unsavedPracticeSeconds;
         private int completedRuns;
 
         public TrainingReport()
@@ -48,11 +49,23 @@ namespace EyeGazeApiViability
         {
             if (seconds <= 0 || seconds > 2 || double.IsNaN(seconds)) return;
             practiceSeconds += seconds;
+            unsavedPracticeSeconds += seconds;
+            // Coalesce persistent-storage writes; a one-second timer should
+            // not write to LocalSettings on every tick.
+            if (unsavedPracticeSeconds >= 10)
+                FlushPracticeTime();
+        }
+
+        public void FlushPracticeTime()
+        {
+            if (unsavedPracticeSeconds <= 0) return;
             SaveScalar("Seconds", practiceSeconds);
+            unsavedPracticeSeconds = 0;
         }
 
         public void RecordCompletedRun()
         {
+            FlushPracticeTime();
             if (completedRuns < int.MaxValue) completedRuns++;
             SaveScalar("Runs", completedRuns);
         }
