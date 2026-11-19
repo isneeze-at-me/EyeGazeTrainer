@@ -163,3 +163,10 @@ Removed the spoken sentence "We'll begin when I finish explaining" from the circ
 - The final home button is positioned at reveal time in the screen corner with the greatest separation between the current gaze point and the button's actual rectangular hit area, with 36 px inset wherever space allows. It remains hidden until its complete spoken explanation finishes, and the old dwell state is cleared before it becomes visible. This forces a deliberate gaze movement toward the new target rather than an accidental selection at the current gaze location.
 - Selection metrics distinguish a completed dwell from a selection that automatically advanced after 60 seconds.
 - Static source/XAML and handler checks passed. Windows compilation and physical PCEye 5 verification remain outstanding.
+
+## Pursuit inside-circle requirement — 2026-11-19
+
+- The glowing pursuit circle has been enlarged from **124 px to 220 px** in diameter (110 px radius, 100 px effective scoring radius inset from the visible ring).
+- The activity now completes after **15 cumulative seconds of valid stabilized eye-cursor samples inside the moving circle**. Each consecutive valid inside sample contributes only its observed interval, up to 300 ms, so long tracking gaps cannot count. Samples outside the circle and pauses do not add progress. The previous 18/35-second and proximity-sample shortcut rules are removed.
+- When the eye cursor has not been inside for **more than five seconds**, including a loss of gaze tracking, the voice gives encouraging feedback about looking at and following the larger circle. The reminder is issued once per extended outside period, and it becomes available again after the cursor reenters.
+- Pursuit still begins at the current eye-cursor location after instructions finish and eases into motion. The existing **60-second practice safety fallback** is unchanged. Static checks passed; Windows/PCEye hardware testing remains outstanding.
