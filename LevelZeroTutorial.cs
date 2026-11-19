@@ -64,6 +64,7 @@ namespace EyeGazeApiViability
         private DateTimeOffset levelZeroFeedbackLastCoaching;
         private double levelZeroFeedbackCorrectSeconds;
         private bool levelZeroFeedbackHasCorrectMovement;
+        private bool levelZeroFeedbackPraisedThisStep;
         private Point levelZeroPursuitStartPoint;
         private string levelZeroPendingInstruction;
         private int levelZeroPursuitSamples, levelZeroCloseSamples;
@@ -153,7 +154,7 @@ namespace EyeGazeApiViability
             ShowScreen(AppScreen.LevelZero);
             // Coaching continues even when the learner is not moving gaze.
             levelZeroCoachTimer = new DispatcherTimer
-                { Interval = TimeSpan.FromSeconds(2) };
+                { Interval = TimeSpan.FromSeconds(1) };
             levelZeroCoachTimer.Tick += OnLevelZeroCoachTick;
             levelZeroCoachTimer.Start();
             // Start narration immediately. A first-time eye-gaze user may
@@ -409,6 +410,7 @@ namespace EyeGazeApiViability
             levelZeroFeedbackLastCoaching = DateTimeOffset.MinValue;
             levelZeroFeedbackCorrectSeconds = 0;
             levelZeroFeedbackHasCorrectMovement = false;
+            levelZeroFeedbackPraisedThisStep = false;
             // A coaching message from the previous activity must never play
             // after its instructions have been superseded.
             levelZeroFeedbackQueue.Clear();
@@ -535,8 +537,10 @@ namespace EyeGazeApiViability
             if (levelZeroFeedbackHasCorrectMovement &&
                 levelZeroFeedbackCorrectSeconds >= 1.5 &&
                 (now - levelZeroFeedbackActivityStarted).TotalSeconds >= 5 &&
-                (now - levelZeroFeedbackLastPraise).TotalSeconds >= 12)
+                (!levelZeroFeedbackPraisedThisStep ||
+                 (now - levelZeroFeedbackLastPraise).TotalSeconds >= 12))
             {
+                levelZeroFeedbackPraisedThisStep = true;
                 levelZeroFeedbackLastPraise = now;
                 levelZeroFeedbackCorrectSeconds = 0;
                 SpeakLevelZero(LevelZeroShortPraise());
