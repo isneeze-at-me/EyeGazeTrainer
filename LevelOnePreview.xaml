@@ -481,19 +481,18 @@
       </Border>
     </Grid>
 
-    <Grid x:Name="LevelsPanel" Background="#101827" Padding="16"
+    <Grid x:Name="LevelsPanel" Background="#101827" Padding="24"
           Visibility="Collapsed">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
         <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
-      <TextBlock Grid.Row="0" Text="CHOOSE A LEVEL" FontSize="28"
+      <TextBlock Grid.Row="0" Text="CHOOSE A LEVEL" FontSize="32"
                  FontWeight="Bold" Foreground="White" TextAlignment="Center"
-                 Margin="0,0,0,8"/>
-      <!-- Two columns by eight rows: levels 0-14 plus Back.
-           Small consistent gaps and all eight rows visible without scrolling. -->
-      <Grid Grid.Row="1" ColumnSpacing="12" RowSpacing="8"
+                 Margin="0,0,0,12"/>
+      <!-- Two columns by four rows: Level 0 through Level 6 and Back. -->
+      <Grid Grid.Row="1" ColumnSpacing="18" RowSpacing="16"
             VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*"/>
@@ -504,94 +503,50 @@
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
-          <RowDefinition Height="*"/>
-          <RowDefinition Height="*"/>
-          <RowDefinition Height="*"/>
-          <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Button Style="{StaticResource PrimaryGazeButton}" x:Name="LevelZeroReplayButton"
                 Grid.Row="0" Grid.Column="0" Content="LEVEL 0"
-                Click="OnLevelZeroReplay" MinHeight="56" FontSize="23" FontWeight="Bold"
+                Click="OnLevelZeroReplay" MinHeight="90" FontSize="29" FontWeight="Bold"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 HorizontalContentAlignment="Center"/>
         <Button Style="{StaticResource PrimaryGazeButton}" x:Name="LevelOneButton"
                 Grid.Row="0" Grid.Column="1" Content="LEVEL 1"
-                Click="OnLevelOne" MinHeight="56" FontSize="23" FontWeight="Bold"
+                Click="OnLevelOne" MinHeight="90" FontSize="29" FontWeight="Bold"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 HorizontalContentAlignment="Center"/>
         <Button Style="{StaticResource PendingLevelButton}" x:Name="LevelTwoButton"
                 Grid.Row="1" Grid.Column="0" Content="LEVEL 2"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
+                Click="OnPlaceholderLevel" MinHeight="90" FontSize="29" FontWeight="Bold"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 HorizontalContentAlignment="Center"/>
         <Button Style="{StaticResource PendingLevelButton}" x:Name="LevelThreeButton"
                 Grid.Row="1" Grid.Column="1" Content="LEVEL 3"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
+                Click="OnPlaceholderLevel" MinHeight="90" FontSize="29" FontWeight="Bold"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 HorizontalContentAlignment="Center"/>
         <Button Style="{StaticResource PendingLevelButton}" x:Name="LevelFourButton"
                 Grid.Row="2" Grid.Column="0" Content="LEVEL 4"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
+                Click="OnPlaceholderLevel" MinHeight="90" FontSize="29" FontWeight="Bold"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 HorizontalContentAlignment="Center"/>
         <Button Style="{StaticResource PendingLevelButton}" x:Name="LevelFiveButton"
                 Grid.Row="2" Grid.Column="1" Content="LEVEL 5"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
+                Click="OnPlaceholderLevel" MinHeight="90" FontSize="29" FontWeight="Bold"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 HorizontalContentAlignment="Center"/>
         <Button Style="{StaticResource PendingLevelButton}" x:Name="LevelSixButton"
                 Grid.Row="3" Grid.Column="0" Content="LEVEL 6"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                HorizontalContentAlignment="Center"/>
-        <Button Style="{StaticResource PendingLevelButton}" x:Name="Level7Button"
-                Grid.Row="3" Grid.Column="1" Content="LEVEL 7"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                HorizontalContentAlignment="Center"/>
-        <Button Style="{StaticResource PendingLevelButton}" x:Name="Level8Button"
-                Grid.Row="4" Grid.Column="0" Content="LEVEL 8"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                HorizontalContentAlignment="Center"/>
-        <Button Style="{StaticResource PendingLevelButton}" x:Name="Level9Button"
-                Grid.Row="4" Grid.Column="1" Content="LEVEL 9"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                HorizontalContentAlignment="Center"/>
-        <Button Style="{StaticResource PendingLevelButton}" x:Name="Level10Button"
-                Grid.Row="5" Grid.Column="0" Content="LEVEL 10"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                HorizontalContentAlignment="Center"/>
-        <Button Style="{StaticResource PendingLevelButton}" x:Name="Level11Button"
-                Grid.Row="5" Grid.Column="1" Content="LEVEL 11"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                HorizontalContentAlignment="Center"/>
-        <Button Style="{StaticResource PendingLevelButton}" x:Name="Level12Button"
-                Grid.Row="6" Grid.Column="0" Content="LEVEL 12"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                HorizontalContentAlignment="Center"/>
-        <Button Style="{StaticResource PendingLevelButton}" x:Name="Level13Button"
-                Grid.Row="6" Grid.Column="1" Content="LEVEL 13"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
-                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                HorizontalContentAlignment="Center"/>
-        <Button Style="{StaticResource PendingLevelButton}" x:Name="Level14Button"
-                Grid.Row="7" Grid.Column="0" Content="LEVEL 14"
-                Click="OnPlaceholderLevel" MinHeight="56" FontSize="23" FontWeight="Bold"
+                Click="OnPlaceholderLevel" MinHeight="90" FontSize="29" FontWeight="Bold"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 HorizontalContentAlignment="Center"/>
         <Button Style="{StaticResource SecondaryGazeButton}" x:Name="LevelsBackButton"
-                Grid.Row="7" Grid.Column="1" Content="BACK TO MENU"
-                Click="OnBackToMenu" MinHeight="56" FontSize="22" FontWeight="Bold"
+                Grid.Row="3" Grid.Column="1" Content="BACK TO MENU"
+                Click="OnBackToMenu" MinHeight="90" FontSize="25" FontWeight="Bold"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 HorizontalContentAlignment="Center"/>
       </Grid>
-      <TextBlock x:Name="LevelsNoticeText" Grid.Row="2" Margin="0,6,0,0"
-                 FontSize="17" TextAlignment="Center"
+      <TextBlock x:Name="LevelsNoticeText" Grid.Row="2" Margin="0,10,0,0"
+                 FontSize="18" TextAlignment="Center"
                  Foreground="#FBBF24" TextWrapping="Wrap"/>
     </Grid>
 
