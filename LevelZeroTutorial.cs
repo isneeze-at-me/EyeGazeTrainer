@@ -596,7 +596,11 @@ namespace EyeGazeApiViability
             }
             previousCircleAngle = angle;
             hasPreviousCircleAngle = true;
-            if ((now - movementStepStarted).TotalSeconds >= 15 &&
+            // Fifteen cumulative seconds of CONFIRMED circular travel, not
+            // fifteen seconds since this exercise was introduced.
+            // Stationary, straight-line, wrong-way and invalid samples
+            // never add to stepMotionSeconds.
+            if (stepMotionSeconds >= 15.0 &&
                 circleTravelRadians >= Math.PI * 1.5 && circleSamples >= 10 &&
                 CountBits(circleSectorMask) >= 5)
                 GoToLevelZeroPursuit();
@@ -684,7 +688,7 @@ namespace EyeGazeApiViability
                         "Great work! You've completed fifteen seconds of up and down movement. Next, look left, then right, and repeat for fifteen seconds of actual side to side movement.");
                 else
                     NextMovementStep(MovementStep.Circles,
-                        "Excellent! You've practiced left and right. Now let's try circles for fifteen seconds. Slowly trace a big circle with your eyes around the middle of the screen. We'll begin when I finish explaining.");
+                        "Excellent! You've practiced left and right. Now let's try circles for fifteen seconds of actual circular movement. Slowly trace a big circle with your eyes around the middle of the screen.");
             }
         }
 
