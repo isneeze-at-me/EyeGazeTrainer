@@ -282,7 +282,11 @@ namespace EyeGazeApiViability
                         levelZeroFeedbackQueue.Enqueue(words);
                     return;
                 }
-                if ((DateTimeOffset.UtcNow - levelZeroLastPrompt).TotalSeconds < 10)
+                // Activity-specific feedback is already throttled by the
+                // five-second state checks and twelve-second praise interval.
+                // Do not impose another ten-second lockout here: that hid
+                // the first correction even after five seconds of no action.
+                if ((DateTimeOffset.UtcNow - levelZeroLastPrompt).TotalSeconds < 2)
                     return;
             }
             _ = PlayLevelZeroSpeechAsync(words);
@@ -418,6 +422,12 @@ namespace EyeGazeApiViability
             DateTimeOffset now = DateTimeOffset.UtcNow;
             levelZeroFeedbackLastCorrect = now;
             levelZeroFeedbackHasCorrectMovement = true;
+            // A queued "try again" is no longer relevant after the learner
+            // resumes the requested action. Do not let delayed audio
+            // incorrectly announce failure during correct movement.
+            if (levelZeroFeedbackQueue.Count > 0 &&
+                levelZeroFeedbackQueue.Peek() == LevelZeroShortCoaching())
+                levelZeroFeedbackQueue.Clear();
             if (seconds > 0 && seconds <= .5)
                 levelZeroFeedbackCorrectSeconds += seconds;
         }
@@ -513,6 +523,8 @@ namespace EyeGazeApiViability
                 {
                     levelZeroFeedbackLastCoaching = now;
                     levelZeroFeedbackCorrectSeconds = 0;
+                    // Drop any stale praise before offering a correction.
+                    levelZeroFeedbackQueue.Clear();
                     SpeakLevelZero(LevelZeroShortCoaching());
                 }
                 return;
