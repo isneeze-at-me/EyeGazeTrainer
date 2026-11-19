@@ -484,9 +484,15 @@ namespace EyeGazeApiViability
             lastMovement = now;
             bool vertical = Math.Abs(dyPixels) > 1.8 * Math.Abs(dxPixels);
             bool horizontal = Math.Abs(dxPixels) > 1.8 * Math.Abs(dyPixels);
-            if (vertical) verticalSamples++;
-            else if (horizontal) horizontalSamples++;
-            else diagonalSamples++;
+            // For directed exercises count only classifications from the
+            // longer sweep window; instantaneous deltas are too noisy.
+            if (movementStep == MovementStep.Discover ||
+                movementStep == MovementStep.Circles)
+            {
+                if (vertical) verticalSamples++;
+                else if (horizontal) horizontalSamples++;
+                else diagonalSamples++;
+            }
 
             if (movementStep == MovementStep.Discover)
             {
@@ -580,7 +586,19 @@ namespace EyeGazeApiViability
             double minimumPixels = Math.Max(8, Math.Min(width, height) * .007);
             if (Math.Abs(primary) < minimumPixels ||
                 Math.Abs(primary) < 1.35 * Math.Abs(secondary))
+            {
+                // Record substantive wrong-axis sweeps for specific coaching;
+                // neither wrong-way nor tiny movement advances the exercise.
+                if (Math.Abs(secondary) >= minimumPixels &&
+                    Math.Abs(secondary) > Math.Abs(primary) * 1.35)
+                {
+                    if (movementStep == MovementStep.Vertical) horizontalSamples++;
+                    else verticalSamples++;
+                }
+                else if (Math.Max(Math.Abs(primary), Math.Abs(secondary)) >= minimumPixels)
+                    diagonalSamples++;
                 return;
+            }
 
             int direction = Math.Sign(primary);
             if (lastAxisDirection != 0 && direction != lastAxisDirection)
