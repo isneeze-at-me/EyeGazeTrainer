@@ -1097,7 +1097,7 @@ namespace EyeGazeApiViability
                     now, trainingProgress, trainingReport, gazeProfile,
                     spatialAccuracy, spatialJitter, cursorFilter.SmoothingLevel,
                     gazeProfile.HitBoxScale, TrainingTargetMeasurement.TargetHoldMilliseconds,
-                    (int)ControlDwell.TotalMilliseconds,
+                    (int)ControlDwell.TotalMilliseconds, dwellRecommendation,
                     SkillMetrics, TherapistSkillCategoryNames,
                     new[] { LevelZeroMetricValue(0), LevelZeroMetricValue(1),
                             LevelZeroMetricValue(2), LevelZeroMetricValue(3),
