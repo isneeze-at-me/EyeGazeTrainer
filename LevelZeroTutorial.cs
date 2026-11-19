@@ -535,8 +535,10 @@ namespace EyeGazeApiViability
             // Praise only if the activity has been genuinely demonstrated.
             // Repeat sparingly; no praise for a single gaze jitter sample.
             if (levelZeroFeedbackHasCorrectMovement &&
-                levelZeroFeedbackCorrectSeconds >= 1.5 &&
-                (now - levelZeroFeedbackActivityStarted).TotalSeconds >= 5 &&
+                levelZeroFeedbackCorrectSeconds >= 5.0 &&
+                // Only praise while the requested behavior is still being
+                // observed, never several seconds after it has stopped.
+                (now - levelZeroFeedbackLastCorrect).TotalSeconds <= 2 &&
                 (!levelZeroFeedbackPraisedThisStep ||
                  (now - levelZeroFeedbackLastPraise).TotalSeconds >= 12))
             {
