@@ -57,6 +57,13 @@ namespace EyeGazeApiViability
         private DateTimeOffset levelZeroPursuitLastInside;
         private bool levelZeroPursuitPreviouslyInside;
         private bool levelZeroPursuitOutsideCoached;
+        // Shared, evidence-based feedback for every Level 0 activity.
+        private DateTimeOffset levelZeroFeedbackActivityStarted;
+        private DateTimeOffset levelZeroFeedbackLastCorrect;
+        private DateTimeOffset levelZeroFeedbackLastPraise;
+        private DateTimeOffset levelZeroFeedbackLastCoaching;
+        private double levelZeroFeedbackCorrectSeconds;
+        private bool levelZeroFeedbackHasCorrectMovement;
         private Point levelZeroPursuitStartPoint;
         private string levelZeroPendingInstruction;
         private int levelZeroPursuitSamples, levelZeroCloseSamples;
@@ -389,14 +396,77 @@ namespace EyeGazeApiViability
             }
         }
 
+        private void ResetLevelZeroFeedback()
+        {
+            var now = DateTimeOffset.UtcNow;
+            levelZeroFeedbackActivityStarted = now;
+            levelZeroFeedbackLastCorrect = now;
+            levelZeroFeedbackLastPraise = now;
+            levelZeroFeedbackLastCoaching = DateTimeOffset.MinValue;
+            levelZeroFeedbackCorrectSeconds = 0;
+            levelZeroFeedbackHasCorrectMovement = false;
+            // A coaching message from the previous activity must never play
+            // after its instructions have been superseded.
+            levelZeroFeedbackQueue.Clear();
+        }
+
+        private void RecordLevelZeroCorrectMovement(double seconds)
+        {
+            if (currentScreen != AppScreen.LevelZero || stopping ||
+                movementWaitingForInstructions || levelZeroStageWaitingForInstructions)
+                return;
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            levelZeroFeedbackLastCorrect = now;
+            levelZeroFeedbackHasCorrectMovement = true;
+            if (seconds > 0 && seconds <= .5)
+                levelZeroFeedbackCorrectSeconds += seconds;
+        }
+
+        private string LevelZeroShortPraise()
+        {
+            if (levelZeroStage == LevelZeroStage.Pursue)
+                return "Good job! You're following the circle.";
+            if (levelZeroStage == LevelZeroStage.Continue)
+                return "Good job! Keep looking at the button.";
+            switch (movementStep)
+            {
+                case MovementStep.Vertical:
+                    return "Good job! That's up and down.";
+                case MovementStep.Horizontal:
+                    return "Good job! That's left and right.";
+                case MovementStep.Circles:
+                    return "Good job! Keep those circles going.";
+                default:
+                    return "Good job! You're moving your eyes.";
+            }
+        }
+
+        private string LevelZeroShortCoaching()
+        {
+            if (levelZeroStage == LevelZeroStage.Pursue)
+                return "Try following the glowing circle. Keep your cursor inside it.";
+            if (levelZeroStage == LevelZeroStage.Continue)
+                return "Look at the house button and hold your gaze until the ring fills.";
+            switch (movementStep)
+            {
+                case MovementStep.Vertical:
+                    return "Try looking up, then down, and repeat.";
+                case MovementStep.Horizontal:
+                    return "Try looking left, then right, and repeat.";
+                case MovementStep.Circles:
+                    return "Try tracing a big circle with your eyes.";
+                default:
+                    return "Try moving your eyes around the screen.";
+            }
+        }
+
         private void OnLevelZeroCoachTick(object sender, object args)
         {
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested)
                 return;
             DateTimeOffset now = DateTimeOffset.UtcNow;
-            // Each accessible activity has a hard one-minute practice
-            // limit after its spoken explanation. The coach timer continues
-            // even without incoming eye tracking frames.
+
+            // Keep the independent one-minute maximum for every activity.
             if (levelZeroStage == LevelZeroStage.Explore)
             {
                 if (movementWaitingForInstructions) return;
@@ -406,106 +476,58 @@ namespace EyeGazeApiViability
                     SkipLevelZeroMovementStep();
                     return;
                 }
-                if ((now - lastMovementCoach).TotalSeconds < 12) return;
-                string coaching = null;
-                if (!levelZeroHadGaze ||
-                    (now - levelZeroLastValid).TotalSeconds > 6)
-                    coaching = "I'm not detecting your eye cursor just yet. Try looking at the middle of the screen.";
-                else if (movementStep == MovementStep.Discover)
-                {
-                    // Free exploration is intentionally free. Do not redirect
-                    // direction or praise tiny gaze drift. Coach only after
-                    // there has been no meaningful motion for seven seconds.
-                    if (!hasActualMovement ||
-                        (now - lastMovement).TotalSeconds > 7)
-                        coaching = "Try moving your eyes around the screen. Even a slow, comfortable movement is fine. Watch the eye cursor follow you.";
-                }
-                else if ((now - lastMovement).TotalSeconds > 7)
-                    coaching = "Your cursor has been resting. Whenever you're ready, " +
-                        MovementInstruction();
-                else if ((now - movementStepStarted).TotalSeconds > 7)
-                {
-                    // Never infer the user's CURRENT direction from totals
-                    // accumulated across the entire lesson. Old sideways
-                    // samples caused incorrect "side to side" narration
-                    // during genuine up/down movement.
-                    bool recentCorrect = movementStep == MovementStep.Circles
-                        ? circleSamples >= 8
-                        : lastCorrectAxisMovement != DateTimeOffset.MinValue &&
-                          (now - lastCorrectAxisMovement).TotalSeconds < 6;
-                    if (!recentCorrect)
-                    {
-                        // Give neutral, useful help when direction evidence is
-                        // ambiguous; do not insist they're moving the wrong way.
-                        // A confident wrong-axis observation must come from
-                        // recent complete sweep windows only.
-                        bool confidentWrongAxis =
-                            movementStep != MovementStep.Circles &&
-                            recentOtherAxisSweeps >= 5 &&
-                            recentOtherAxisSweeps >= 3 * Math.Max(1, recentCorrectSweeps) &&
-                            recentDiagonalSweeps <= recentOtherAxisSweeps;
-                        string observed = confidentWrongAxis
-                            ? movementStep == MovementStep.Vertical
-                                ? "I see mostly sideways movement right now. "
-                                : "I see mostly up and down movement right now. "
-                            : "";
-                        coaching = observed + MovementInstruction();
-                    }
-                }
-                if (coaching != null)
-                {
-                    lastMovementCoach = now;
-                    SpeakLevelZero(coaching);
-                }
-                return;
             }
-            if (!levelZeroStageWaitingForInstructions &&
-                (now - levelZeroStageStarted).TotalSeconds >=
+            else
+            {
+                if (levelZeroStageWaitingForInstructions ||
+                    levelZeroButtonExplanationPending) return;
+                if ((now - levelZeroStageStarted).TotalSeconds >=
                     LevelZeroMaximumStepSeconds)
-            {
-                if (levelZeroStage == LevelZeroStage.Pursue)
-                    GoToLevelZeroSelection(true);
-                else if (levelZeroStage == LevelZeroStage.Continue &&
-                         !levelZeroButtonExplanationPending &&
-                         !levelZeroFinishAfterSpeech)
                 {
-                    levelZeroFinishAfterSpeech = true;
-                    levelZeroSelectionTimedOut = true;
-                    SpeakLevelZero("Good effort, let's move on to the training levels.", true);
-                    if (levelZeroSpeechUnavailable) FinishLevelZero();
+                    if (levelZeroStage == LevelZeroStage.Pursue)
+                        GoToLevelZeroSelection(true);
+                    else if (levelZeroStage == LevelZeroStage.Continue &&
+                             !levelZeroFinishAfterSpeech)
+                    {
+                        levelZeroFinishAfterSpeech = true;
+                        levelZeroSelectionTimedOut = true;
+                        SpeakLevelZero("Good effort, let's move on to the training levels.", true);
+                        if (levelZeroSpeechUnavailable) FinishLevelZero();
+                    }
+                    return;
+                }
+            }
+
+            // Correct-button activity: use the actual dwell target, not an
+            // inference based on a nearby cursor position.
+            if (levelZeroStage == LevelZeroStage.Continue &&
+                gazeControlTarget == LevelZeroContinueButton &&
+                !gazeControlTriggered)
+                RecordLevelZeroCorrectMovement(0);
+
+            // Five seconds without the requested action triggers a short
+            // coaching reminder. It can repeat, but never interrupt speech.
+            if ((now - levelZeroFeedbackLastCorrect).TotalSeconds >= 5)
+            {
+                if ((now - levelZeroFeedbackLastCoaching).TotalSeconds >= 10)
+                {
+                    levelZeroFeedbackLastCoaching = now;
+                    levelZeroFeedbackCorrectSeconds = 0;
+                    SpeakLevelZero(LevelZeroShortCoaching());
                 }
                 return;
             }
-            // During pursuit, coaching still works when gaze tracking is lost.
-            if (levelZeroStage != LevelZeroStage.Pursue &&
-                (!levelZeroHadGaze ||
-                 (now - levelZeroLastValid).TotalSeconds > 8))
-                return;
-            double elapsed = (now - levelZeroStageStarted).TotalSeconds;
-            if (levelZeroStage == LevelZeroStage.Pursue)
+
+            // Praise only if the activity has been genuinely demonstrated.
+            // Repeat sparingly; no praise for a single gaze jitter sample.
+            if (levelZeroFeedbackHasCorrectMovement &&
+                levelZeroFeedbackCorrectSeconds >= 1.5 &&
+                (now - levelZeroFeedbackActivityStarted).TotalSeconds >= 5 &&
+                (now - levelZeroFeedbackLastPraise).TotalSeconds >= 12)
             {
-                if (!levelZeroPursuitOutsideCoached &&
-                    (now - levelZeroPursuitLastInside).TotalSeconds > 5)
-                {
-                    levelZeroPursuitOutsideCoached = true;
-                    SpeakLevelZero("You're doing fine! Look at the large glowing circle and follow it with your eyes. Try to keep your eye cursor inside the circle as it moves.");
-                }
-            }
-            else if (levelZeroStage == LevelZeroStage.Continue &&
-                     !levelZeroButtonExplanationPending)
-            {
-                if (elapsed >= 14 && levelZeroDwellAttempts == 0 &&
-                    !levelZeroCoachedPursuit)
-                {
-                    levelZeroCoachedPursuit = true;
-                    SpeakLevelZero("That large house button opens your Levels screen. Look at its center, and keep looking until the ring fills.");
-                }
-                else if (elapsed >= 20 && levelZeroDwellAttempts > 0 &&
-                         !levelZeroCoachedButton)
-                {
-                    levelZeroCoachedButton = true;
-                    SpeakLevelZero("You're close. Keep your eyes on the house button until the circle finishes.");
-                }
+                levelZeroFeedbackLastPraise = now;
+                levelZeroFeedbackCorrectSeconds = 0;
+                SpeakLevelZero(LevelZeroShortPraise());
             }
         }
 
@@ -555,6 +577,7 @@ namespace EyeGazeApiViability
             lastMotionSample = DateTimeOffset.MinValue;
             lastMovement = movementStepStarted;
             lastMovementCoach = movementStepStarted;
+            ResetLevelZeroFeedback();
             lastCorrectAxisMovement = DateTimeOffset.MinValue;
             coachingWindowStarted = movementStepStarted;
             recentCorrectSweeps = recentOtherAxisSweeps = recentDiagonalSweeps = 0;
@@ -652,6 +675,7 @@ namespace EyeGazeApiViability
                 // Pauses and stationary tracker jitter do not contribute.
                 discoveryMotionSeconds += dt;
                 stepTravel += displacement;
+                RecordLevelZeroCorrectMovement(dt);
                 if (discoveryMotionSeconds >= 15.0 && stepTravel >= .50)
                     NextMovementStep(MovementStep.Vertical,
                         "There you go! You're moving the cursor. Now look toward the top, then down toward the bottom. Let's practice fifteen seconds of actual up and down movement. Pauses and sideways movement won't count.");
@@ -692,6 +716,7 @@ namespace EyeGazeApiViability
                         circleTravelRadians += Math.Abs(delta);
                         circleSamples++;
                         stepMotionSeconds += dt;
+                        RecordLevelZeroCorrectMovement(dt);
                     }
                 }
             }
@@ -773,6 +798,7 @@ namespace EyeGazeApiViability
             lastCorrectAxisMovement = now;
             recentCorrectSweeps++;
             stepMotionSeconds += Math.Min(.5, seconds);
+            RecordLevelZeroCorrectMovement(Math.Min(.5, seconds));
             stepTravel += Math.Abs(primary) /
                 (movementStep == MovementStep.Vertical ? height : width);
             lastMovement = now;
@@ -860,6 +886,7 @@ namespace EyeGazeApiViability
             levelZeroPursuitLastInside = levelZeroStageStarted;
             levelZeroPursuitPreviouslyInside = false;
             levelZeroPursuitOutsideCoached = false;
+            ResetLevelZeroFeedback();
             PositionLevelZeroPursuitTarget(
                 levelZeroPursuitStartPoint.X, levelZeroPursuitStartPoint.Y);
             LevelZeroPursuitTarget.Visibility = Visibility.Visible;
@@ -960,7 +987,10 @@ namespace EyeGazeApiViability
                     levelZeroPursuitLastInside = now;
                     levelZeroPursuitOutsideCoached = false;
                     if (levelZeroPursuitPreviouslyInside && sampleSeconds <= .3)
+                    {
                         levelZeroPursuitInsideSeconds += sampleSeconds;
+                        RecordLevelZeroCorrectMovement(sampleSeconds);
+                    }
                     if (levelZeroPursuitInsideSeconds >= 15.0)
                         GoToLevelZeroSelection();
                 }
@@ -1071,6 +1101,7 @@ namespace EyeGazeApiViability
             levelZeroButtonExplanationPending = false;
             levelZeroStageStarted = DateTimeOffset.UtcNow;
             levelZeroStageWaitingForInstructions = false;
+            ResetLevelZeroFeedback();
             // Never carry over dwell already collected at the prior screen
             // position, even if the user was staring at that position.
             gazeControlTarget = null;
