@@ -155,6 +155,9 @@ namespace EyeGazeApiViability
         private bool completed;
         private bool exitRequested;
         private bool autoStartAttempted;
+        private DateTimeOffset lastGazeHeartbeatWritten;
+        private const string GazeActiveSignalFile =
+            "eyegazetrainer-gaze-active.signal";
         private DispatcherTimer startupSplashTimer;
         private bool startupSplashCompleted;
         private const int StartupSplashDurationSeconds = 3;
@@ -689,11 +692,46 @@ namespace EyeGazeApiViability
 
         // Count only active gaze-guided practice, excluding menu time,
         // unavailable gaze tracking, long suspension gaps, and shutdown.
+        private void UpdateGazeActivitySignal(DateTimeOffset now)
+        {
+            try
+            {
+                string path = Path.Combine(ApplicationData.Current.LocalFolder.Path,
+                                           GazeActiveSignalFile);
+                bool active = live && gazeSubscribed && !stopping &&
+                              !exitRequested &&
+                              lastValidGazeSampleAt != default(DateTimeOffset) &&
+                              (now - lastValidGazeSampleAt).TotalSeconds <= 1.5;
+                if (!active)
+                {
+                    // The companion will independently restore marker state
+                    // after missing heartbeats, even if we cannot delete.
+                    if (File.Exists(path)) File.Delete(path);
+                    return;
+                }
+                if ((now - lastGazeHeartbeatWritten).TotalMilliseconds < 700)
+                    return;
+                File.WriteAllText(path, now.UtcTicks.ToString());
+                lastGazeHeartbeatWritten = now;
+            }
+            catch (Exception ex)
+            {
+                Trace("Gaze-aware activity signal unavailable: " +
+                      ex.GetType().Name);
+                // The optional companion safely does nothing without a
+                // valid signal. Never interrupt gaze training.
+            }
+        }
+
         private void OnPracticeTimerTick(object sender, object e)
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
             double elapsed = (now - lastPracticeTick).TotalSeconds;
             lastPracticeTick = now;
+            // A per-second liveness marker enables the packaged companion
+            // to advertise gaze-awareness only while this app really
+            // receives valid eye samples. No coordinates are recorded.
+            UpdateGazeActivitySignal(now);
             if (exitRequested || stopping || !live ||
                 (currentScreen != AppScreen.Lesson && currentScreen != AppScreen.Bonus) ||
                 lastValidGazeSampleAt == default(DateTimeOffset) ||
@@ -1854,6 +1892,7 @@ namespace EyeGazeApiViability
             buttonDwellWheel.Hide();
             ExitButton.IsEnabled = false;
             SettingsExitButton.IsEnabled = false;
+            UpdateGazeActivitySignal(DateTimeOffset.UtcNow);
             Trace("EXIT requested; source active=" + live);
             if (live) BeginCleanup();
             else NavigateToCleanExit();
