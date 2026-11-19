@@ -472,7 +472,7 @@ namespace EyeGazeApiViability
                 stepTravel += displacement;
                 if (discoveryMotionSeconds >= 15.0 && stepTravel >= .50)
                     NextMovementStep(MovementStep.Vertical,
-                        "There you go! You're moving the cursor. Now look toward the top of the screen, then down toward the bottom. Keep practicing up and down.");
+                        "There you go! You're moving the cursor. Now look toward the top, then down toward the bottom. Let's practice fifteen seconds of actual up and down movement. Pauses and sideways movement won't count.");
                 return;
             }
 
@@ -488,15 +488,16 @@ namespace EyeGazeApiViability
                 lastAxisDirection = direction;
                 stepMotionSeconds += dt;
                 stepTravel += displacement;
-                // Fifteen seconds in the activity, with meaningful deliberate
-                // movement and multiple direction changes. Idle alone won't pass.
-                if ((now - movementStepStarted).TotalSeconds >= 15 &&
-                    stepMotionSeconds >= 2.5 && axisReversals >= 2 &&
+                // Require 15 CUMULATIVE seconds of movement on the requested
+                // axis. Only above-noise samples classified in that direction
+                // add to stepMotionSeconds. Wrong-way movement, pauses and
+                // elapsed wall-clock time cannot complete this activity.
+                if (stepMotionSeconds >= 15.0 && axisReversals >= 2 &&
                     stepTravel >= .35)
                 {
                     if (movementStep == MovementStep.Vertical)
                         NextMovementStep(MovementStep.Horizontal,
-                            "Great work! You've practiced up and down. Next is side to side. Look to the left, then to the right, and keep repeating.");
+                            "Great work! You've completed fifteen seconds of up and down movement. Next, look left, then right, and repeat for fifteen seconds of actual side to side movement.");
                     else
                         NextMovementStep(MovementStep.Circles,
                             "Excellent! You've practiced left and right. Now let's try circles. Slowly trace a big circle with your eyes around the middle of the screen.");
