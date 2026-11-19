@@ -153,6 +153,7 @@ namespace EyeGazeApiViability
             levelZeroGuidanceStarted = false;
             levelZeroHorizontalPrompted = levelZeroCornerPrompted = levelZeroFollowPrompted = false;
             levelZeroPursuitSamples = levelZeroCloseSamples = 0;
+            levelZeroDwellAttempts = 0;
             LevelZeroPursuitTarget.Visibility = Visibility.Collapsed;
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
             LevelZeroContinueButton.Visibility = Visibility.Collapsed;
@@ -738,7 +739,7 @@ namespace EyeGazeApiViability
                     {
                         circleTravelRadians += Math.Abs(delta);
                         circleSamples++;
-                diagnosticCircleSamples++;
+                        diagnosticCircleSamples++;
                         stepMotionSeconds += dt;
                         RecordLevelZeroCorrectMovement(dt);
                     }
