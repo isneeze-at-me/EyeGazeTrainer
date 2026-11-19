@@ -199,8 +199,21 @@ namespace EyeGazeApiViability
         // Keep at most one queued feedback phrase to avoid nonstop chatter.
         private void SpeakLevelZero(string words, bool essential = false)
         {
-            if (currentScreen != AppScreen.LevelZero || stopping || exitRequested ||
-                levelZeroSpeechUnavailable) return;
+            if (currentScreen != AppScreen.LevelZero || stopping || exitRequested)
+                return;
+            if (levelZeroSpeechUnavailable)
+            {
+                // Speech failure must not strand an eye-gaze-only learner
+                // permanently before a movement exercise.
+                if (movementWaitingForInstructions &&
+                    words == movementInstructionSpeech)
+                {
+                    ResetMovementStep();
+                    movementWaitingForInstructions = false;
+                    movementInstructionSpeech = null;
+                }
+                return;
+            }
             if (essential)
             {
                 levelZeroFeedbackQueue.Clear();
@@ -646,7 +659,7 @@ namespace EyeGazeApiViability
                         "Great work! You've completed fifteen seconds of up and down movement. Next, look left, then right, and repeat for fifteen seconds of actual side to side movement.");
                 else
                     NextMovementStep(MovementStep.Circles,
-                        "Excellent! You've practiced left and right. Now let's try circles. Slowly trace a big circle with your eyes around the middle of the screen.");
+                        "Excellent! You've practiced left and right. Now let's try circles for fifteen seconds. Slowly trace a big circle with your eyes around the middle of the screen. We'll begin when I finish explaining.");
             }
         }
 
