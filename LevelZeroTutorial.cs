@@ -749,17 +749,11 @@ namespace EyeGazeApiViability
                 return;
             }
 
-            // Require angular travel around the center; random small
-            // movement in one area must never be scored as a circle.
-            double nx = (gaze.X / width - .5) * 2;
-            double ny = (gaze.Y / height - .5) * 2;
-            double radius = Math.Sqrt(nx * nx + ny * ny);
-            if (radius < .23 || radius > 1.3)
-            {
-                hasPreviousCircleAngle = false;
-                return;
-            }
-            double angle = Math.Atan2(ny, nx);
+            // Recognize circular motion by changes in the direction of
+            // measured gaze travel, NOT position relative to the displayed
+            // circle or the center of the screen. The guide is visual only.
+            // Noise and implausible jumps were already excluded above.
+            double angle = Math.Atan2(dyPixels, dxPixels);
             int sector = (int)Math.Floor((angle + Math.PI) / (Math.PI / 4));
             circleSectorMask |= 1 << Math.Max(0, Math.Min(7, sector));
             if (hasPreviousCircleAngle)
@@ -783,10 +777,9 @@ namespace EyeGazeApiViability
             }
             previousCircleAngle = angle;
             hasPreviousCircleAngle = true;
-            // Fifteen cumulative seconds of CONFIRMED circular travel, not
-            // fifteen seconds since this exercise was introduced.
-            // Stationary, straight-line, wrong-way and invalid samples
-            // never add to stepMotionSeconds.
+            // Require a sustained turning pattern in multiple directions
+            // over fifteen seconds, independently of the reference drawing.
+            // Stationary, straight-line and invalid samples do not advance.
             if (stepMotionSeconds >= 15.0 &&
                 circleTravelRadians >= Math.PI * 1.5 && circleSamples >= 10 &&
                 CountBits(circleSectorMask) >= 5)
