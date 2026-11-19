@@ -79,6 +79,48 @@
         <Ellipse x:Name="LevelZeroPursuitCenter" Width="18" Height="18"
                  Fill="#C7F0FF" Visibility="Collapsed"/>
       </Canvas>
+      <!-- Visual-only Level 0 movement examples. They never take input
+           or participate in eye-gaze movement scoring. -->
+      <Grid x:Name="LevelZeroMovementGuide" Visibility="Collapsed"
+            IsHitTestVisible="False" HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch">
+        <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch"
+                 VerticalAlignment="Stretch" Margin="70,56">
+          <Canvas Width="900" Height="600">
+            <Canvas x:Name="LevelZeroVerticalGuide" Visibility="Collapsed">
+              <Line X1="450" Y1="92" X2="450" Y2="508"
+                    Stroke="#66DCEFFF" StrokeThickness="14"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+              <Polyline Points="404,140 450,88 496,140"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+              <Polyline Points="404,460 450,512 496,460"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+            </Canvas>
+            <Canvas x:Name="LevelZeroHorizontalGuide" Visibility="Collapsed">
+              <Line X1="115" Y1="300" X2="785" Y2="300"
+                    Stroke="#66DCEFFF" StrokeThickness="14"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+              <Polyline Points="168,252 110,300 168,348"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+              <Polyline Points="732,252 790,300 732,348"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+            </Canvas>
+            <Canvas x:Name="LevelZeroCircleGuide" Visibility="Collapsed">
+              <Ellipse Canvas.Left="200" Canvas.Top="50"
+                       Width="500" Height="500" Stroke="#66DCEFFF"
+                       StrokeThickness="14" Fill="Transparent"/>
+            </Canvas>
+          </Canvas>
+        </Viewbox>
+      </Grid>
       <Button x:Name="LevelZeroContinueButton"
               Style="{StaticResource PrimaryGazeButton}"
               Content="⌂" FontSize="88" FontWeight="Bold"
