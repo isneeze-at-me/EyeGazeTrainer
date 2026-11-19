@@ -27,6 +27,8 @@ namespace EyeGazeApiViability
         private double pendingReferenceWidth;
         private bool displaySettingsVisible;
         private DisplayInformation displayInformation;
+        private CoreCursor previousPointerCursor;
+        private bool pointerCursorHidden;
         private double TargetDiameter { get { return targetDiameter; } }
         private readonly MasterCursorSmoothingFilter cursorFilter = new MasterCursorSmoothingFilter();
         private readonly AdaptiveGazeProfile gazeProfile = new AdaptiveGazeProfile();
@@ -238,6 +240,7 @@ namespace EyeGazeApiViability
 
         private void OnPageLoaded(object sender, RoutedEventArgs e)
         {
+            HideWindowsPointerCursor();
             // Preserve the pre-splash initialization sequence: connect the
             // gaze watcher as soon as the page is loaded. The branding
             // overlay stays visible for its full three seconds independently.
@@ -251,6 +254,41 @@ namespace EyeGazeApiViability
                 { Interval = TimeSpan.FromSeconds(StartupSplashDurationSeconds) };
             startupSplashTimer.Tick += OnStartupSplashElapsed;
             startupSplashTimer.Start();
+        }
+
+        // Hide only the Windows arrow within this UWP window. The trainer
+        // continues drawing its own eye-gaze cursor; the tracker, TD Control
+        // companion, and pointer input event handling are unchanged.
+        private void HideWindowsPointerCursor()
+        {
+            if (pointerCursorHidden) return;
+            try
+            {
+                var coreWindow = Window.Current.CoreWindow;
+                previousPointerCursor = coreWindow.PointerCursor;
+                coreWindow.PointerCursor = null;
+                pointerCursorHidden = true;
+            }
+            catch (Exception ex)
+            {
+                Trace("Unable to hide Windows arrow cursor: " + ex.GetType().Name);
+            }
+        }
+
+        private void RestoreWindowsPointerCursor()
+        {
+            if (!pointerCursorHidden) return;
+            try
+            {
+                Window.Current.CoreWindow.PointerCursor =
+                    previousPointerCursor ?? new CoreCursor(CoreCursorType.Arrow, 0);
+                pointerCursorHidden = false;
+                previousPointerCursor = null;
+            }
+            catch (Exception ex)
+            {
+                Trace("Unable to restore Windows arrow cursor: " + ex.GetType().Name);
+            }
         }
 
         private void OnStartupSplashElapsed(object sender, object e)
@@ -2005,6 +2043,9 @@ namespace EyeGazeApiViability
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            // Navigation follows staged gaze release; make the Windows arrow
+            // available again on the gaze-free closing page and desktop.
+            RestoreWindowsPointerCursor();
             StopLevelZero();
             HideTherapistExportConfirmation();
             if (practiceTimer != null)
