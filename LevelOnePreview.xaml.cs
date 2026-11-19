@@ -37,6 +37,7 @@ namespace EyeGazeApiViability
         private readonly Random placementRandom = new Random();
         private readonly TrainingProgress trainingProgress = new TrainingProgress();
         private readonly TrainingReport trainingReport = new TrainingReport();
+        private readonly DwellRecommendation dwellRecommendation = new DwellRecommendation();
         private DispatcherTimer practiceTimer;
         private DateTimeOffset lastPracticeTick;
         private readonly SpatialAccuracyMap spatialAccuracy = new SpatialAccuracyMap();
@@ -783,6 +784,13 @@ namespace EyeGazeApiViability
             ReportLevelsText.Text = finished + " / 6";
             ReportRunsText.Text = trainingReport.CompletedRuns.ToString();
             ReportHoursText.Text = trainingReport.PracticeHours.ToString("0.00") + " h";
+            RecommendedDwellText.Text = dwellRecommendation.Milliseconds + " ms";
+            RecommendedDwellEvidenceText.Text = dwellRecommendation.HasEvidence
+                ? dwellRecommendation.SuccessfulAttempts + " completed / " +
+                  dwellRecommendation.InterruptedAttempts + " interrupted holds"
+                : "Starting estimate; " +
+                  (dwellRecommendation.SuccessfulAttempts + dwellRecommendation.InterruptedAttempts) +
+                  " of 12 initial holds recorded";
             // Overall is the existing persistent adaptive accuracy score.
             ReportOverallText.Text = gazeProfile.Acquisitions > 0
                 ? gazeProfile.AccuracyScore.ToString("0") + "%" : "NA";
@@ -1137,7 +1145,7 @@ namespace EyeGazeApiViability
                     now, trainingProgress, trainingReport, gazeProfile,
                     spatialAccuracy, spatialJitter, cursorFilter.SmoothingLevel,
                     gazeProfile.HitBoxScale, TrainingTargetMeasurement.TargetHoldMilliseconds,
-                    (int)ControlDwell.TotalMilliseconds,
+                    (int)ControlDwell.TotalMilliseconds, dwellRecommendation,
                     SkillMetrics, TherapistSkillCategoryNames,
                     new[] { LevelZeroMetricValue(0), LevelZeroMetricValue(1),
                             LevelZeroMetricValue(2), LevelZeroMetricValue(3),
@@ -1472,6 +1480,7 @@ namespace EyeGazeApiViability
                 TargetPerformance result = targetMeasurement.Measure(
                     center, TargetDiameter * 0.5, now);
                 gazeProfile.RecordTargetPerformance(result, 1);
+                dwellRecommendation.RecordCompletedHold();
                 trainingReport.RecordOverall(gazeProfile.AccuracyScore);
                 trainingReport.RecordAccuracy(result.Precision);
                 Point canvasOriginOnPage = TrainingCanvas.TransformToVisual(RootLayout)
@@ -1762,6 +1771,7 @@ namespace EyeGazeApiViability
             if (targetMeasurement.CancelIncompleteHold(now))
             {
                 gazeProfile.RecordIncompleteTargetDwell(1);
+                dwellRecommendation.RecordInterruptedHold();
                 if (gazeProfile.Acquisitions > 0)
                     trainingReport.RecordOverall(gazeProfile.AccuracyScore);
                 trainingReport.RecordAccuracy(0);
