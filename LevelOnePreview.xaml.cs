@@ -211,7 +211,8 @@ namespace EyeGazeApiViability
                 LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton };
             levelsButtons = new[] { LevelOneButton, LevelTwoButton,
                 LevelThreeButton, LevelFourButton, LevelFiveButton,
-                LevelSixButton, LevelZeroReplayButton, LevelsBackButton };
+                LevelSixButton, LevelZeroReplayButton, LevelsBackButton,
+                LevelsExitButton };
             lessonButtons = new[] { LessonBackButton };
             levelZeroContinueButtons = new[] { LevelZeroContinueButton };
             bonusButtons = new[] { BonusBackButton, BonusTrueButton, BonusFalseButton };
@@ -526,7 +527,7 @@ namespace EyeGazeApiViability
             lastActivatedGazePosition = rawPoint;
             buttonDwellWheel.Hide();
             // New screen buttons re-arm after intentional eye movement.
-            if (target == ExitButton)
+            if (target == ExitButton || target == LevelsExitButton)
                 OnExitRequested(null, null);
             else if (target == LevelsMenuButton)
                 OnOpenLevels(null, null);
@@ -1856,6 +1857,7 @@ namespace EyeGazeApiViability
             cursorFilter.Reset();
             buttonDwellWheel.Hide();
             ExitButton.IsEnabled = false;
+            LevelsExitButton.IsEnabled = false;
             SettingsExitButton.IsEnabled = false;
             Trace("EXIT requested; source active=" + live);
             if (live) BeginCleanup();
@@ -1867,6 +1869,7 @@ namespace EyeGazeApiViability
             if (!live || stopping) return;
             stopping = true;
             ExitButton.IsEnabled = false;
+            LevelsExitButton.IsEnabled = false;
             SettingsExitButton.IsEnabled = false;
             LiveStatusText.Text = "Closing EyeGazeTrainer…";
             cleanupStage = 0;
@@ -1973,6 +1976,7 @@ namespace EyeGazeApiViability
                 LiveStatusText.Text = "Unable to navigate; app remains open.";
                     exitRequested = false;
                     ExitButton.IsEnabled = true;
+                    LevelsExitButton.IsEnabled = true;
                 }
             }
             catch (Exception ex)
