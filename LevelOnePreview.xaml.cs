@@ -711,7 +711,7 @@ namespace EyeGazeApiViability
                 }
                 if ((now - lastGazeHeartbeatWritten).TotalMilliseconds < 700)
                     return;
-                File.WriteAllText(path, now.UtcTicks.ToString());
+                File.WriteAllText(path, now.UtcDateTime.Ticks.ToString());
                 lastGazeHeartbeatWritten = now;
             }
             catch (Exception ex)
