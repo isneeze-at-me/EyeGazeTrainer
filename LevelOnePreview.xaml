@@ -170,7 +170,7 @@
         <TextBlock Text="DIAGNOSTICS" FontSize="36" FontWeight="Bold"
                    Foreground="White" TextAlignment="Center"
                    VerticalAlignment="Center" IsHitTestVisible="False"/>
-        <Button Style="{StaticResource SecondaryGazeButton}" x:Name="DiagnosticsBackButton"
+        <Button Style="{StaticResource DangerGazeButton}" x:Name="DiagnosticsBackButton"
                 Content="BACK" Click="OnBackToMenu" MinHeight="86" MinWidth="155"
                 Padding="16,12" FontSize="22" FontWeight="Bold"
                 HorizontalAlignment="Left" VerticalAlignment="Center"/>
@@ -552,7 +552,7 @@
                 Click="OnPlaceholderLevel" MinHeight="90" FontSize="29" FontWeight="Bold"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 HorizontalContentAlignment="Center"/>
-        <Button Style="{StaticResource SecondaryGazeButton}" x:Name="LevelsBackButton"
+        <Button Style="{StaticResource DangerGazeButton}" x:Name="LevelsBackButton"
                 Grid.Row="3" Grid.Column="1" Content="BACK TO MENU"
                 Click="OnBackToMenu" MinHeight="90" FontSize="25" FontWeight="Bold"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
@@ -602,7 +602,7 @@
                      TextAlignment="Center" TextWrapping="Wrap"/>
         </StackPanel>
       </Grid>
-      <Button Style="{StaticResource SecondaryGazeButton}" x:Name="LessonBackButton" Content="BACK"
+      <Button Style="{StaticResource DangerGazeButton}" x:Name="LessonBackButton" Content="BACK"
               Click="OnBackToLevels" MinHeight="86" MinWidth="155"
               Padding="16,12" FontSize="22" FontWeight="Bold"
               HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -644,7 +644,7 @@
                    TextAlignment="Center" HorizontalAlignment="Center"
                    VerticalAlignment="Center"/>
       </Grid>
-      <Button Style="{StaticResource SecondaryGazeButton}" x:Name="BonusBackButton"
+      <Button Style="{StaticResource DangerGazeButton}" x:Name="BonusBackButton"
               Content="BACK" Click="OnBackToLevels" MinHeight="86" MinWidth="155"
               Padding="16,12" FontSize="22" FontWeight="Bold"
               HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -732,7 +732,7 @@
           <Button Style="{StaticResource SecondaryGazeButton}" x:Name="CancelDisplayButton" Grid.Column="1" Content="CANCEL"
                   Click="OnCancelDisplay" MinHeight="76" FontSize="21" FontWeight="Bold"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button Style="{StaticResource SecondaryGazeButton}" x:Name="SettingsExitButton" Grid.Column="2" Content="BACK"
+          <Button Style="{StaticResource DangerGazeButton}" x:Name="SettingsExitButton" Grid.Column="2" Content="BACK"
                   Click="OnCancelDisplay" MinHeight="76" FontSize="21" FontWeight="Bold"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
         </Grid>
