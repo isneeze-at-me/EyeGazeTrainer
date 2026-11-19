@@ -164,7 +164,7 @@ namespace EyeGazeApiViability
             // Start narration immediately. A first-time eye-gaze user may
             // have no valid gaze points yet, but must still receive guidance.
             levelZeroGuidanceStarted = true;
-            string welcome = "Welcome to EyeGazeTrainer! The two eyes on the screen are your cursor. For the first exercise, move your eyes freely around the screen for fifteen seconds of actual movement. Watch the cursor follow you. You can stop and rest whenever you need to; resting does not count toward the fifteen seconds.";
+            string welcome = "Welcome to EyeGazeTrainer! The two eyes on the screen are your cursor. For the first exercise, move your eyes freely around the screen for fifteen seconds of actual movement. Watch the cursor follow you. You can stop and rest whenever you need to.";
             movementInstructionSpeech = welcome;
             SpeakLevelZero(welcome, true);
         }
@@ -462,7 +462,7 @@ namespace EyeGazeApiViability
             if (levelZeroStage == LevelZeroStage.Pursue)
                 return "Try following the glowing circle. Keep your cursor inside it.";
             if (levelZeroStage == LevelZeroStage.Continue)
-                return "Look at the house button and hold your gaze until the ring fills.";
+                return "Look at the Home button and hold your gaze until the ring fills.";
             switch (movementStep)
             {
                 case MovementStep.Vertical:
@@ -1061,8 +1061,8 @@ namespace EyeGazeApiViability
             levelZeroCoachedButton = false;
             levelZeroFeedbackQueue.Clear();
             string explanation = skipped
-                ? "Good effort, let's move on. One final step. A large house button will appear. Look toward it and keep looking until the circular ring fills to open your training levels."
-                : "Fantastic! You've learned how to follow a moving target. One final step. A large house button will appear. It takes you to the Levels screen, where you can start Level One. Look at the button and keep looking until the circular ring fills. Give it a try!";
+                ? "Good effort, let's move on. One final step. A large Home button will appear. Look toward it and keep looking until the circular ring fills to open your training levels."
+                : "Fantastic! You've learned how to follow a moving target. One final step. A large Home button will appear. It takes you to the Levels screen, where you can start Level One. Look at the button and keep looking until the circular ring fills. Give it a try!";
             levelZeroStageInstructionSpeech = explanation;
             SpeakLevelZero(explanation, true);
         }
