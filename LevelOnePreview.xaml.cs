@@ -2181,7 +2181,8 @@ namespace EyeGazeApiViability
             Trace("BEGIN navigation away from gaze page");
             try
             {
-                bool navigated = Frame.Navigate(typeof(MainPage), "EXIT_AFTER_GAZE_CLEANUP");
+                bool navigated = Frame.Navigate(typeof(MainPage), mouseOnlyFallback
+                    ? "EXIT_NO_GAZE_DIAGNOSTIC" : "EXIT_AFTER_GAZE_CLEANUP");
                 if (!navigated)
                 {
                     Trace("ERROR navigation returned false; exit cancelled");
