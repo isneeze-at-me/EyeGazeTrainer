@@ -155,6 +155,9 @@ namespace EyeGazeApiViability
         private bool completed;
         private bool exitRequested;
         private bool autoStartAttempted;
+        private DispatcherTimer startupSplashTimer;
+        private bool startupSplashCompleted;
+        private const int StartupSplashDurationSeconds = 3;
         private Button gazeControlTarget;
         private SharedButtonDwellWheel buttonDwellWheel;
         private SharedButtonDwellWheel targetDwellWheel;
@@ -222,8 +225,10 @@ namespace EyeGazeApiViability
             cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
             UpdateAccuracyDisplay();
             UpdateLevelBadges();
-            ShowScreen(ShouldStartLevelZero() ? AppScreen.LevelZero : AppScreen.Menu);
-            if (currentScreen == AppScreen.LevelZero) StartLevelZero();
+            // Do not show Level 0 or open the tracker before the full-screen
+            // branding has been displayed. The splash overlays this page.
+            ShowScreen(AppScreen.Menu);
+            StartupSplashPanel.Visibility = Visibility.Visible;
             practiceTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             practiceTimer.Tick += OnPracticeTimerTick;
             lastPracticeTick = DateTimeOffset.UtcNow;
@@ -233,9 +238,37 @@ namespace EyeGazeApiViability
 
         private void OnPageLoaded(object sender, RoutedEventArgs e)
         {
-            if (autoStartAttempted) return;
-            autoStartAttempted = true;
-            OnEnableLive(null, null);
+            if (startupSplashCompleted || startupSplashTimer != null) return;
+            startupSplashTimer = new DispatcherTimer
+                { Interval = TimeSpan.FromSeconds(StartupSplashDurationSeconds) };
+            startupSplashTimer.Tick += OnStartupSplashElapsed;
+            startupSplashTimer.Start();
+        }
+
+        private void OnStartupSplashElapsed(object sender, object e)
+        {
+            if (startupSplashTimer != null)
+            {
+                startupSplashTimer.Stop();
+                startupSplashTimer.Tick -= OnStartupSplashElapsed;
+                startupSplashTimer = null;
+            }
+            if (startupSplashCompleted || stopping || exitRequested) return;
+            startupSplashCompleted = true;
+            StartupSplashPanel.Visibility = Visibility.Collapsed;
+
+            // One gaze owner throughout the whole session, with no input
+            // skill required to dismiss the splash. First-time learners
+            // begin at Level 0; returning learners see the main menu.
+            if (ShouldStartLevelZero())
+                StartLevelZero();
+            else
+                ShowScreen(AppScreen.Menu);
+            if (!autoStartAttempted)
+            {
+                autoStartAttempted = true;
+                OnEnableLive(null, null);
+            }
         }
 
         private void OnEnableLive(object sender, RoutedEventArgs e)
