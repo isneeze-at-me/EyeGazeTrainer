@@ -1206,9 +1206,13 @@ namespace EyeGazeApiViability
 
         private void RefreshLevelZeroSessionHistory()
         {
-            string[] recent = LastLevelZeroSessions(3);
+            // Read the bounded session file once per refresh rather than
+            // opening and parsing it again to obtain the total count.
+            string[] history = LevelZeroHistoryLines();
+            string[] recent = history.Skip(Math.Max(0, history.Length - 3))
+                .Reverse().Select(x => x.Replace("\t", " | ")).ToArray();
             LevelZeroSessionCountText.Text = "LEVEL 0: " +
-                LevelZeroHistoryLines().Length + " recorded sessions";
+                history.Length + " recorded sessions";
             LevelZeroSessionHistoryText.Text = recent.Length == 0
                 ? "Complete Level 0 to record dated summaries." :
                 string.Join("\n", recent.Select(x => x.Split('|')[0].Trim()));
