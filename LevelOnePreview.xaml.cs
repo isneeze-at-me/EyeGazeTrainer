@@ -31,6 +31,8 @@ namespace EyeGazeApiViability
         private DisplayInformation displayInformation;
         private CoreCursor previousPointerCursor;
         private bool pointerCursorHidden;
+        private Point lastDrawnGazeCursor = new Point(double.NaN, double.NaN);
+        private bool lastDrawnGazeCursorWasLevelZero;
         private double TargetDiameter { get { return targetDiameter; } }
         private readonly MasterCursorSmoothingFilter cursorFilter = new MasterCursorSmoothingFilter();
         private readonly AdaptiveGazeProfile gazeProfile = new AdaptiveGazeProfile();
@@ -755,6 +757,7 @@ namespace EyeGazeApiViability
         private void OnGazeLayoutSizeChanged(object sender, SizeChangedEventArgs e)
         {
             gazeButtonBounds.Clear();
+            lastDrawnGazeCursor = new Point(double.NaN, double.NaN);
         }
 
         private Button FindGazeButton(Point stabilizedPoint, Point rawPoint)
@@ -800,6 +803,7 @@ namespace EyeGazeApiViability
         private void ShowScreen(AppScreen screen)
         {
             gazeButtonBounds.Clear();
+            lastDrawnGazeCursor = new Point(double.NaN, double.NaN);
             if (screen != AppScreen.Diagnostics)
                 HideTherapistExportConfirmation();
             if (currentScreen == AppScreen.LevelZero && screen != AppScreen.LevelZero)
@@ -1545,22 +1549,39 @@ namespace EyeGazeApiViability
                 return;
             }
 
-            if (currentScreen == AppScreen.LevelZero)
+            bool levelZero = currentScreen == AppScreen.LevelZero;
+            if (levelZero)
             {
                 PreviewDot.Visibility = Visibility.Collapsed;
                 LevelZeroEyeCursor.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                LevelZeroEyeCursor.Visibility = Visibility.Collapsed;
+                PreviewDot.Visibility = Visibility.Visible;
+            }
+
+            // Visual cursor placement may skip tiny changes, but every raw
+            // gaze sample still drives hit testing and diagnostic measurements.
+            if (lastDrawnGazeCursorWasLevelZero == levelZero &&
+                Math.Abs(lastDrawnGazeCursor.X - x) < 0.35 &&
+                Math.Abs(lastDrawnGazeCursor.Y - y) < 0.35) return;
+            lastDrawnGazeCursor = new Point(x, y);
+            lastDrawnGazeCursorWasLevelZero = levelZero;
+            if (levelZero)
+            {
                 Canvas.SetLeft(LevelZeroEyeCursor, Clamp(x - 56, 0,
                     CursorOverlay.ActualWidth - 112));
                 Canvas.SetTop(LevelZeroEyeCursor, Clamp(y - 32.5, 0,
                     CursorOverlay.ActualHeight - 65));
-                return;
             }
-            LevelZeroEyeCursor.Visibility = Visibility.Collapsed;
-            PreviewDot.Visibility = Visibility.Visible;
-            Canvas.SetLeft(PreviewDot, Clamp(x - DotDiameter / 2, 0,
-                CursorOverlay.ActualWidth - DotDiameter));
-            Canvas.SetTop(PreviewDot, Clamp(y - DotDiameter / 2, 0,
-                CursorOverlay.ActualHeight - DotDiameter));
+            else
+            {
+                Canvas.SetLeft(PreviewDot, Clamp(x - DotDiameter / 2, 0,
+                    CursorOverlay.ActualWidth - DotDiameter));
+                Canvas.SetTop(PreviewDot, Clamp(y - DotDiameter / 2, 0,
+                    CursorOverlay.ActualHeight - DotDiameter));
+            }
         }
 
         private void ProcessPosition(Point p, Point rawPoint, bool mouseClick = false)
