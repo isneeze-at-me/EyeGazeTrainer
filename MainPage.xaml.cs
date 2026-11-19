@@ -32,6 +32,10 @@ namespace EyeGazeApiViability
 
             if (afterGazeCleanup || hardwareFreeExitTest)
             {
+                // Gaze subscription and watcher are already released before
+                // this navigation. Retire this app's overlay companion now
+                // so it restores its window marker before another launch.
+                App.EndOverlaySession();
                 // Do not keep the previous gaze-enabled page in the back stack.
                 Frame.BackStack.Clear();
                 Frame.ForwardStack.Clear();
