@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Devices.Input.Preview;
 using Windows.Foundation;
@@ -36,6 +37,7 @@ namespace EyeGazeApiViability
         private readonly Random placementRandom = new Random();
         private readonly TrainingProgress trainingProgress = new TrainingProgress();
         private readonly TrainingReport trainingReport = new TrainingReport();
+        private readonly DwellRecommendation dwellRecommendation = new DwellRecommendation();
         private DispatcherTimer practiceTimer;
         private DateTimeOffset lastPracticeTick;
         private readonly SpatialAccuracyMap spatialAccuracy = new SpatialAccuracyMap();
@@ -57,6 +59,7 @@ namespace EyeGazeApiViability
             { "Level 0", "Targets", "Dwell", "Tracking", "Endurance", "Function" };
         private Button[] skillCategoryButtons;
         private int selectedSkillCategory;
+        private bool levelZeroShowingExtra;
         private readonly TextBlock[] skillMetricNames = new TextBlock[6];
         private readonly TextBlock[] skillMetricValues = new TextBlock[6];
         private readonly TextBlock[] skillMetricStatuses = new TextBlock[6];
@@ -157,6 +160,10 @@ namespace EyeGazeApiViability
         private bool completed;
         private bool exitRequested;
         private bool autoStartAttempted;
+        private volatile bool trackerSeenDuringEnumeration;
+        private bool trackerEnumerationFinished;
+        private bool mouseOnlyFallback;
+        private DispatcherTimer noTrackerNoticeTimer;
         private DispatcherTimer startupSplashTimer;
         private bool startupSplashCompleted;
         private const int StartupSplashDurationSeconds = 3;
@@ -205,7 +212,7 @@ namespace EyeGazeApiViability
                 DiagnosticsOverviewTabButton, DiagnosticsSkillsTabButton,
                 DiagnosticsMapsTabButton, DiagnosticsSessionsTabButton,
                 SkillsIntroButton, SkillsTargetsButton, SkillsDwellButton, SkillsTrackingButton,
-                SkillsEnduranceButton, SkillsFunctionButton };
+                SkillsEnduranceButton, SkillsFunctionButton, LevelZeroMoreButton };
             BuildDiagnosticGrids();
             BuildSkillsGrid();
             SelectSkillsCategory(0);
@@ -240,7 +247,7 @@ namespace EyeGazeApiViability
 
         private void OnPageLoaded(object sender, RoutedEventArgs e)
         {
-            HideWindowsPointerCursor();
+            // Keep Windows mouse pointer available until gaze input starts.
             // Preserve the pre-splash initialization sequence: connect the
             // gaze watcher as soon as the page is loaded. The branding
             // overlay stays visible for its full three seconds independently.
@@ -301,7 +308,20 @@ namespace EyeGazeApiViability
             }
             if (startupSplashCompleted || stopping || exitRequested) return;
             startupSplashCompleted = true;
+            CompleteStartupAfterTrackerScan();
+        }
+
+        private void CompleteStartupAfterTrackerScan()
+        {
+            if (!startupSplashCompleted || !trackerEnumerationFinished ||
+                exitRequested || stopping) return;
             StartupSplashPanel.Visibility = Visibility.Collapsed;
+            if (!trackerSeenDuringEnumeration)
+            {
+                EnterMouseOnlyFallback();
+                return;
+            }
+            if (mouseOnlyFallback) return;
 
             // One gaze owner throughout the whole session, with no input
             // skill required to dismiss the splash. First-time learners
@@ -326,9 +346,9 @@ namespace EyeGazeApiViability
             catch (Exception ex)
             {
                 LiveStatusText.Visibility = Visibility.Visible;
-                LiveStatusText.Text = "Cannot begin: trace unavailable (" +
+                LiveStatusText.Text = "Trace unavailable (" +
                                       ex.GetType().Name + ")";
-                return;
+                // File logging is optional; never block review or mouse access.
             }
 
             live = true;
@@ -340,6 +360,7 @@ namespace EyeGazeApiViability
                 watcher.Added += OnDeviceAdded;
                 watcher.Updated += OnDeviceUpdated;
                 watcher.Removed += OnDeviceRemoved;
+                watcher.EnumerationCompleted += OnTrackerEnumerationCompleted;
                 watcher.Start();
                 watcherStarted = true;
                 Trace("END watcher start");
@@ -348,14 +369,88 @@ namespace EyeGazeApiViability
             {
                 Trace("ERROR watcher start: " + ex);
                 LiveStatusText.Visibility = Visibility.Visible;
-                LiveStatusText.Text = "Tracker setup failed: " + ex.GetType().Name +
-                                      ". Use EXIT for supervised cleanup.";
+                LiveStatusText.Text = "Tracker setup failed: " + ex.GetType().Name;
+                trackerEnumerationFinished = true;
+                CompleteStartupAfterTrackerScan();
             }
+        }
+
+        private void OnTrackerEnumerationCompleted(GazeDeviceWatcherPreview sender,
+                                                    object args)
+        {
+            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                if (exitRequested || stopping || mouseOnlyFallback) return;
+                trackerEnumerationFinished = true;
+                CompleteStartupAfterTrackerScan();
+            });
+        }
+
+        private void EnterMouseOnlyFallback()
+        {
+            if (mouseOnlyFallback || exitRequested || stopping) return;
+            mouseOnlyFallback = true;
+            live = false;
+            gazeSubscribed = false;
+            gazeSource = null;
+            // Stop only the app's watcher. Never alter TD Control.
+            if (watcher != null)
+            {
+                try
+                {
+                    watcher.Added -= OnDeviceAdded;
+                    watcher.Updated -= OnDeviceUpdated;
+                    watcher.Removed -= OnDeviceRemoved;
+                    watcher.EnumerationCompleted -= OnTrackerEnumerationCompleted;
+                    if (watcherStarted) watcher.Stop();
+                }
+                catch (Exception) { /* Keep mouse control available. */ }
+                watcherStarted = false;
+                watcher = null;
+            }
+            RestoreWindowsPointerCursor();
+            PreviewDot.Visibility = Visibility.Collapsed;
+            LevelZeroEyeCursor.Visibility = Visibility.Collapsed;
+            LevelZeroReplayButton.IsEnabled = false;
+            LevelZeroReplayButton.Visibility = Visibility.Collapsed;
+            ShowScreen(AppScreen.Menu);
+            LiveStatusText.Visibility = Visibility.Collapsed;
+            NoTrackerNoticePanel.Visibility = Visibility.Visible;
+            StopNoTrackerNoticeTimer();
+            noTrackerNoticeTimer = new DispatcherTimer
+                { Interval = TimeSpan.FromSeconds(10) };
+            noTrackerNoticeTimer.Tick += OnNoTrackerNoticeTimeout;
+            noTrackerNoticeTimer.Start();
+        }
+
+        private void OnNoTrackerNoticeTimeout(object sender, object e)
+        {
+            DismissNoTrackerNotice();
+        }
+
+        private void OnDismissNoTrackerNotice(object sender, RoutedEventArgs e)
+        {
+            DismissNoTrackerNotice();
+        }
+
+        private void DismissNoTrackerNotice()
+        {
+            StopNoTrackerNoticeTimer();
+            NoTrackerNoticePanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void StopNoTrackerNoticeTimer()
+        {
+            if (noTrackerNoticeTimer == null) return;
+            noTrackerNoticeTimer.Stop();
+            noTrackerNoticeTimer.Tick -= OnNoTrackerNoticeTimeout;
+            noTrackerNoticeTimer = null;
         }
 
         private void OnDeviceAdded(GazeDeviceWatcherPreview sender,
                                    GazeDeviceWatcherAddedPreviewEventArgs args)
         {
+            if (args.Device != null) trackerSeenDuringEnumeration = true;
             _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
                                     () => UseReadyDevice(args.Device));
         }
@@ -363,6 +458,7 @@ namespace EyeGazeApiViability
         private void OnDeviceUpdated(GazeDeviceWatcherPreview sender,
                                      GazeDeviceWatcherUpdatedPreviewEventArgs args)
         {
+            if (args.Device != null) trackerSeenDuringEnumeration = true;
             _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
                                     () => UseReadyDevice(args.Device));
         }
@@ -410,8 +506,8 @@ namespace EyeGazeApiViability
 
         private void UseReadyDevice(GazeDevicePreview device)
         {
-            if (!live || stopping || exitRequested || gazeSubscribed ||
-                device == null) return;
+            if (!live || stopping || exitRequested || mouseOnlyFallback ||
+                gazeSubscribed || device == null) return;
             if (!device.CanTrackEyes ||
                 device.ConfigurationState != GazeDeviceConfigurationStatePreview.Ready)
             {
@@ -433,6 +529,7 @@ namespace EyeGazeApiViability
                 newSource.GazeMoved += OnGazeMoved;
                 gazeSource = newSource;
                 gazeSubscribed = true;
+                HideWindowsPointerCursor();
                 Trace("END gaze source subscription");
                 LiveStatusText.Visibility = Visibility.Collapsed;
                 LiveStatusText.Text = "Eye tracking ready. Look at LEVELS to start.";
@@ -510,6 +607,7 @@ namespace EyeGazeApiViability
             if (lastGazeAt != default(DateTimeOffset) &&
                 now - lastGazeAt > TimeSpan.FromMilliseconds(500))
             {
+                ObserveLevelZeroDwellTarget(false);
                 bonusButtonMeasurement.CancelHold();
                 gazeControlTarget = null;
                 gazeControlTriggered = false;
@@ -519,6 +617,7 @@ namespace EyeGazeApiViability
             Button target = FindGazeButton(stabilizedPoint, rawPoint);
             if (target == null)
             {
+                ObserveLevelZeroDwellTarget(false);
                 bonusButtonMeasurement.CancelHold();
                 gazeControlTarget = null;
                 gazeControlTriggered = false;
@@ -545,6 +644,7 @@ namespace EyeGazeApiViability
             }
             if (gazeControlTarget != target)
             {
+                ObserveLevelZeroDwellTarget(false);
                 if (target == LevelZeroContinueButton &&
                     currentScreen == AppScreen.LevelZero)
                     levelZeroDwellAttempts++;
@@ -554,6 +654,8 @@ namespace EyeGazeApiViability
                 if (IsBonusAnswer(target)) bonusButtonMeasurement.BeginTarget(now);
                 gazeControlTriggered = false;
             }
+            if (target == LevelZeroContinueButton && !gazeControlTriggered)
+                ObserveLevelZeroDwellTarget(true);
             if (gazeControlTriggered) return;
             if (IsBonusAnswer(target)) bonusButtonMeasurement.Observe(rawPoint, now, true);
             double progress = (now - gazeControlEnteredAt).TotalMilliseconds /
@@ -561,6 +663,8 @@ namespace EyeGazeApiViability
             buttonDwellWheel.Present(target, progress);
             if (progress < 1.0) return;
             gazeControlTriggered = true;
+            if (target == LevelZeroContinueButton)
+                FinishLevelZeroDiagnosticDwell();
             lastActivatedGazePosition = rawPoint;
             buttonDwellWheel.Hide();
             // New screen buttons re-arm after intentional eye movement.
@@ -581,6 +685,8 @@ namespace EyeGazeApiViability
                 SelectDiagnosticsTab(target);
             else if (target == TherapistExportButton)
                 OnExportTherapistReport(null, null);
+            else if (target == LevelZeroMoreButton)
+                OnLevelZeroMore(null, null);
             else if (target == LevelZeroContinueButton)
                 OnLevelZeroContinue(null, null);
             else if (target == SkillsIntroButton || target == SkillsTargetsButton ||
@@ -772,6 +878,13 @@ namespace EyeGazeApiViability
             ReportLevelsText.Text = finished + " / 6";
             ReportRunsText.Text = trainingReport.CompletedRuns.ToString();
             ReportHoursText.Text = trainingReport.PracticeHours.ToString("0.00") + " h";
+            RecommendedDwellText.Text = dwellRecommendation.Milliseconds + " ms";
+            RecommendedDwellEvidenceText.Text = dwellRecommendation.HasEvidence
+                ? dwellRecommendation.SuccessfulAttempts + " completed / " +
+                  dwellRecommendation.InterruptedAttempts + " interrupted holds"
+                : "Starting estimate; " +
+                  (dwellRecommendation.SuccessfulAttempts + dwellRecommendation.InterruptedAttempts) +
+                  " of 12 initial holds recorded";
             // Overall is the existing persistent adaptive accuracy score.
             ReportOverallText.Text = gazeProfile.Acquisitions > 0
                 ? gazeProfile.AccuracyScore.ToString("0") + "%" : "NA";
@@ -934,7 +1047,8 @@ namespace EyeGazeApiViability
                     Foreground = WhiteTextBrush,
                     FontSize = 30,
                     FontWeight = Windows.UI.Text.FontWeights.Bold,
-                    TextAlignment = TextAlignment.Center
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap
                 };
                 var detail = new TextBlock
                 {
@@ -976,17 +1090,37 @@ namespace EyeGazeApiViability
             SelectSkillsCategory(Array.IndexOf(skillCategoryButtons, sender as Button));
         }
 
+        private void OnLevelZeroMore(object sender, RoutedEventArgs e)
+        {
+            if (currentScreen != AppScreen.Diagnostics ||
+                selectedDiagnosticsTab != DiagnosticsTab.Skills ||
+                selectedSkillCategory != 0 || stopping || exitRequested) return;
+            levelZeroShowingExtra = !levelZeroShowingExtra;
+            SelectSkillsCategory(0);
+        }
+
         private void SelectSkillsCategory(int category)
         {
             if (category < 0 || category >= SkillMetrics.Length) return;
+            if (selectedSkillCategory != category) levelZeroShowingExtra = false;
             selectedSkillCategory = category;
+            bool extra = category == 0 && levelZeroShowingExtra;
+            LevelZeroMoreButton.Visibility = category == 0 ?
+                Visibility.Visible : Visibility.Collapsed;
+            LevelZeroMoreButton.Content = extra ? "BASIC" : "MORE";
             for (int i = 0; i < 6; i++)
             {
-                string[] parts = SkillMetrics[category][i].Split('|');
+                string[] parts = extra ? new[] {
+                    LevelZeroExtraLabels[i], LevelZeroExtraDetails[i] } :
+                    SkillMetrics[category][i].Split('|');
                 skillMetricNames[i].Text = parts[0];
                 skillMetricDetails[i].Text = parts[1];
-                string observed = category == 0 ? LevelZeroMetricValue(i) : "NA";
+                string observed = category == 0 ?
+                    (extra ? LevelZeroExtraValue(i) : LevelZeroMetricValue(i)) : "NA";
                 skillMetricValues[i].Text = observed;
+                // Extra Level 0 values include units and qualifiers; fit
+                // them without clipping inside the existing six cards.
+                skillMetricValues[i].FontSize = extra ? 20 : 30;
                 skillMetricStatuses[i].Text = observed == "NA"
                     ? "NOT YET RECORDED" : "RECORDED IN LEVEL 0";
             }
@@ -1026,6 +1160,8 @@ namespace EyeGazeApiViability
             DiagnosticsSessionsPanel.Visibility =
                 selectedDiagnosticsTab == DiagnosticsTab.Sessions
                     ? Visibility.Visible : Visibility.Collapsed;
+            if (selectedDiagnosticsTab == DiagnosticsTab.Sessions)
+                RefreshLevelZeroSessionHistory();
 
             DiagnosticsOverviewTabButton.Style = (Style)Resources[
                 selectedDiagnosticsTab == DiagnosticsTab.Overview
@@ -1039,6 +1175,20 @@ namespace EyeGazeApiViability
             DiagnosticsSessionsTabButton.Style = (Style)Resources[
                 selectedDiagnosticsTab == DiagnosticsTab.Sessions
                     ? "PrimaryGazeButton" : "SecondaryGazeButton"];
+        }
+
+        private void RefreshLevelZeroSessionHistory()
+        {
+            string[] recent = LastLevelZeroSessions(3);
+            LevelZeroSessionCountText.Text = "LEVEL 0: " +
+                LevelZeroHistoryLines().Length + " recorded sessions";
+            LevelZeroSessionHistoryText.Text = recent.Length == 0
+                ? "Complete Level 0 to record dated summaries." :
+                string.Join("\n", recent.Select(x => x.Split('|')[0].Trim()));
+            LevelZeroSessionComparisonText.Text = recent.Length < 2
+                ? "Complete Level 0 again to compare sessions." :
+                "Latest and previous session:\n" +
+                recent[0] + "\n" + recent[1];
         }
 
         private void ShowTherapistExportConfirmation(string fileName)
@@ -1089,11 +1239,13 @@ namespace EyeGazeApiViability
                     now, trainingProgress, trainingReport, gazeProfile,
                     spatialAccuracy, spatialJitter, cursorFilter.SmoothingLevel,
                     gazeProfile.HitBoxScale, TrainingTargetMeasurement.TargetHoldMilliseconds,
-                    (int)ControlDwell.TotalMilliseconds,
+                    (int)ControlDwell.TotalMilliseconds, dwellRecommendation,
                     SkillMetrics, TherapistSkillCategoryNames,
                     new[] { LevelZeroMetricValue(0), LevelZeroMetricValue(1),
                             LevelZeroMetricValue(2), LevelZeroMetricValue(3),
-                            LevelZeroMetricValue(4), LevelZeroMetricValue(5) });
+                            LevelZeroMetricValue(4), LevelZeroMetricValue(5) },
+                    Enumerable.Range(0, 6).Select(LevelZeroExtraValue).ToArray(),
+                    LastLevelZeroSessions(100));
 
                 string name = "EyeGazeTrainer_TherapistReport_" +
                     now.ToString("yyyyMMdd_HHmmss") + ".txt";
@@ -1328,6 +1480,16 @@ namespace EyeGazeApiViability
             ShowScreen(AppScreen.Menu);
         }
 
+        private void OnTrainingCanvasPointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            if (!mouseOnlyFallback || stopping || lessonIntroActive ||
+                currentScreen != AppScreen.Lesson) return;
+            var point = e.GetCurrentPoint(TrainingCanvas);
+            if (!point.Properties.IsLeftButtonPressed) return;
+            ProcessPosition(point.Position, point.Position, true);
+            e.Handled = true;
+        }
+
         private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
         {
             // Mouse preview remains available only when hardware is not engaged.
@@ -1335,9 +1497,12 @@ namespace EyeGazeApiViability
             Point canvasPoint = e.GetCurrentPoint(TrainingCanvas).Position;
             Point canvasOrigin = TrainingCanvas.TransformToVisual(this)
                                   .TransformPoint(new Point(0, 0));
-            UpdateCursor(new Point(canvasPoint.X + canvasOrigin.X,
-                                   canvasPoint.Y + canvasOrigin.Y));
-            ProcessPosition(canvasPoint, canvasPoint);
+            if (!mouseOnlyFallback)
+            {
+                UpdateCursor(new Point(canvasPoint.X + canvasOrigin.X,
+                                       canvasPoint.Y + canvasOrigin.Y));
+                ProcessPosition(canvasPoint, canvasPoint);
+            }
         }
 
         // This overlay belongs to the page, not the training canvas. It cannot
@@ -1375,7 +1540,7 @@ namespace EyeGazeApiViability
                 CursorOverlay.ActualHeight - DotDiameter));
         }
 
-        private void ProcessPosition(Point p, Point rawPoint)
+        private void ProcessPosition(Point p, Point rawPoint, bool mouseClick = false)
         {
             if (completed || exitRequested || stopping ||
                 currentScreen != AppScreen.Lesson || lessonIntroActive) return;
@@ -1412,8 +1577,9 @@ namespace EyeGazeApiViability
             }
 
             // A full 1000ms uninterrupted hold is required for acquisition.
-            bool acquired = targetMeasurement.Observe(rawPoint, now, true);
-            UpdateTargetDwellVisual(inRing);
+            bool acquired = mouseOnlyFallback
+                ? mouseClick : targetMeasurement.Observe(rawPoint, now, true);
+            if (!mouseOnlyFallback) UpdateTargetDwellVisual(inRing);
             if (!acquired) return;
             TargetRing.StrokeThickness = 8;
             UpdateTargetDwellVisual(false);
@@ -1422,6 +1588,7 @@ namespace EyeGazeApiViability
                 TargetPerformance result = targetMeasurement.Measure(
                     center, TargetDiameter * 0.5, now);
                 gazeProfile.RecordTargetPerformance(result, 1);
+                dwellRecommendation.RecordCompletedHold();
                 trainingReport.RecordOverall(gazeProfile.AccuracyScore);
                 trainingReport.RecordAccuracy(result.Precision);
                 Point canvasOriginOnPage = TrainingCanvas.TransformToVisual(RootLayout)
@@ -1441,8 +1608,13 @@ namespace EyeGazeApiViability
             if (targetIndex >= TargetsPerLevel)
             {
                 completed = true;
-                trainingProgress.MarkCompleted(1);
-                trainingReport.RecordCompletedRun();
+                // Reviewers may finish the mouse demo, but mouse clicks must
+                // not certify eye-gaze completion or inflate training history.
+                if (live)
+                {
+                    trainingProgress.MarkCompleted(1);
+                    trainingReport.RecordCompletedRun();
+                }
                 Trace("Level 1 completed: ten targets; source=" +
                       (live ? "live gaze" : "mouse"));
                 UpdateLevelBadges();
@@ -1712,6 +1884,7 @@ namespace EyeGazeApiViability
             if (targetMeasurement.CancelIncompleteHold(now))
             {
                 gazeProfile.RecordIncompleteTargetDwell(1);
+                dwellRecommendation.RecordInterruptedHold();
                 if (gazeProfile.Acquisitions > 0)
                     trainingReport.RecordOverall(gazeProfile.AccuracyScore);
                 trainingReport.RecordAccuracy(0);
@@ -1878,6 +2051,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            DismissNoTrackerNotice();
             StopLevelZero();
             HideTherapistExportConfirmation();
             if (practiceTimer != null)
@@ -2007,7 +2181,8 @@ namespace EyeGazeApiViability
             Trace("BEGIN navigation away from gaze page");
             try
             {
-                bool navigated = Frame.Navigate(typeof(MainPage), "EXIT_AFTER_GAZE_CLEANUP");
+                bool navigated = Frame.Navigate(typeof(MainPage), mouseOnlyFallback
+                    ? "EXIT_NO_GAZE_DIAGNOSTIC" : "EXIT_AFTER_GAZE_CLEANUP");
                 if (!navigated)
                 {
                     Trace("ERROR navigation returned false; exit cancelled");
@@ -2046,6 +2221,7 @@ namespace EyeGazeApiViability
             // Navigation follows staged gaze release; make the Windows arrow
             // available again on the gaze-free closing page and desktop.
             RestoreWindowsPointerCursor();
+            StopNoTrackerNoticeTimer();
             StopLevelZero();
             HideTherapistExportConfirmation();
             if (practiceTimer != null)

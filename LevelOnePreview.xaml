@@ -170,7 +170,7 @@
         <TextBlock Text="DIAGNOSTICS" FontSize="36" FontWeight="Bold"
                    Foreground="White" TextAlignment="Center"
                    VerticalAlignment="Center" IsHitTestVisible="False"/>
-        <Button Style="{StaticResource SecondaryGazeButton}" x:Name="DiagnosticsBackButton"
+        <Button Style="{StaticResource DangerGazeButton}" x:Name="DiagnosticsBackButton"
                 Content="BACK" Click="OnBackToMenu" MinHeight="86" MinWidth="155"
                 Padding="16,12" FontSize="22" FontWeight="Bold"
                 HorizontalAlignment="Left" VerticalAlignment="Center"/>
@@ -249,7 +249,11 @@
           <StackPanel Spacing="18" VerticalAlignment="Center">
             <TextBlock Text="YOUR PROGRESS" Foreground="White" FontSize="26"
                        FontWeight="Bold" TextAlignment="Center"/>
-            <TextBlock Text="▲ Improving    ▼ Declining    — Stable / awaiting history"
+            <TextBlock Text="SUGGESTED DWELL TIME" Foreground="#9CE4F8" FontSize="21" FontWeight="Bold" TextAlignment="Center"/>
+             <TextBlock x:Name="RecommendedDwellText" Text="1500 ms" Foreground="White" FontSize="32" FontWeight="Bold" TextAlignment="Center"/>
+             <TextBlock x:Name="RecommendedDwellEvidenceText" Text="Starting estimate; awaiting practice" Foreground="#D4E6F8" FontSize="16" TextWrapping="Wrap" TextAlignment="Center"/>
+             <TextBlock Text="Provisional recommendation; does not change active dwell timers." Foreground="#D4E6F8" FontSize="15" TextWrapping="Wrap" TextAlignment="Center"/>
+             <TextBlock Text="▲ Improving    ▼ Declining    — Stable / awaiting history"
                        Foreground="#D4E6F8" FontSize="19" TextWrapping="Wrap"
                        TextAlignment="Center"/>
             <TextBlock Text="Performance trends compare recent practice results. Changes in tracking, positioning, fatigue, or task difficulty can affect the scores."
@@ -271,9 +275,16 @@
           <RowDefinition Height="84"/>
           <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBlock Text="SKILL MEASUREMENTS" Grid.Row="0" FontSize="25"
-                   FontWeight="Bold" TextAlignment="Center" Foreground="White"
-                   Margin="0,0,0,2"/>
+        <Grid Grid.Row="0" Margin="0,0,0,2">
+          <TextBlock Text="SKILL MEASUREMENTS" FontSize="25"
+                     FontWeight="Bold" TextAlignment="Center" Foreground="White"
+                     VerticalAlignment="Center"/>
+          <Button x:Name="LevelZeroMoreButton" Content="MORE"
+                  Style="{StaticResource SecondaryGazeButton}"
+                  Click="OnLevelZeroMore" HorizontalAlignment="Right"
+                  VerticalAlignment="Center" MinWidth="160" MinHeight="64"
+                  FontSize="22" FontWeight="Bold"/>
+        </Grid>
         <Grid Grid.Row="1" ColumnSpacing="12">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
@@ -405,10 +416,11 @@
             <StackPanel VerticalAlignment="Center" Spacing="12">
               <TextBlock Text="INDIVIDUAL SESSIONS" Foreground="White"
                          FontSize="23" FontWeight="Bold" TextAlignment="Center"/>
-              <TextBlock Text="NA" Foreground="White" FontSize="32"
-                         FontWeight="Bold" TextAlignment="Center"/>
-              <TextBlock Text="Session dates, duration, level, activity, completed trials and settings snapshot will appear here after session tracking is added."
-                         Foreground="#E2E8F0" FontSize="17" TextWrapping="Wrap"
+              <TextBlock x:Name="LevelZeroSessionCountText" Text="LEVEL 0: 0 recorded sessions"
+                         Foreground="White" FontSize="23" FontWeight="Bold"
+                         TextAlignment="Center"/>
+              <TextBlock x:Name="LevelZeroSessionHistoryText"
+                         Foreground="#E2E8F0" FontSize="19" TextWrapping="Wrap"
                          TextAlignment="Center"/>
             </StackPanel>
           </Border>
@@ -417,10 +429,8 @@
             <StackPanel VerticalAlignment="Center" Spacing="12">
               <TextBlock Text="SESSION COMPARISONS" Foreground="White"
                          FontSize="23" FontWeight="Bold" TextAlignment="Center"/>
-              <TextBlock Text="NA" Foreground="White" FontSize="32"
-                         FontWeight="Bold" TextAlignment="Center"/>
-              <TextBlock Text="Early, middle and late performance; previous-session comparisons; matched-task trends and fatigue observations."
-                         Foreground="#E2E8F0" FontSize="17" TextWrapping="Wrap"
+              <TextBlock x:Name="LevelZeroSessionComparisonText"
+                         Foreground="#E2E8F0" FontSize="16" TextWrapping="Wrap"
                          TextAlignment="Center"/>
             </StackPanel>
           </Border>
@@ -542,7 +552,7 @@
                 Click="OnPlaceholderLevel" MinHeight="90" FontSize="29" FontWeight="Bold"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                 HorizontalContentAlignment="Center"/>
-        <Button Style="{StaticResource SecondaryGazeButton}" x:Name="LevelsBackButton"
+        <Button Style="{StaticResource DangerGazeButton}" x:Name="LevelsBackButton"
                 Grid.Row="3" Grid.Column="1" Content="BACK TO MENU"
                 Click="OnBackToMenu" MinHeight="90" FontSize="25" FontWeight="Bold"
                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
@@ -556,7 +566,8 @@
     <Grid x:Name="LessonPanel" Background="Black" Visibility="Collapsed">
       <!-- One visible target at a time, positioned on the black canvas. -->
       <Canvas x:Name="TrainingCanvas" Background="Black" SizeChanged="OnCanvasSized"
-              PointerMoved="OnPointerMoved" PointerEntered="OnPointerMoved">
+              PointerMoved="OnPointerMoved" PointerEntered="OnPointerMoved"
+               PointerPressed="OnTrainingCanvasPointerPressed">
         <Ellipse x:Name="TargetRing" Width="116" Height="116"
                  Stroke="#FBBF24" StrokeThickness="8" Fill="#344358"
                  Visibility="Collapsed" IsHitTestVisible="False"/>
@@ -591,7 +602,7 @@
                      TextAlignment="Center" TextWrapping="Wrap"/>
         </StackPanel>
       </Grid>
-      <Button Style="{StaticResource SecondaryGazeButton}" x:Name="LessonBackButton" Content="BACK"
+      <Button Style="{StaticResource DangerGazeButton}" x:Name="LessonBackButton" Content="BACK"
               Click="OnBackToLevels" MinHeight="86" MinWidth="155"
               Padding="16,12" FontSize="22" FontWeight="Bold"
               HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -633,7 +644,7 @@
                    TextAlignment="Center" HorizontalAlignment="Center"
                    VerticalAlignment="Center"/>
       </Grid>
-      <Button Style="{StaticResource SecondaryGazeButton}" x:Name="BonusBackButton"
+      <Button Style="{StaticResource DangerGazeButton}" x:Name="BonusBackButton"
               Content="BACK" Click="OnBackToLevels" MinHeight="86" MinWidth="155"
               Padding="16,12" FontSize="22" FontWeight="Bold"
               HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -721,7 +732,7 @@
           <Button Style="{StaticResource SecondaryGazeButton}" x:Name="CancelDisplayButton" Grid.Column="1" Content="CANCEL"
                   Click="OnCancelDisplay" MinHeight="76" FontSize="21" FontWeight="Bold"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button Style="{StaticResource SecondaryGazeButton}" x:Name="SettingsExitButton" Grid.Column="2" Content="BACK"
+          <Button Style="{StaticResource DangerGazeButton}" x:Name="SettingsExitButton" Grid.Column="2" Content="BACK"
                   Click="OnCancelDisplay" MinHeight="76" FontSize="21" FontWeight="Bold"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
         </Grid>
@@ -791,6 +802,24 @@
           </StackPanel>
         </StackPanel>
       </Viewbox>
+    </Grid>
+
+    <!-- Acknowledged with a normal mouse click; shown only when no tracker is found. -->
+    <Grid x:Name="NoTrackerNoticePanel" Visibility="Collapsed" Canvas.ZIndex="110"
+          Background="#E6091525" IsHitTestVisible="True">
+      <Border Background="#182B43" BorderBrush="#76B9F3" BorderThickness="3"
+              CornerRadius="16" Padding="32" MaxWidth="760"
+              HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32">
+        <StackPanel Spacing="24">
+          <TextBlock Text="NO EYE TRACKER DETECTED" FontSize="32" FontWeight="Bold"
+                     Foreground="White" TextAlignment="Center"/>
+          <TextBlock Text="This software requires Tobii PCEye 5 for training. No eye tracker detected. Switching to mouse control. Diagnostics data won&apos;t be collected."
+                     FontSize="25" Foreground="White" TextWrapping="Wrap" TextAlignment="Center"/>
+          <Button Content="CONTINUE WITH MOUSE" Click="OnDismissNoTrackerNotice"
+                  Style="{StaticResource PrimaryGazeButton}" MinWidth="350" MinHeight="88"
+                  FontSize="24" HorizontalAlignment="Center"/>
+        </StackPanel>
+      </Border>
     </Grid>
 
     <Canvas x:Name="CursorOverlay" IsHitTestVisible="False"

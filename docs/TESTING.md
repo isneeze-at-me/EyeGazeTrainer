@@ -410,3 +410,25 @@ The overall accuracy score (the only score displayed on HOME) now includes **uns
 Scoring is **asymmetric per training level**: Level 1 has 7% gain weighting toward a successful target's measured 40% precision / 30% speed / 30% stability performance, 22% loss weighting for a weak completed result, 14% proportional loss for a missed dwell, and a 65% *attainable score ceiling* on gains made in Level 1. For Levels 2–6 (when implemented), gain weights increase by 2.2 percentage points per level, weak-completion loss weights decrease by 2.4 points per level, interrupted-dwell losses decrease by 1.8 points per level, and attainable ceilings rise by 7 points per level (72%, 79%, 86%, 93%, 100%). A score previously earned on a higher level is **never abruptly truncated** by the cap of a lower level: lower levels simply cannot raise the score further until it falls below their ceiling. Every missed dwell lowers an existing score and is saved immediately. The algorithm's overall score key is V3; existing V2 accuracy and metric history are imported on first use. This is a training metric, **not** a medical-grade eye-tracking accuracy percentage.
 
 **Supervised device checks:** (1) look at but never enter yellow target: unchanged score; (2) dwell ~300ms then leave: exactly one score decrease; (3) remain outside: no repeated deductions; (4) successful 1000ms target acquisition: score follows level-weighted gain/loss; (5) brief accidental 50ms contact: no penalty; (6) replay Level 1: completion persists but more score observations continue; (7) higher existing score is not chopped to 65% by merely playing Level 1; (8) EXIT and tracker disconnect remain safe.
+
+
+## Mouse-only startup review path (2026-11-19 — implemented, not yet hardware verified)
+
+- When initial Windows gaze-device enumeration finds no tracker, EyeGazeTrainer dismisses the startup splash and opens the main menu in mouse-only mode.
+- A mouse-dismissible notice says: "This software requires Tobii PCEye 5 for training. No eye tracker detected. Switching to mouse control."
+- The notice closes automatically after ten seconds; clicking CONTINUE WITH MOUSE closes it immediately.
+- The normal Windows mouse arrow remains visible. Mouse clicks operate menu, diagnostics, settings, export, Back and Exit. Level 0 gaze-only onboarding and its replay are skipped.
+- Level 1's visible targets can be selected with mouse clicks. These interactions do not record successful gaze-training completion or gaze diagnostic samples.
+- Mouse-only Exit uses the existing no-gaze navigation path instead of gaze-device cleanup. The notice timer stops on dismissal, navigation away or exit.
+- There is no auto-switch after live tracker disconnection; existing tracker recovery behavior is preserved.
+
+**Verification needed in Visual Studio and on devices:**
+1. Launch with no PCEye/eye tracker connected. Verify 3-second splash, then notice and visible Windows cursor.
+2. Do not click. Verify notice closes after ~10 seconds and mouse access remains available.
+3. Relaunch without tracker. Click CONTINUE WITH MOUSE; verify immediate dismissal.
+4. Exercise menu, settings, diagnostics tabs, report export, level selection, target clicking, bonus round and all Back controls.
+5. Exit from main menu and Settings in fallback mode; verify no frozen black screen, TD Control launch, or gaze cleanup wait.
+6. Launch with a working PCEye 5 and ensure the previous gaze-only startup and exit path still work.
+7. Simulate a watcher initialization failure and optional trace-file write failure; verify mouse fallback still works.
+
+**Not verified:** Actual Microsoft Store certification, PCEye 5 model identity, Windows SDK build/packaging, and hardware-dependent gaze/TD Control behavior.

@@ -117,6 +117,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             levelZeroStage = LevelZeroStage.Explore;
+            ResetLevelZeroDiagnostics();
             levelZeroStarted = DateTimeOffset.UtcNow;
             levelZeroStageStarted = levelZeroStarted;
             movementStep = MovementStep.Discover;
@@ -152,6 +153,7 @@ namespace EyeGazeApiViability
             levelZeroGuidanceStarted = false;
             levelZeroHorizontalPrompted = levelZeroCornerPrompted = levelZeroFollowPrompted = false;
             levelZeroPursuitSamples = levelZeroCloseSamples = 0;
+            levelZeroDwellAttempts = 0;
             LevelZeroPursuitTarget.Visibility = Visibility.Collapsed;
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
             LevelZeroContinueButton.Visibility = Visibility.Collapsed;
@@ -737,6 +739,7 @@ namespace EyeGazeApiViability
                     {
                         circleTravelRadians += Math.Abs(delta);
                         circleSamples++;
+                        diagnosticCircleSamples++;
                         stepMotionSeconds += dt;
                         RecordLevelZeroCorrectMovement(dt);
                     }
@@ -818,6 +821,8 @@ namespace EyeGazeApiViability
                 axisReversals++;
             lastAxisDirection = direction;
             lastCorrectAxisMovement = now;
+            if (movementStep == MovementStep.Vertical) diagnosticVerticalSweeps++;
+            else if (movementStep == MovementStep.Horizontal) diagnosticHorizontalSweeps++;
             recentCorrectSweeps++;
             stepMotionSeconds += Math.Min(.5, seconds);
             RecordLevelZeroCorrectMovement(Math.Min(.5, seconds));
@@ -951,6 +956,7 @@ namespace EyeGazeApiViability
                 return;
             DateTimeOffset now = DateTimeOffset.UtcNow;
             levelZeroLastValid = now;
+            ObserveLevelZeroDiagnosticGaze(raw, now);
             if (!levelZeroHadGaze)
                 levelZeroTimeToFirstGaze = (now - levelZeroStarted).TotalSeconds;
             levelZeroHadGaze = true;
@@ -1194,6 +1200,7 @@ namespace EyeGazeApiViability
         private void FinishLevelZero()
         {
             SaveLevelZeroMeasurements();
+            SaveLevelZeroExtraDiagnostics();
             try { ApplicationData.Current.LocalSettings.Values[LevelZeroDoneKey] = true; }
             catch (Exception) { /* A storage error never prevents access to Levels. */ }
             StopLevelZero();
