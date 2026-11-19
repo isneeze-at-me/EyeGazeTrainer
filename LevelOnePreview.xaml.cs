@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Devices.Input.Preview;
@@ -50,6 +51,10 @@ namespace EyeGazeApiViability
             new Border[SpatialAccuracyMap.Rows, SpatialAccuracyMap.Columns];
         private readonly Border[,] jitterCellBorders =
             new Border[SpatialJitterMap.Rows, SpatialJitterMap.Columns];
+        // Cache laid-out button rectangles, invalidated on screen/layout changes.
+        // Do not cache disabled/hidden state, which can change independently.
+        private readonly Dictionary<Button, Rect> gazeButtonBounds =
+            new Dictionary<Button, Rect>();
         private Button[] diagnosticsButtons;
         private Button[] diagnosticsSkillsButtons;
         private Button[] diagnosticsSessionsButtons;
@@ -242,6 +247,7 @@ namespace EyeGazeApiViability
             practiceTimer.Tick += OnPracticeTimerTick;
             lastPracticeTick = DateTimeOffset.UtcNow;
             practiceTimer.Start();
+            RootLayout.SizeChanged += OnGazeLayoutSizeChanged;
             Loaded += OnPageLoaded;
         }
 
@@ -746,6 +752,11 @@ namespace EyeGazeApiViability
             }
         }
 
+        private void OnGazeLayoutSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            gazeButtonBounds.Clear();
+        }
+
         private Button FindGazeButton(Point stabilizedPoint, Point rawPoint)
         {
             foreach (Button button in GetGazeButtons())
@@ -769,15 +780,26 @@ namespace EyeGazeApiViability
                 button.Visibility != Visibility.Visible ||
                 button.ActualWidth <= 0 || button.ActualHeight <= 0) return false;
 
-            Point origin = button.TransformToVisual(this).TransformPoint(new Point(0, 0));
-            var bounds = new Rect(origin.X, origin.Y, button.ActualWidth,
-                                  button.ActualHeight);
+            Rect bounds;
+            if (!gazeButtonBounds.TryGetValue(button, out bounds) ||
+                bounds.Width != button.ActualWidth ||
+                bounds.Height != button.ActualHeight)
+            {
+                // Only calculate transforms when the visual layout changes,
+                // never on every incoming eye-gaze sample.
+                Point origin = button.TransformToVisual(this)
+                                     .TransformPoint(new Point(0, 0));
+                bounds = new Rect(origin.X, origin.Y,
+                                  button.ActualWidth, button.ActualHeight);
+                gazeButtonBounds[button] = bounds;
+            }
             return AdaptiveHitTesting.ContainsRectangle(
                 gaze, bounds, gazeProfile.HitBoxScale);
         }
 
         private void ShowScreen(AppScreen screen)
         {
+            gazeButtonBounds.Clear();
             if (screen != AppScreen.Diagnostics)
                 HideTherapistExportConfirmation();
             if (currentScreen == AppScreen.LevelZero && screen != AppScreen.LevelZero)
@@ -1138,6 +1160,7 @@ namespace EyeGazeApiViability
 
         private void SelectDiagnosticsTab(Button selected)
         {
+            gazeButtonBounds.Clear();
             if (selected == DiagnosticsOverviewTabButton)
                 selectedDiagnosticsTab = DiagnosticsTab.Overview;
             else if (selected == DiagnosticsSkillsTabButton)
@@ -2222,6 +2245,8 @@ namespace EyeGazeApiViability
             // Navigation follows staged gaze release; make the Windows arrow
             // available again on the gaze-free closing page and desktop.
             RestoreWindowsPointerCursor();
+            RootLayout.SizeChanged -= OnGazeLayoutSizeChanged;
+            gazeButtonBounds.Clear();
             trainingReport.FlushPracticeTime();
             StopNoTrackerNoticeTimer();
             StopLevelZero();
