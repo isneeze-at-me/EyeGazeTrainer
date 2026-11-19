@@ -331,19 +331,46 @@ namespace EyeGazeApiViability
         {
             _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
-                if (!live || stopping) return;
+                if (!live || stopping || exitRequested) return;
+                // A Removed event can follow another device's Added/Updated
+                // event. If valid cursor samples are still arriving, do not
+                // invalidate a functioning gaze subscription.
+                if (gazeSubscribed &&
+                    (DateTimeOffset.UtcNow - lastValidGazeSampleAt).TotalSeconds < 2)
+                {
+                    Trace("Gaze device removed, but recent gaze is still valid");
+                    return;
+                }
                 cursorFilter.Reset();
                 targetMeasurement.CancelHold();
                 HideTargetDwellVisual();
+                // Release the stale event subscription without touching
+                // the device watcher or shutting down the app. The watcher
+                // stays running so a later Ready event can reconnect.
+                if (gazeSubscribed && gazeSource != null)
+                {
+                    try
+                    {
+                        gazeSource.GazeMoved -= OnGazeMoved;
+                        Trace("Gaze event unsubscribed after device removal");
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace("Gaze event unsubscribe on removal failed: " + ex);
+                    }
+                }
+                gazeSubscribed = false;
+                gazeSource = null;
                 LiveStatusText.Visibility = Visibility.Visible;
-                LiveStatusText.Text = "Eye tracker disconnected. Please ask for assistance.";
-                Trace("Gaze device removed");
+                LiveStatusText.Text = "Eye tracker disconnected. Waiting for reconnection.";
+                Trace("Gaze device removed; awaiting next ready device");
             });
         }
 
         private void UseReadyDevice(GazeDevicePreview device)
         {
-            if (!live || stopping || gazeSubscribed) return;
+            if (!live || stopping || exitRequested || gazeSubscribed ||
+                device == null) return;
             if (!device.CanTrackEyes ||
                 device.ConfigurationState != GazeDeviceConfigurationStatePreview.Ready)
             {
@@ -354,8 +381,16 @@ namespace EyeGazeApiViability
             try
             {
                 Trace("BEGIN gaze source subscription");
-                gazeSource = GazeInputSourcePreview.GetForCurrentView();
-                gazeSource.GazeMoved += OnGazeMoved;
+                var newSource = GazeInputSourcePreview.GetForCurrentView();
+                if (newSource == null)
+                {
+                    LiveStatusText.Visibility = Visibility.Visible;
+                    LiveStatusText.Text = "Eye tracker detected. Waiting for gaze input.";
+                    Trace("Gaze source unavailable; awaiting device update");
+                    return;
+                }
+                newSource.GazeMoved += OnGazeMoved;
+                gazeSource = newSource;
                 gazeSubscribed = true;
                 Trace("END gaze source subscription");
                 LiveStatusText.Visibility = Visibility.Collapsed;
@@ -379,6 +414,12 @@ namespace EyeGazeApiViability
                 double.IsInfinity(p.X) || double.IsInfinity(p.Y)) return;
             mostRecentRawGazePosition = p;
             lastValidGazeSampleAt = DateTimeOffset.UtcNow;
+            if (LiveStatusText.Visibility == Visibility.Visible &&
+                gazeSubscribed)
+            {
+                LiveStatusText.Visibility = Visibility.Collapsed;
+                Trace("Gaze cursor input resumed");
+            }
 
             // UWP gaze points are in application-view coordinates, not
             // coordinates local to the canvas.
