@@ -19,6 +19,8 @@ namespace EyeGazeApiViability
         private enum LevelZeroStage { Explore, Pursue, Continue }
         private enum MovementStep { Discover, Vertical, Horizontal, Circles }
         private MovementStep movementStep;
+        private bool movementWaitingForInstructions;
+        private string movementInstructionSpeech;
         private DateTimeOffset movementStepStarted, lastMotionSample, lastMovement, lastMovementCoach;
         private Point previousMotionPoint;
         private Point directionWindowStart;
@@ -92,6 +94,8 @@ namespace EyeGazeApiViability
             levelZeroStageStarted = levelZeroStarted;
             movementStep = MovementStep.Discover;
             hasActualMovement = false;
+            movementWaitingForInstructions = true;
+            movementInstructionSpeech = null;
             ResetMovementStep();
             levelZeroLastPrompt = DateTimeOffset.MinValue;
             levelZeroSeconds = 0;
@@ -158,6 +162,8 @@ namespace EyeGazeApiViability
             levelZeroPendingInstruction = null;
             levelZeroFeedbackQueue.Clear();
             levelZeroButtonExplanationPending = false;
+            movementWaitingForInstructions = false;
+            movementInstructionSpeech = null;
             levelZeroGuidanceStarted = false;
             LevelZeroPursuitTarget.Visibility = Visibility.Collapsed;
             LevelZeroPursuitCenter.Visibility = Visibility.Collapsed;
@@ -225,6 +231,7 @@ namespace EyeGazeApiViability
             int version = levelZeroNarrationVersion;
             levelZeroSpeechBusy = true;
             levelZeroLastPrompt = DateTimeOffset.UtcNow;
+            bool playedToEnd = false;
             try
             {
                 if (levelZeroSynth == null) levelZeroSynth = new SpeechSynthesizer();
@@ -257,7 +264,7 @@ namespace EyeGazeApiViability
                 // Do not start the next voice until Windows confirms that
                 // the whole current utterance finished playing. A fixed delay
                 // could overlap with a longer welcome or stage instruction.
-                bool playedToEnd = await levelZeroPlaybackCompletion.Task;
+                playedToEnd = await levelZeroPlaybackCompletion.Task;
                 if (!playedToEnd)
                     throw new InvalidOperationException(
                         "Level 0 voice playback was interrupted or failed.");
@@ -275,6 +282,18 @@ namespace EyeGazeApiViability
             {
                 if (version == levelZeroNarrationVersion)
                 {
+                    // Only the exact introduction for the active movement
+                    // step can start its timer. Delayed earlier narration
+                    // must never arm a newer exercise.
+                    if (movementWaitingForInstructions &&
+                        words == movementInstructionSpeech &&
+                        (playedToEnd || levelZeroSpeechUnavailable) &&
+                        levelZeroStage == LevelZeroStage.Explore)
+                    {
+                        ResetMovementStep();
+                        movementWaitingForInstructions = false;
+                        movementInstructionSpeech = null;
+                    }
                     levelZeroPlaybackCompletion = null;
                     levelZeroSpeechBusy = false;
                     if (currentScreen == AppScreen.LevelZero && !exitRequested)
@@ -308,6 +327,7 @@ namespace EyeGazeApiViability
             DateTimeOffset now = DateTimeOffset.UtcNow;
             if (levelZeroStage == LevelZeroStage.Explore)
             {
+                if (movementWaitingForInstructions) return;
                 if ((now - lastMovementCoach).TotalSeconds < 12) return;
                 string coaching = null;
                 if (!levelZeroHadGaze ||
@@ -425,6 +445,8 @@ namespace EyeGazeApiViability
         {
             if (levelZeroStage != LevelZeroStage.Explore) return;
             movementStep = next;
+            movementWaitingForInstructions = true;
+            movementInstructionSpeech = instruction;
             ResetMovementStep();
             levelZeroFeedbackQueue.Clear();
             SpeakLevelZero(instruction, true);
@@ -433,6 +455,9 @@ namespace EyeGazeApiViability
         private void ObserveLevelZeroMovement(Point gaze, double width,
                                               double height, DateTimeOffset now)
         {
+            // No movement evidence or active time counts until the full
+            // instructions for THIS step have finished playing.
+            if (movementWaitingForInstructions) return;
             // Free exploration uses a longer measurement window so genuine
             // slow gaze travel can accumulate past the noise threshold.
             // Directional lessons classify a longer sweep, not a noisy
@@ -678,7 +703,9 @@ namespace EyeGazeApiViability
             if (!levelZeroGuidanceStarted)
             {
                 levelZeroGuidanceStarted = true;
-                SpeakLevelZero("Welcome to EyeGazeTrainer! The two eyes on the screen are your cursor. For the first exercise, move your eyes freely around the screen for fifteen seconds of actual movement. Watch the cursor follow you. You can stop and rest whenever you need to; resting does not count toward the fifteen seconds.", true);
+                string welcome = "Welcome to EyeGazeTrainer! The two eyes on the screen are your cursor. For the first exercise, move your eyes freely around the screen for fifteen seconds of actual movement. Watch the cursor follow you. You can stop and rest whenever you need to; resting does not count toward the fifteen seconds.";
+                movementInstructionSpeech = welcome;
+                SpeakLevelZero(welcome, true);
             }
 
             if (levelZeroStage == LevelZeroStage.Explore)
