@@ -64,6 +64,7 @@ namespace EyeGazeApiViability
         private bool levelZeroButtonExplanationPending;
         private bool levelZeroStageWaitingForInstructions;
         private bool levelZeroFinishAfterSpeech;
+        private bool levelZeroSelectionTimedOut;
         private string levelZeroStageInstructionSpeech;
         private const double LevelZeroMaximumStepSeconds = 60;
         private readonly System.Collections.Generic.Queue<string> levelZeroFeedbackQueue =
@@ -114,6 +115,7 @@ namespace EyeGazeApiViability
             levelZeroFeedbackQueue.Clear();
             levelZeroButtonExplanationPending = false;
             levelZeroFinishAfterSpeech = false;
+            levelZeroSelectionTimedOut = false;
             levelZeroStageWaitingForInstructions = false;
             levelZeroStageInstructionSpeech = null;
             levelZeroSpeechUnavailable = false;
@@ -136,6 +138,12 @@ namespace EyeGazeApiViability
                 { Interval = TimeSpan.FromSeconds(2) };
             levelZeroCoachTimer.Tick += OnLevelZeroCoachTick;
             levelZeroCoachTimer.Start();
+            // Start narration immediately. A first-time eye-gaze user may
+            // have no valid gaze points yet, but must still receive guidance.
+            levelZeroGuidanceStarted = true;
+            string welcome = "Welcome to EyeGazeTrainer! The two eyes on the screen are your cursor. For the first exercise, move your eyes freely around the screen for fifteen seconds of actual movement. Watch the cursor follow you. You can stop and rest whenever you need to; resting does not count toward the fifteen seconds.";
+            movementInstructionSpeech = welcome;
+            SpeakLevelZero(welcome, true);
         }
 
         private void StopLevelZero()
@@ -172,6 +180,7 @@ namespace EyeGazeApiViability
             levelZeroPendingInstruction = null;
             levelZeroFeedbackQueue.Clear();
             levelZeroButtonExplanationPending = false;
+            levelZeroFinishAfterSpeech = false;
             levelZeroStageWaitingForInstructions = false;
             levelZeroStageInstructionSpeech = null;
             movementWaitingForInstructions = false;
@@ -446,6 +455,7 @@ namespace EyeGazeApiViability
                          !levelZeroFinishAfterSpeech)
                 {
                     levelZeroFinishAfterSpeech = true;
+                    levelZeroSelectionTimedOut = true;
                     SpeakLevelZero("Good effort, let's move on to the training levels.", true);
                     if (levelZeroSpeechUnavailable) FinishLevelZero();
                 }
@@ -822,14 +832,9 @@ namespace EyeGazeApiViability
                 levelZeroTimeToFirstGaze = (now - levelZeroStarted).TotalSeconds;
             levelZeroHadGaze = true;
 
-            if (!levelZeroGuidanceStarted)
-            {
-                levelZeroGuidanceStarted = true;
-                string welcome = "Welcome to EyeGazeTrainer! The two eyes on the screen are your cursor. For the first exercise, move your eyes freely around the screen for fifteen seconds of actual movement. Watch the cursor follow you. You can stop and rest whenever you need to; resting does not count toward the fifteen seconds.";
-                movementInstructionSpeech = welcome;
-                SpeakLevelZero(welcome, true);
-            }
-
+            // The welcome is spoken on screen entry, not delayed until
+            // the first gaze event. That also starts the 60-second fallback
+            // for learners who are not yet producing gaze input.
             if (levelZeroStage == LevelZeroStage.Explore)
             {
                 levelZeroMinX = Math.Min(levelZeroMinX, raw.X);
@@ -936,7 +941,13 @@ namespace EyeGazeApiViability
             double h = LevelZeroPanel.ActualHeight;
             const double buttonW = 330, buttonH = 210;
             const double padding = 36;
-            if (w <= 0 || h <= 0) return;
+            if (w <= 0 || h <= 0)
+            {
+                // If layout has not reported its size, still allow the
+                // learner to reach the button rather than wait indefinitely.
+                w = Math.Max(800, RootLayout.ActualWidth);
+                h = Math.Max(600, RootLayout.ActualHeight);
+            }
 
             double maxLeft = Math.Max(0, w - buttonW - padding);
             double maxTop = Math.Max(0, h - buttonH - padding);
@@ -1035,7 +1046,9 @@ namespace EyeGazeApiViability
                     v[p + "Pursuit"] = (100.0 * levelZeroCloseSamples /
                         levelZeroPursuitSamples).ToString("0",
                         CultureInfo.InvariantCulture) + "% of valid sampled positions";
-                v[p + "Selection"] = "Completed (" + levelZeroDwellAttempts + " attempts)";
+                v[p + "Selection"] = levelZeroSelectionTimedOut
+                    ? "Moved on after 60 sec (" + levelZeroDwellAttempts + " attempts)"
+                    : "Completed (" + levelZeroDwellAttempts + " attempts)";
             }
             catch (Exception) { /* Measurements never block learner navigation. */ }
         }
