@@ -155,7 +155,6 @@ namespace EyeGazeApiViability
         private bool completed;
         private bool exitRequested;
         private bool autoStartAttempted;
-        private bool overlayHandoffRequested;
         private DispatcherTimer startupSplashTimer;
         private bool startupSplashCompleted;
         private const int StartupSplashDurationSeconds = 3;
@@ -239,6 +238,14 @@ namespace EyeGazeApiViability
 
         private void OnPageLoaded(object sender, RoutedEventArgs e)
         {
+            // Preserve the pre-splash initialization sequence: connect the
+            // gaze watcher as soon as the page is loaded. The branding
+            // overlay stays visible for its full three seconds independently.
+            if (!autoStartAttempted)
+            {
+                autoStartAttempted = true;
+                OnEnableLive(null, null);
+            }
             if (startupSplashCompleted || startupSplashTimer != null) return;
             startupSplashTimer = new DispatcherTimer
                 { Interval = TimeSpan.FromSeconds(StartupSplashDurationSeconds) };
@@ -265,11 +272,6 @@ namespace EyeGazeApiViability
                 StartLevelZero();
             else
                 ShowScreen(AppScreen.Menu);
-            if (!autoStartAttempted)
-            {
-                autoStartAttempted = true;
-                OnEnableLive(null, null);
-            }
         }
 
         private void OnEnableLive(object sender, RoutedEventArgs e)
@@ -444,17 +446,7 @@ namespace EyeGazeApiViability
 
             Point stabilized = cursorFilter.Update(p, DateTimeOffset.UtcNow);
             UpdateCursor(stabilized);
-            // Delay the gaze-aware window marker until real, in-bounds
-            // PCEye gaze has reached this view. Before the splash-screen
-            // redesign the watcher was started immediately; activating the
-            // helper three seconds before watcher readiness caused a
-            // startup race with TD Control.
-            if (!overlayHandoffRequested)
-            {
-                overlayHandoffRequested = true;
-                App.StartOverlayCompanionAfterValidGaze();
-            }
-            if (currentScreen == AppScreen.LevelZero)
+             if (currentScreen == AppScreen.LevelZero)
                 ProcessLevelZeroGaze(p, stabilized);
             if (currentScreen == AppScreen.Lesson)
             {
