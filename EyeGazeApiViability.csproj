@@ -42,6 +42,7 @@
     <Compile Include="DisplayScaleManager.cs" />
     <Compile Include="TrainingProgress.cs" />
     <Compile Include="TrainingReport.cs" />
+    <Compile Include="DwellRecommendation.cs" />
     <Compile Include="TherapistTextReport.cs" />
     <Compile Include="LevelZeroTutorial.cs" />
     <Compile Include="LevelZeroDiagnostics.cs" />
