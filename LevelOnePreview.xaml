@@ -813,7 +813,7 @@
         <StackPanel Spacing="24">
           <TextBlock Text="NO EYE TRACKER DETECTED" FontSize="32" FontWeight="Bold"
                      Foreground="White" TextAlignment="Center"/>
-          <TextBlock Text="This software requires Tobii PCEye 5 for training. No eye tracker detected. Switching to mouse control."
+          <TextBlock Text="This software requires Tobii PCEye 5 for training. No eye tracker detected. Switching to mouse control. Diagnostics data won&apos;t be collected."
                      FontSize="25" Foreground="White" TextWrapping="Wrap" TextAlignment="Center"/>
           <Button Content="CONTINUE WITH MOUSE" Click="OnDismissNoTrackerNotice"
                   Style="{StaticResource PrimaryGazeButton}" MinWidth="350" MinHeight="88"
