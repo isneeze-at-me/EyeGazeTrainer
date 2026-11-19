@@ -25,6 +25,7 @@ namespace EyeGazeApiViability
             double hitboxScale,
             int targetHoldMilliseconds,
             int controlDwellMilliseconds,
+            DwellRecommendation dwellRecommendation,
             string[][] skillCategories,
             string[] categoryNames,
             string[] levelZeroValues,
@@ -89,6 +90,13 @@ namespace EyeGazeApiViability
                 hitboxScale.ToString("0.000", Culture) + "x");
             Field(b, "Level 1 target hold", targetHoldMilliseconds + " ms");
             Field(b, "Menu/button dwell", controlDwellMilliseconds + " ms");
+            Field(b, "Provisional suggested dwell", dwellRecommendation.Milliseconds + " ms");
+            Field(b, "Recommendation evidence",
+                dwellRecommendation.SuccessfulAttempts + " completed / " +
+                dwellRecommendation.InterruptedAttempts + " interrupted target holds");
+            b.AppendLine("  Starting estimate: 1500 ms; reviewed every 12 deliberate holds.");
+            b.AppendLine("  Suggestion does not change target or menu timers.");
+            b.AppendLine("  Fixed-duration tasks do not establish a validated optimum.");
             b.AppendLine("  Note: These are current settings, not historical session snapshots.");
             b.AppendLine();
 
