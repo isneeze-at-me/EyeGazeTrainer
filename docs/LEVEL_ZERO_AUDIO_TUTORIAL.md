@@ -154,3 +154,12 @@ For the first free-movement exercise and subsequent vertical, horizontal, and ci
 ## Circular movement timing correction — 2026-11-18
 
 Removed the spoken sentence "We'll begin when I finish explaining" from the circles introduction. The app still silently waits for the corresponding instruction's complete audio playback before collecting evidence. Step 4 previously required only 15 seconds elapsed in the phase, with a much smaller amount of detected circular movement. It now requires **15 cumulative seconds of correctly classified circular gaze movement**, plus the existing angular travel, sample and sector coverage requirements; idle time and incorrectly classified motion do not add to that timer. Changes are committed to `Test` and statically checked, but not built/tested on Windows hardware.
+
+## One-minute safety advancement and final target placement — 2026-11-18
+
+- Each Level 0 activity (free gaze movement, vertical, horizontal, circles, moving-circle pursuit, and final home-button selection) now has a **60-second maximum active activity window**, starting **after that activity's spoken instructions finish**. The coach timer runs even when no gaze samples arrive. Completing the activity normally still uses the original correct-movement/dwell rules.
+- If an activity exceeds the maximum, it advances automatically using a supportive **“Good effort, let's move on”** transition, rather than claiming an uncompleted movement skill was mastered. The final button activity exits to Levels after the voice announcement completes if the user cannot dwell within the time limit.
+- Level 0's welcome now begins on screen entry without depending on an initial valid gaze point. This prevents the first lesson from waiting indefinitely if no gaze arrives.
+- The final home button is positioned at reveal time in the screen corner with the greatest separation between the current gaze point and the button's actual rectangular hit area, with 36 px inset wherever space allows. It remains hidden until its complete spoken explanation finishes, and the old dwell state is cleared before it becomes visible. This forces a deliberate gaze movement toward the new target rather than an accidental selection at the current gaze location.
+- Selection metrics distinguish a completed dwell from a selection that automatically advanced after 60 seconds.
+- Static source/XAML and handler checks passed. Windows compilation and physical PCEye 5 verification remain outstanding.
