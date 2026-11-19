@@ -53,10 +53,10 @@ namespace EyeGazeTrainer.OverlayCompanion
             bool changedStyle = false;
             bool markerPropertySet = false;
             bool blockedForSession = false;
-            bool hadActiveGazeAfterMark = false;
             DateTime started = DateTime.UtcNow;
             DateTime gazeLostSince = DateTime.MinValue;
             DateTime lastSeen = DateTime.MinValue;
+            IntPtr appWindow = IntPtr.Zero;
             try
             {
                 while ((DateTime.UtcNow - started).TotalSeconds < AppMaxSeconds)
@@ -76,11 +76,11 @@ namespace EyeGazeTrainer.OverlayCompanion
                     if (target)
                     {
                         lastSeen = DateTime.UtcNow;
+                        appWindow = window;
                         if (marked != IntPtr.Zero)
                         {
                             if (gazeActive)
                             {
-                                hadActiveGazeAfterMark = true;
                                 gazeLostSince = DateTime.MinValue;
                             }
                             else
@@ -122,16 +122,16 @@ namespace EyeGazeTrainer.OverlayCompanion
                             {
                                 marked = window;
                                 gazeLostSince = DateTime.MinValue;
-                                hadActiveGazeAfterMark = false;
                             }
                             else blockedForSession = true;
                         }
                     }
-                    else if (lastSeen != DateTime.MinValue &&
-                             (DateTime.UtcNow - lastSeen).TotalSeconds > 2 &&
-                             (marked == IntPtr.Zero || !IsWindow(marked)))
+                    else if (appWindow != IntPtr.Zero &&
+                             !IsWindow(appWindow))
                     {
-                        // Window closed or exited: no background process.
+                        // Exit when EyeGazeTrainer's window truly closes.
+                        // Merely switching apps must not terminate the
+                        // helper or prevent automatic restoration on return.
                         break;
                     }
                     if (lastSeen == DateTime.MinValue &&
