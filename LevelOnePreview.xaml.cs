@@ -945,7 +945,8 @@ namespace EyeGazeApiViability
                     Foreground = WhiteTextBrush,
                     FontSize = 30,
                     FontWeight = Windows.UI.Text.FontWeights.Bold,
-                    TextAlignment = TextAlignment.Center
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap
                 };
                 var detail = new TextBlock
                 {
@@ -1015,6 +1016,9 @@ namespace EyeGazeApiViability
                 string observed = category == 0 ?
                     (extra ? LevelZeroExtraValue(i) : LevelZeroMetricValue(i)) : "NA";
                 skillMetricValues[i].Text = observed;
+                // Extra Level 0 values include units and qualifiers; fit
+                // them without clipping inside the existing six cards.
+                skillMetricValues[i].FontSize = extra ? 20 : 30;
                 skillMetricStatuses[i].Text = observed == "NA"
                     ? "NOT YET RECORDED" : "RECORDED IN LEVEL 0";
             }
