@@ -13,6 +13,8 @@ namespace EyeGazeApiViability
     {
         private bool windowEventsRegistered;
         private bool overlayHelperLaunchAttempted;
+        private string overlaySessionId;
+        private const string OverlaySessionFile = "eyegazetrainer-overlay-session.id";
 
         public App()
         {
@@ -102,12 +104,20 @@ namespace EyeGazeApiViability
             overlayHelperLaunchAttempted = true;
             try
             {
+                // Bind exactly one companion lifetime to this launch. An
+                // abandoned companion from a prior run sees a different
+                // token on the next launch and restores its old window flag.
+                overlaySessionId = Guid.NewGuid().ToString("N");
+                File.WriteAllText(
+                    Path.Combine(ApplicationData.Current.LocalFolder.Path,
+                                 OverlaySessionFile), overlaySessionId);
                 TraceLifecycle("Overlay companion launch requested");
                 await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
                 TraceLifecycle("Overlay companion launch accepted");
             }
             catch (Exception ex)
             {
+                EndOverlaySession();
                 // Unavailable full-trust support means TD Control's circle stays
                 // visible. All UWP gaze and controlled-exit behavior is intact.
                 TraceLifecycle("Overlay companion unavailable: " + ex.GetType().Name +
@@ -171,7 +181,31 @@ namespace EyeGazeApiViability
 
         private void OnWindowClosed(object sender, Windows.UI.Core.CoreWindowEventArgs e)
         {
+            EndOverlaySession();
             TraceLifecycle("Window.Closed");
+        }
+
+        internal static void EndOverlaySession()
+        {
+            var app = Application.Current as App;
+            if (app == null || string.IsNullOrEmpty(app.overlaySessionId))
+                return;
+            try
+            {
+                string path = Path.Combine(ApplicationData.Current.LocalFolder.Path,
+                                           OverlaySessionFile);
+                // Never delete a token written by a newer launch.
+                if (File.Exists(path) &&
+                    File.ReadAllText(path) == app.overlaySessionId)
+                    File.Delete(path);
+                TraceLifecycle("Overlay session ended");
+            }
+            catch (Exception ex)
+            {
+                TraceLifecycle("Overlay session cleanup failed: " +
+                               ex.GetType().Name);
+            }
+            app.overlaySessionId = null;
         }
 
         internal static void TraceLifecycle(string message)
