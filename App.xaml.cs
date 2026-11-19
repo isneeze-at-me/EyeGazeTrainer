@@ -92,7 +92,10 @@ namespace EyeGazeApiViability
             // until its behavior with PCEye 5 and TD Control is verified.
             // The added 0x2 window style/property may interfere with gaze
             // device availability. Do not modify TD Control or its window.
-            TraceLifecycle("Overlay helper disabled pending hardware validation");
+            // The helper now waits for fresh, coordinate-free gaze
+            // heartbeats before marking the window, and reverses its own
+            // window changes if input stops. No user action is required.
+            TryStartOverlayCompanion();
         }
 
         // The helper operates on this app's own foreground window, not the
