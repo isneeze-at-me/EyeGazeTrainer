@@ -1424,6 +1424,8 @@ namespace EyeGazeApiViability
 
         private void ApplyDisplaySizes()
         {
+            gazeButtonBounds.Clear();
+            lastDrawnGazeCursor = new Point(double.NaN, double.NaN);
             if (displayScale == null) return;
             double size = displayScale.ToViewUnits(
                 DisplayScaleManager.LevelOneDiameterMillimeters);
