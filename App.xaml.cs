@@ -88,11 +88,10 @@ namespace EyeGazeApiViability
             }
             Window.Current.Activate();
             TraceLifecycle("Window.Activate completed");
-            // SAFETY: suspend the experimental gaze-aware window helper
-            // until its behavior with PCEye 5 and TD Control is verified.
-            // The added 0x2 window style/property may interfere with gaze
-            // device availability. Do not modify TD Control or its window.
-            TraceLifecycle("Overlay helper disabled pending hardware validation");
+            // Restore the original gaze-aware compatibility helper. Its
+            // window-title check now supports Eye Gaze Trainer and it applies
+            // only the proven 0x2 marker; no changes to TD Control itself.
+            TryStartOverlayCompanion();
         }
 
         // The helper operates on this app's own foreground window, not the
