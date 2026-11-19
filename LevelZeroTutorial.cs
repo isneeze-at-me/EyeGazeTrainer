@@ -81,6 +81,11 @@ namespace EyeGazeApiViability
         private bool levelZeroButtonExplanationPending;
         private bool levelZeroStageWaitingForInstructions;
         private bool levelZeroFinishAfterSpeech;
+        private DispatcherTimer levelZeroCompletionSafetyTimer;
+        private const string LevelZeroCompletionMessage =
+            "Congratulations on completing your introduction! " +
+            "You have six more lessons to continue your eye gaze training. " +
+            "You can replay any level as often as you like, because practice makes perfect!";
         private bool levelZeroSelectionTimedOut;
         private string levelZeroStageInstructionSpeech;
         private const double LevelZeroMaximumStepSeconds = 60;
@@ -141,6 +146,8 @@ namespace EyeGazeApiViability
             levelZeroFeedbackQueue.Clear();
             levelZeroButtonExplanationPending = false;
             levelZeroFinishAfterSpeech = false;
+            StopLevelZeroCompletionTimer();
+            LevelZeroCompletionPanel.Visibility = Visibility.Collapsed;
             levelZeroSelectionTimedOut = false;
             levelZeroStageWaitingForInstructions = false;
             levelZeroStageInstructionSpeech = null;
@@ -175,6 +182,8 @@ namespace EyeGazeApiViability
 
         private void StopLevelZero()
         {
+            StopLevelZeroCompletionTimer();
+            LevelZeroCompletionPanel.Visibility = Visibility.Collapsed;
             levelZeroNarrationVersion++;
             if (levelZeroCoachTimer != null)
             {
@@ -1176,8 +1185,55 @@ namespace EyeGazeApiViability
         private void OnLevelZeroContinue(object sender, RoutedEventArgs e)
         {
             if (currentScreen != AppScreen.LevelZero ||
-                levelZeroStage != LevelZeroStage.Continue) return;
-            FinishLevelZero();
+                levelZeroStage != LevelZeroStage.Continue ||
+                levelZeroFinishAfterSpeech || stopping || exitRequested) return;
+
+            // Selecting Home completes the introduction. Show and speak the
+            // congratulations before automatically opening the Level Menu.
+            // There is no additional button or caregiver action.
+            LevelZeroContinueButton.Visibility = Visibility.Collapsed;
+            buttonDwellWheel.Hide();
+            gazeControlTarget = null;
+            gazeControlTriggered = false;
+            levelZeroFeedbackQueue.Clear();
+            levelZeroPendingInstruction = null;
+            LevelZeroCompletionPanel.Visibility = Visibility.Visible;
+            levelZeroFinishAfterSpeech = true;
+
+            // Do not strand an eye-gaze-only learner if speech playback stalls.
+            StopLevelZeroCompletionTimer();
+            levelZeroCompletionSafetyTimer = new DispatcherTimer
+                { Interval = TimeSpan.FromSeconds(35) };
+            levelZeroCompletionSafetyTimer.Tick += OnLevelZeroCompletionTimeout;
+            levelZeroCompletionSafetyTimer.Start();
+
+            if (levelZeroSpeechUnavailable)
+            {
+                // Leave the written message visible briefly even without audio.
+                StopLevelZeroCompletionTimer();
+                levelZeroCompletionSafetyTimer = new DispatcherTimer
+                    { Interval = TimeSpan.FromSeconds(9) };
+                levelZeroCompletionSafetyTimer.Tick += OnLevelZeroCompletionTimeout;
+                levelZeroCompletionSafetyTimer.Start();
+                return;
+            }
+            SpeakLevelZero(LevelZeroCompletionMessage, true);
+        }
+
+        private void OnLevelZeroCompletionTimeout(object sender, object args)
+        {
+            StopLevelZeroCompletionTimer();
+            if (currentScreen == AppScreen.LevelZero && levelZeroFinishAfterSpeech &&
+                !stopping && !exitRequested)
+                FinishLevelZero();
+        }
+
+        private void StopLevelZeroCompletionTimer()
+        {
+            if (levelZeroCompletionSafetyTimer == null) return;
+            levelZeroCompletionSafetyTimer.Stop();
+            levelZeroCompletionSafetyTimer.Tick -= OnLevelZeroCompletionTimeout;
+            levelZeroCompletionSafetyTimer = null;
         }
 
         // Save only six aggregate skill observations; never raw positions.
