@@ -12,7 +12,7 @@ namespace EyeGazeApiViability
     {
         private const string Prefix = "EyeGazeTrainer.DwellRecommendation.V1.";
         public const int InitialMilliseconds = 500;
-        private const int MinimumMilliseconds = 500;
+        private const int MinimumMilliseconds = 300;
         private const int MaximumMilliseconds = 1500;
         private const int WindowSize = 12;
         private int recommendation = InitialMilliseconds;
@@ -62,12 +62,13 @@ namespace EyeGazeApiViability
             if (windowSuccesses + windowInterruptions >= WindowSize)
             {
                 double interruptedFraction = windowInterruptions / (double)WindowSize;
-                // Conservative 50 ms steps; interruptions suggest more time
-                // may help, while reliable holds permit a cautious reduction.
+                // Repeated interrupted deliberate holds justify testing a shorter
+                // duration; successes at a fixed 1000 ms cannot prove a
+                // longer or shorter duration is optimal.
                 if (interruptedFraction >= 0.30)
-                    recommendation = Math.Min(MaximumMilliseconds, recommendation + 50);
-                else if (interruptedFraction <= 0.08)
                     recommendation = Math.Max(MinimumMilliseconds, recommendation - 50);
+                // Without accidental-activation trials, successful fixed-duration
+                // holds do not justify raising the recommended dwell time.
                 windowSuccesses = 0;
                 windowInterruptions = 0;
             }
