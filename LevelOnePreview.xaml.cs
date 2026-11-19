@@ -346,9 +346,9 @@ namespace EyeGazeApiViability
             catch (Exception ex)
             {
                 LiveStatusText.Visibility = Visibility.Visible;
-                LiveStatusText.Text = "Cannot begin: trace unavailable (" +
+                LiveStatusText.Text = "Trace unavailable (" +
                                       ex.GetType().Name + ")";
-                return;
+                // File logging is optional; never block review or mouse access.
             }
 
             live = true;
@@ -1579,7 +1579,7 @@ namespace EyeGazeApiViability
             // A full 1000ms uninterrupted hold is required for acquisition.
             bool acquired = mouseOnlyFallback
                 ? mouseClick : targetMeasurement.Observe(rawPoint, now, true);
-            UpdateTargetDwellVisual(inRing);
+            if (!mouseOnlyFallback) UpdateTargetDwellVisual(inRing);
             if (!acquired) return;
             TargetRing.StrokeThickness = 8;
             UpdateTargetDwellVisual(false);
@@ -1608,8 +1608,13 @@ namespace EyeGazeApiViability
             if (targetIndex >= TargetsPerLevel)
             {
                 completed = true;
-                trainingProgress.MarkCompleted(1);
-                trainingReport.RecordCompletedRun();
+                // Reviewers may finish the mouse demo, but mouse clicks must
+                // not certify eye-gaze completion or inflate training history.
+                if (live)
+                {
+                    trainingProgress.MarkCompleted(1);
+                    trainingReport.RecordCompletedRun();
+                }
                 Trace("Level 1 completed: ten targets; source=" +
                       (live ? "live gaze" : "mouse"));
                 UpdateLevelBadges();
