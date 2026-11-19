@@ -21,6 +21,9 @@ namespace EyeGazeApiViability
         private MovementStep movementStep;
         private DateTimeOffset movementStepStarted, lastMotionSample, lastMovement, lastMovementCoach;
         private Point previousMotionPoint;
+        private Point directionWindowStart;
+        private DateTimeOffset directionWindowStarted;
+        private bool directionWindowInitialized;
         private bool hasPreviousMotionPoint, hasPreviousCircleAngle, hasActualMovement;
         private double discoveryMotionSeconds, stepMotionSeconds, stepTravel;
         private double circleTravelRadians, previousCircleAngle;
@@ -410,6 +413,7 @@ namespace EyeGazeApiViability
             lastMovementCoach = movementStepStarted;
             hasPreviousMotionPoint = false;
             hasPreviousCircleAngle = false;
+            directionWindowInitialized = false;
             discoveryMotionSeconds = stepMotionSeconds = stepTravel = 0;
             circleTravelRadians = 0;
             circleDirection = circleSectorMask = axisReversals =
@@ -431,7 +435,8 @@ namespace EyeGazeApiViability
         {
             // Free exploration uses a longer measurement window so genuine
             // slow gaze travel can accumulate past the noise threshold.
-            // Directional exercises keep 10 Hz responsiveness.
+            // Directional lessons classify a longer sweep, not a noisy
+            // single 100 ms step (see ObserveDirectionWindow below).
             int sampleWindowMs = movementStep == MovementStep.Discover ? 250 : 100;
             if ((now - lastMotionSample).TotalMilliseconds < sampleWindowMs)
                 return;
@@ -440,6 +445,7 @@ namespace EyeGazeApiViability
             {
                 hasPreviousMotionPoint = false;
                 hasPreviousCircleAngle = false;
+                directionWindowInitialized = false;
             }
             double dt = lastMotionSample == DateTimeOffset.MinValue
                 ? 0 : Math.Min(movementStep == MovementStep.Discover ? .35 : .2,
@@ -467,7 +473,13 @@ namespace EyeGazeApiViability
             // so slow but deliberate vertical/horizontal motion still counts.
             double threshold = movementStep == MovementStep.Discover
                 ? .025 : .012;
-            if (displacement < threshold) return;
+            if (displacement < threshold)
+            {
+                if (movementStep == MovementStep.Vertical ||
+                    movementStep == MovementStep.Horizontal)
+                    ObserveDirectionWindow(gaze, width, height, now);
+                return;
+            }
             hasActualMovement = true;
             lastMovement = now;
             bool vertical = Math.Abs(dyPixels) > 1.8 * Math.Abs(dxPixels);
@@ -491,29 +503,7 @@ namespace EyeGazeApiViability
             if (movementStep == MovementStep.Vertical ||
                 movementStep == MovementStep.Horizontal)
             {
-                int direction = movementStep == MovementStep.Vertical
-                    ? (vertical ? Math.Sign(dy) : 0)
-                    : (horizontal ? Math.Sign(dx) : 0);
-                if (direction == 0) return;
-                if (lastAxisDirection != 0 && direction != lastAxisDirection)
-                    axisReversals++;
-                lastAxisDirection = direction;
-                stepMotionSeconds += dt;
-                stepTravel += displacement;
-                // Require 15 CUMULATIVE seconds of movement on the requested
-                // axis. Only above-noise samples classified in that direction
-                // add to stepMotionSeconds. Wrong-way movement, pauses and
-                // elapsed wall-clock time cannot complete this activity.
-                if (stepMotionSeconds >= 15.0 && axisReversals >= 2 &&
-                    stepTravel >= .35)
-                {
-                    if (movementStep == MovementStep.Vertical)
-                        NextMovementStep(MovementStep.Horizontal,
-                            "Great work! You've completed fifteen seconds of up and down movement. Next, look left, then right, and repeat for fifteen seconds of actual side to side movement.");
-                    else
-                        NextMovementStep(MovementStep.Circles,
-                            "Excellent! You've practiced left and right. Now let's try circles. Slowly trace a big circle with your eyes around the middle of the screen.");
-                }
+                ObserveDirectionWindow(gaze, width, height, now);
                 return;
             }
 
@@ -553,6 +543,68 @@ namespace EyeGazeApiViability
                 circleTravelRadians >= Math.PI * 1.5 && circleSamples >= 10 &&
                 CountBits(circleSectorMask) >= 5)
                 GoToLevelZeroPursuit();
+        }
+
+        // Judge the direction over a 350 ms gaze sweep rather than the
+        // instantaneous 100 ms tracker delta. This tolerates tiny sideways
+        // fluctuations during a real up/down movement (and vice versa).
+        private void ObserveDirectionWindow(Point gaze, double width,
+                                            double height, DateTimeOffset now)
+        {
+            if (!directionWindowInitialized)
+            {
+                directionWindowStart = gaze;
+                directionWindowStarted = now;
+                directionWindowInitialized = true;
+                return;
+            }
+            double seconds = (now - directionWindowStarted).TotalSeconds;
+            if (seconds < .35) return;
+            if (seconds > 1.2)
+            {
+                // Do not credit gaps in input to correct movement time.
+                directionWindowStart = gaze;
+                directionWindowStarted = now;
+                return;
+            }
+
+            double dx = gaze.X - directionWindowStart.X;
+            double dy = gaze.Y - directionWindowStart.Y;
+            directionWindowStart = gaze;
+            directionWindowStarted = now;
+
+            double primary = movementStep == MovementStep.Vertical ? dy : dx;
+            double secondary = movementStep == MovementStep.Vertical ? dx : dy;
+            // Detect even gentle sweeps, but require displacement large
+            // enough to exceed residual tracker wobble.
+            double minimumPixels = Math.Max(8, Math.Min(width, height) * .007);
+            if (Math.Abs(primary) < minimumPixels ||
+                Math.Abs(primary) < 1.35 * Math.Abs(secondary))
+                return;
+
+            int direction = Math.Sign(primary);
+            if (lastAxisDirection != 0 && direction != lastAxisDirection)
+                axisReversals++;
+            lastAxisDirection = direction;
+            stepMotionSeconds += Math.Min(.5, seconds);
+            stepTravel += Math.Abs(primary) /
+                (movementStep == MovementStep.Vertical ? height : width);
+            lastMovement = now;
+            if (movementStep == MovementStep.Vertical) verticalSamples++;
+            else horizontalSamples++;
+
+            // Only correct-axis, above-noise sweeps count; a timer running
+            // while stationary or looking in the other direction cannot pass.
+            if (stepMotionSeconds >= 15.0 && axisReversals >= 2 &&
+                stepTravel >= .35)
+            {
+                if (movementStep == MovementStep.Vertical)
+                    NextMovementStep(MovementStep.Horizontal,
+                        "Great work! You've completed fifteen seconds of up and down movement. Next, look left, then right, and repeat for fifteen seconds of actual side to side movement.");
+                else
+                    NextMovementStep(MovementStep.Circles,
+                        "Excellent! You've practiced left and right. Now let's try circles. Slowly trace a big circle with your eyes around the middle of the screen.");
+            }
         }
 
         // CompositionTarget.Rendering tracks display refresh instead of a
