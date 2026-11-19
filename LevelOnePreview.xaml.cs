@@ -208,14 +208,10 @@ namespace EyeGazeApiViability
             BuildSkillsGrid();
             SelectSkillsCategory(0);
             allLevelButtons = new[] { LevelOneButton, LevelTwoButton,
-                LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton,
-                Level7Button, Level8Button, Level9Button, Level10Button,
-                Level11Button, Level12Button, Level13Button, Level14Button };
+                LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton };
             levelsButtons = new[] { LevelZeroReplayButton, LevelOneButton,
                 LevelTwoButton, LevelThreeButton, LevelFourButton, LevelFiveButton,
-                LevelSixButton, Level7Button, Level8Button, Level9Button,
-                Level10Button, Level11Button, Level12Button, Level13Button,
-                Level14Button, LevelsBackButton };
+                LevelSixButton, LevelsBackButton };
             lessonButtons = new[] { LessonBackButton };
             levelZeroContinueButtons = new[] { LevelZeroContinueButton };
             bonusButtons = new[] { BonusBackButton, BonusTrueButton, BonusFalseButton };
@@ -568,11 +564,7 @@ namespace EyeGazeApiViability
                 OnLevelOne(null, null);
             else if (target == LevelTwoButton || target == LevelThreeButton ||
                      target == LevelFourButton || target == LevelFiveButton ||
-                     target == LevelSixButton || target == Level7Button ||
-                     target == Level8Button || target == Level9Button ||
-                     target == Level10Button || target == Level11Button ||
-                     target == Level12Button || target == Level13Button ||
-                     target == Level14Button)
+                     target == LevelSixButton)
                 OnPlaceholderLevel(target, null);
             else if (target == ShorterButton)
                 OnReferenceShorter(null, null);
