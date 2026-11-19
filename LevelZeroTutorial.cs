@@ -165,22 +165,25 @@ namespace EyeGazeApiViability
         private void OnLevelZeroMediaPlayerFailed(MediaPlayer sender,
                                                   MediaPlayerFailedEventArgs args)
         {
-            Trace("Level 0 speech playback failure: " +
-                  args.ErrorMessage);
+            Trace("Level 0 speech playback failure: " + args.ErrorMessage);
+            SignalLevelZeroPlaybackFinished(false);
         }
 
         private void OnLevelZeroMediaEnded(MediaPlayer sender, object args)
         {
-            // MediaEnded is raised on a media thread; signal only.
+            // Native player events are not guaranteed to run on the UI thread.
+            SignalLevelZeroPlaybackFinished(true);
+        }
+
+        private void SignalLevelZeroPlaybackFinished(bool playedToEnd)
+        {
             var completion = levelZeroPlaybackCompletion;
             if (completion == null) return;
-            // Resume the narration sequence on the UI dispatcher. A native
-            // MediaPlayer callback can arrive on a background thread.
             if (Dispatcher.HasThreadAccess)
-                completion.TrySetResult(true);
+                completion.TrySetResult(playedToEnd);
             else
                 _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
-                    () => completion.TrySetResult(true));
+                    () => completion.TrySetResult(playedToEnd));
         }
 
         // Important stage directions take precedence over ordinary praise.
@@ -248,12 +251,21 @@ namespace EyeGazeApiViability
                     MediaSource.CreateFromStream(stream, stream.ContentType);
                 levelZeroAudioPlayer.Play();
                 Trace("Level 0 speaking: " + words);
-                await Task.WhenAny(levelZeroPlaybackCompletion.Task,
-                                   Task.Delay(18000));
+                // Do not start the next voice until Windows confirms that
+                // the whole current utterance finished playing. A fixed delay
+                // could overlap with a longer welcome or stage instruction.
+                bool playedToEnd = await levelZeroPlaybackCompletion.Task;
+                if (!playedToEnd)
+                    throw new InvalidOperationException(
+                        "Level 0 voice playback was interrupted or failed.");
+                // Brief breathing room between complete spoken messages.
+                await Task.Delay(350);
             }
             catch (Exception ex)
             {
                 levelZeroSpeechUnavailable = true;
+                levelZeroFeedbackQueue.Clear();
+                levelZeroPendingInstruction = null;
                 Trace("Level 0 voice failed: " + ex);
             }
             finally
