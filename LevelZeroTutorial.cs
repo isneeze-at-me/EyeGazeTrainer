@@ -105,7 +105,12 @@ namespace EyeGazeApiViability
                 // Other training activity must not silently skip onboarding.
                 return true;
             }
-            catch (Exception) { return false; }
+            catch (Exception)
+            {
+                // If completion storage is unavailable, do not presume the
+                // user already learned the prerequisite eye-gaze skills.
+                return true;
+            }
         }
 
         private void StartLevelZero()
