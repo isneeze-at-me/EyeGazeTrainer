@@ -172,8 +172,11 @@ namespace EyeGazeApiViability
         private bool mouseOnlyFallback;
         private DispatcherTimer noTrackerNoticeTimer;
         private DispatcherTimer startupSplashTimer;
+        private DispatcherTimer startupDiscoveryTimer;
         private bool startupSplashCompleted;
+        private bool startupRouted;
         private const int StartupSplashDurationSeconds = 3;
+        private const int StartupDiscoveryTimeoutSeconds = 5;
         private Button gazeControlTarget;
         private SharedButtonDwellWheel buttonDwellWheel;
         private SharedButtonDwellWheel targetDwellWheel;
@@ -316,24 +319,54 @@ namespace EyeGazeApiViability
             }
             if (startupSplashCompleted || stopping || exitRequested) return;
             startupSplashCompleted = true;
+            // Never block splash dismissal on the Windows gaze watcher:
+            // EnumerationCompleted is not guaranteed to arrive promptly.
+            StartupSplashPanel.Visibility = Visibility.Collapsed;
             CompleteStartupAfterTrackerScan();
+            if (!startupRouted && !exitRequested && !stopping)
+            {
+                // Allow briefly for a slower device enumeration before deciding
+                // that this is a mouse-only session.
+                startupDiscoveryTimer = new DispatcherTimer
+                    { Interval = TimeSpan.FromSeconds(StartupDiscoveryTimeoutSeconds) };
+                startupDiscoveryTimer.Tick += OnStartupDiscoveryTimeout;
+                startupDiscoveryTimer.Start();
+            }
+        }
+
+        private void OnStartupDiscoveryTimeout(object sender, object e)
+        {
+            StopStartupDiscoveryTimer();
+            if (startupRouted || exitRequested || stopping) return;
+            Trace("Initial gaze enumeration timed out; selecting startup mode");
+            trackerEnumerationFinished = true;
+            CompleteStartupAfterTrackerScan();
+        }
+
+        private void StopStartupDiscoveryTimer()
+        {
+            if (startupDiscoveryTimer == null) return;
+            startupDiscoveryTimer.Stop();
+            startupDiscoveryTimer.Tick -= OnStartupDiscoveryTimeout;
+            startupDiscoveryTimer = null;
         }
 
         private void CompleteStartupAfterTrackerScan()
         {
-            if (!startupSplashCompleted || !trackerEnumerationFinished ||
+            if (!startupSplashCompleted || startupRouted ||
                 exitRequested || stopping) return;
-            StartupSplashPanel.Visibility = Visibility.Collapsed;
+            // A discovered tracker can proceed immediately even when the
+            // enumeration-completed notification is delayed or missing.
+            if (!trackerSeenDuringEnumeration && !trackerEnumerationFinished) return;
+            startupRouted = true;
+            StopStartupDiscoveryTimer();
             if (!trackerSeenDuringEnumeration)
             {
                 EnterMouseOnlyFallback();
                 return;
             }
-            if (mouseOnlyFallback) return;
 
-            // One gaze owner throughout the whole session, with no input
-            // skill required to dismiss the splash. First-time learners
-            // begin at Level 0; returning learners see the main menu.
+            // Keep the existing single-owner gaze startup and tutorial route.
             if (ShouldStartLevelZero())
                 StartLevelZero();
             else
@@ -459,16 +492,22 @@ namespace EyeGazeApiViability
                                    GazeDeviceWatcherAddedPreviewEventArgs args)
         {
             if (args.Device != null) trackerSeenDuringEnumeration = true;
-            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
-                                    () => UseReadyDevice(args.Device));
+            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                UseReadyDevice(args.Device);
+                CompleteStartupAfterTrackerScan();
+            });
         }
 
         private void OnDeviceUpdated(GazeDeviceWatcherPreview sender,
                                      GazeDeviceWatcherUpdatedPreviewEventArgs args)
         {
             if (args.Device != null) trackerSeenDuringEnumeration = true;
-            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
-                                    () => UseReadyDevice(args.Device));
+            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                UseReadyDevice(args.Device);
+                CompleteStartupAfterTrackerScan();
+            });
         }
 
         private void OnDeviceRemoved(GazeDeviceWatcherPreview sender,
@@ -2101,6 +2140,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            StopStartupDiscoveryTimer();
             trainingReport.FlushPracticeTime();
             DismissNoTrackerNotice();
             StopLevelZero();
@@ -2272,6 +2312,13 @@ namespace EyeGazeApiViability
             // Navigation follows staged gaze release; make the Windows arrow
             // available again on the gaze-free closing page and desktop.
             RestoreWindowsPointerCursor();
+            StopStartupDiscoveryTimer();
+            if (startupSplashTimer != null)
+            {
+                startupSplashTimer.Stop();
+                startupSplashTimer.Tick -= OnStartupSplashElapsed;
+                startupSplashTimer = null;
+            }
             RootLayout.SizeChanged -= OnGazeLayoutSizeChanged;
             gazeButtonBounds.Clear();
             trainingReport.FlushPracticeTime();
