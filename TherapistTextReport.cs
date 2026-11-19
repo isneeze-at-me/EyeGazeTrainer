@@ -27,7 +27,9 @@ namespace EyeGazeApiViability
             int controlDwellMilliseconds,
             string[][] skillCategories,
             string[] categoryNames,
-            string[] levelZeroValues)
+            string[] levelZeroValues,
+            string[] levelZeroExtraValues,
+            string[] levelZeroHistory)
         {
             var b = new StringBuilder(12000);
             b.AppendLine(new string('=', Width));
@@ -140,9 +142,24 @@ namespace EyeGazeApiViability
             }
             b.AppendLine();
 
-            Section(b, "6. INDIVIDUAL SESSIONS AND CONTEXT");
-            Field(b, "Dated session summaries", "NA - not recorded yet");
-            Field(b, "Session-to-session comparisons", "NA - not recorded yet");
+            Section(b, "6. LEVEL 0 EXTENDED OBSERVATIONS AND SESSIONS");
+            string[] extraLabels = { "Gaze stability (Home hold)",
+                "Tracking gaps (>1 sec)", "Directional movement",
+                "Circular movement", "Interrupted Home dwells", "Tutorial duration" };
+            for (int i = 0; i < extraLabels.Length; i++)
+                Field(b, extraLabels[i], levelZeroExtraValues != null &&
+                    i < levelZeroExtraValues.Length ? levelZeroExtraValues[i] : "NA");
+            b.AppendLine("  Raw gaze coordinates are not stored. Gaps may reflect device");
+            b.AppendLine("  or application delays. Resting is never scored as failure.");
+            b.AppendLine("  Stability is pixel spread during sampled Home-button holds.");
+            b.AppendLine();
+            Field(b, "Level 0 session history", levelZeroHistory == null ?
+                "NA" : levelZeroHistory.Length + " dated sessions (up to 100)");
+            if (levelZeroHistory != null)
+                foreach (string session in levelZeroHistory)
+                    Wrap(b, "    ", session, Width - 6);
+            Field(b, "Early vs late session change", "NA - not measured");
+            Field(b, "Session-to-session comparisons", "Raw summaries listed above");
             Field(b, "Early vs late session change", "NA - not recorded yet");
             Field(b, "Positioning / screen / lighting", "NA - not recorded yet");
             Field(b, "Self-reported comfort / fatigue", "NA - not recorded yet");
