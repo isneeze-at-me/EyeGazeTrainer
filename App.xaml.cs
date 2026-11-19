@@ -52,28 +52,42 @@ namespace EyeGazeApiViability
                 windowEventsRegistered = true;
             }
 
+            // Windows reads this preference during activation. Calling
+            // TryEnterFullScreenMode after Activate was too late and caused
+            // the app to appear briefly as a small window first.
+            try
+            {
+                ApplicationView.PreferredLaunchWindowingMode =
+                    ApplicationViewWindowingMode.FullScreen;
+                TraceLifecycle("Preferred startup windowing mode: FullScreen");
+            }
+            catch (Exception ex)
+            {
+                TraceLifecycle("Fullscreen preference unavailable: " +
+                               ex.GetType().Name);
+            }
+
             if (frame.Content == null)
             {
                 TraceLifecycle("Navigate to gaze screen");
                 frame.Navigate(typeof(LevelOnePreview));
             }
 
-            Window.Current.Activate();
-            TraceLifecycle("Window.Activate completed");
-            // Request immersive full-screen presentation on first launch.
-            // This is the application window, not a separate gaze-owning
-            // window; normal UWP activation and controlled Exit stay intact.
+            // Request immersive mode before making the window visible.
+            // The launch preference above also covers subsequent cold starts.
             try
             {
                 bool fullScreen = ApplicationView.GetForCurrentView()
                     .TryEnterFullScreenMode();
-                TraceLifecycle("Fullscreen request accepted=" + fullScreen);
+                TraceLifecycle("Fullscreen pre-activation accepted=" + fullScreen);
             }
             catch (Exception ex)
             {
                 TraceLifecycle("Fullscreen request unavailable: " +
                                ex.GetType().Name);
             }
+            Window.Current.Activate();
+            TraceLifecycle("Window.Activate completed");
             TryStartOverlayCompanion();
         }
 
