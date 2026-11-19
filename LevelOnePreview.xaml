@@ -86,7 +86,7 @@
               HorizontalAlignment="Left" VerticalAlignment="Top"
               Margin="36,36,0,0"
               Visibility="Collapsed"
-              AutomationProperties.Name="Open levels screen"
+              AutomationProperties.Name="Open Level Menu"
               Click="OnLevelZeroContinue"/>
       <!-- Speech plays through a nonvisual Windows MediaPlayer instance. -->
     </Grid>
