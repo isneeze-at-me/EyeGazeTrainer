@@ -63,6 +63,7 @@ namespace EyeGazeApiViability
         private bool levelZeroVerticalPraised;
         private bool levelZeroButtonExplanationPending;
         private bool levelZeroStageWaitingForInstructions;
+        private bool levelZeroFinishAfterSpeech;
         private string levelZeroStageInstructionSpeech;
         private const double LevelZeroMaximumStepSeconds = 60;
         private readonly System.Collections.Generic.Queue<string> levelZeroFeedbackQueue =
@@ -112,6 +113,7 @@ namespace EyeGazeApiViability
             levelZeroPendingInstruction = null;
             levelZeroFeedbackQueue.Clear();
             levelZeroButtonExplanationPending = false;
+            levelZeroFinishAfterSpeech = false;
             levelZeroStageWaitingForInstructions = false;
             levelZeroStageInstructionSpeech = null;
             levelZeroSpeechUnavailable = false;
@@ -344,6 +346,10 @@ namespace EyeGazeApiViability
                             levelZeroPendingInstruction = null;
                             _ = PlayLevelZeroSpeechAsync(next);
                         }
+                        else if (levelZeroFinishAfterSpeech)
+                        {
+                            FinishLevelZero();
+                        }
                         else if (levelZeroButtonExplanationPending &&
                                  levelZeroStage == LevelZeroStage.Continue)
                         {
@@ -436,10 +442,12 @@ namespace EyeGazeApiViability
                 if (levelZeroStage == LevelZeroStage.Pursue)
                     GoToLevelZeroSelection(true);
                 else if (levelZeroStage == LevelZeroStage.Continue &&
-                         !levelZeroButtonExplanationPending)
+                         !levelZeroButtonExplanationPending &&
+                         !levelZeroFinishAfterSpeech)
                 {
+                    levelZeroFinishAfterSpeech = true;
                     SpeakLevelZero("Good effort, let's move on to the training levels.", true);
-                    FinishLevelZero();
+                    if (levelZeroSpeechUnavailable) FinishLevelZero();
                 }
                 return;
             }
@@ -915,6 +923,64 @@ namespace EyeGazeApiViability
                 : "Fantastic! You've learned how to follow a moving target. One final step. A large house button will appear. It takes you to the Levels screen, where you can start Level One. Look at the button and keep looking until the circular ring fills. Give it a try!";
             levelZeroStageInstructionSpeech = explanation;
             SpeakLevelZero(explanation, true);
+        }
+
+        // Choose the furthest corner from the current gaze. The button is
+        // kept comfortably inside the view and is only positioned when the
+        // complete spoken explanation has finished, so gaze cannot already
+        // be dwelling on a previously visible button.
+        private void RevealLevelZeroContinueButton()
+        {
+            if (levelZeroStage != LevelZeroStage.Continue) return;
+            double w = LevelZeroPanel.ActualWidth;
+            double h = LevelZeroPanel.ActualHeight;
+            const double buttonW = 330, buttonH = 210;
+            const double padding = 36;
+            if (w <= 0 || h <= 0) return;
+
+            double maxLeft = Math.Max(0, w - buttonW - padding);
+            double maxTop = Math.Max(0, h - buttonH - padding);
+            double leftEdge = Math.Min(padding, Math.Max(0, w - buttonW));
+            double topEdge = Math.Min(padding, Math.Max(0, h - buttonH));
+            double rightEdge = Math.Max(leftEdge, maxLeft);
+            double bottomEdge = Math.Max(topEdge, maxTop);
+
+            Point gaze = mostRecentRawGazePosition;
+            if (double.IsNaN(gaze.X) || double.IsNaN(gaze.Y) ||
+                gaze.X < 0 || gaze.Y < 0 || gaze.X > w || gaze.Y > h)
+                gaze = new Point(w / 2, h / 2);
+
+            double bestX = leftEdge, bestY = topEdge, best = -1;
+            double[] xs = { leftEdge, rightEdge };
+            double[] ys = { topEdge, bottomEdge };
+            foreach (double x in xs)
+                foreach (double y in ys)
+                {
+                    // Maximize the distance from the current gaze to the
+                    // nearest edge of the button, not just its center.
+                    double dx = Math.Max(x - gaze.X,
+                        Math.Max(0, gaze.X - (x + buttonW)));
+                    double dy = Math.Max(y - gaze.Y,
+                        Math.Max(0, gaze.Y - (y + buttonH)));
+                    double distanceSquared = dx * dx + dy * dy;
+                    if (distanceSquared > best)
+                    {
+                        best = distanceSquared;
+                        bestX = x;
+                        bestY = y;
+                    }
+                }
+            LevelZeroContinueButton.Margin =
+                new Thickness(bestX, bestY, 0, 0);
+            levelZeroButtonExplanationPending = false;
+            levelZeroStageStarted = DateTimeOffset.UtcNow;
+            levelZeroStageWaitingForInstructions = false;
+            // Never carry over dwell already collected at the prior screen
+            // position, even if the user was staring at that position.
+            gazeControlTarget = null;
+            gazeControlTriggered = false;
+            buttonDwellWheel.Hide();
+            LevelZeroContinueButton.Visibility = Visibility.Visible;
         }
 
         private void OnLevelZeroReplay(object sender, RoutedEventArgs e)
