@@ -2051,6 +2051,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            trainingReport.FlushPracticeTime();
             DismissNoTrackerNotice();
             StopLevelZero();
             HideTherapistExportConfirmation();
@@ -2221,6 +2222,7 @@ namespace EyeGazeApiViability
             // Navigation follows staged gaze release; make the Windows arrow
             // available again on the gaze-free closing page and desktop.
             RestoreWindowsPointerCursor();
+            trainingReport.FlushPracticeTime();
             StopNoTrackerNoticeTimer();
             StopLevelZero();
             HideTherapistExportConfirmation();
