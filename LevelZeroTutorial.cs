@@ -417,8 +417,12 @@ namespace EyeGazeApiViability
         private void ObserveLevelZeroMovement(Point gaze, double width,
                                               double height, DateTimeOffset now)
         {
-            // Sample at 10 Hz, not every tracker frame; ignore jitter.
-            if ((now - lastMotionSample).TotalMilliseconds < 100) return;
+            // Free exploration uses a longer measurement window so genuine
+            // slow gaze travel can accumulate past the noise threshold.
+            // Directional exercises keep 10 Hz responsiveness.
+            int sampleWindowMs = movementStep == MovementStep.Discover ? 250 : 100;
+            if ((now - lastMotionSample).TotalMilliseconds < sampleWindowMs)
+                return;
             if (hasPreviousMotionPoint &&
                 (now - lastMotionSample).TotalSeconds > 1.5)
             {
@@ -426,7 +430,8 @@ namespace EyeGazeApiViability
                 hasPreviousCircleAngle = false;
             }
             double dt = lastMotionSample == DateTimeOffset.MinValue
-                ? 0 : Math.Min(.2, (now - lastMotionSample).TotalSeconds);
+                ? 0 : Math.Min(movementStep == MovementStep.Discover ? .35 : .2,
+                               (now - lastMotionSample).TotalSeconds);
             lastMotionSample = now;
             if (!hasPreviousMotionPoint)
             {
