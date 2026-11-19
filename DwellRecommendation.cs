@@ -11,9 +11,9 @@ namespace EyeGazeApiViability
     internal sealed class DwellRecommendation
     {
         private const string Prefix = "EyeGazeTrainer.DwellRecommendation.V1.";
-        public const int InitialMilliseconds = 500;
+        public const int InitialMilliseconds = 1500;
         private const int MinimumMilliseconds = 300;
-        private const int MaximumMilliseconds = 1500;
+        private const int MaximumMilliseconds = 2500;
         private const int WindowSize = 12;
         private int recommendation = InitialMilliseconds;
         private int totalSuccesses;
