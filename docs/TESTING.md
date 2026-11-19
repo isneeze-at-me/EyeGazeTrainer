@@ -458,3 +458,21 @@ Scoring is **asymmetric per training level**: Level 1 has 7% gain weighting towa
 - Cache gaze button bounds when layout is stable instead of evaluating per-button TransformToVisual during every gaze event.
 - Reduce potentially redundant Canvas position writes and screen property updates when coordinates are unchanged.
 - Examine whether refresh-synchronized pursuit motion is CPU-intensive on high-refresh displays; do not throttle it without observing effect on tracking accuracy.
+
+
+## Performance optimization second pass (2026-11-19 — Test branch, source reviewed; hardware measurements pending)
+
+Implemented:
+- Cache per-screen gaze-button hit rectangles to avoid TransformToVisual for every button on every gaze event. Clear on screen/tab transitions, root layout resize, and display-size recalibration; still check live visibility/enabled state and actual dimensions before using a rectangle.
+- Reduce redundant cursor Canvas position writes for movement under 0.35 view units. All raw gaze observations, target scoring, hit tests, and dwell activation timing remain unchanged.
+- Reduce Level 0 moving-target layout churn: update the visual at ~60 Hz maximum on high-refresh screens, and skip updates under 0.35 view units. The learning task, gaze tracking, and accumulated pursuit time are not rate-limited.
+- Read Level 0 saved session history once when refreshing the Sessions diagnostics tab rather than twice.
+
+Need verification:
+1. Build UWP x64 Release and Debug, and run both with Tobii PCEye 5 and without tracker (mouse fallback).
+2. Check layout cache after switching every menu/diagnostics tab, changing display reference size, Windows DPI changes, window resize, bonus screen transitions, and target/bounds redraw.
+3. Check Exit safety fallback with raw gaze and normal TD Control handoff, including consecutive app launches.
+4. Verify smooth pursuit and target hit timing on 60/120/144 Hz displays; measure frame rate, CPU, allocations/sec, private working set and responsive dwell.
+5. Repeat Level 0 and verify Diagnostics → Sessions counts/history as before.
+
+No measured CPU/RAM savings, Microsoft certification outcome, or hardware stability claims are made.
