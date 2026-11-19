@@ -5,6 +5,7 @@ using Windows.ApplicationModel.Activation;
 using Windows.Storage;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.ViewManagement;
 
 namespace EyeGazeApiViability
 {
@@ -47,6 +48,20 @@ namespace EyeGazeApiViability
 
             Window.Current.Activate();
             TraceLifecycle("Window.Activate completed");
+            // Request immersive full-screen presentation on first launch.
+            // This is the application window, not a separate gaze-owning
+            // window; normal UWP activation and controlled Exit stay intact.
+            try
+            {
+                bool fullScreen = ApplicationView.GetForCurrentView()
+                    .TryEnterFullScreenMode();
+                TraceLifecycle("Fullscreen request accepted=" + fullScreen);
+            }
+            catch (Exception ex)
+            {
+                TraceLifecycle("Fullscreen request unavailable: " +
+                               ex.GetType().Name);
+            }
             TryStartOverlayCompanion();
         }
 
