@@ -432,3 +432,29 @@ Scoring is **asymmetric per training level**: Level 1 has 7% gain weighting towa
 7. Simulate a watcher initialization failure and optional trace-file write failure; verify mouse fallback still works.
 
 **Not verified:** Actual Microsoft Store certification, PCEye 5 model identity, Windows SDK build/packaging, and hardware-dependent gaze/TD Control behavior.
+
+
+## Performance and memory optimization review (2026-11-19 — code changes on Test, NOT benchmarked)
+
+### Implemented
+- Reuse dwell-wheel PathGeometry, PathFigure and ArcSegment objects instead of allocating them for each gaze update; redraw at 1/120 progress increments.
+- Use a bounded 120-entry FIFO for raw gaze samples instead of a List that shifts earlier elements when full. Samples remain in chronological order and stay in memory only.
+- Batch practice-seconds LocalSettings writes at approximately ten seconds of valid practice, flushing on completed runs, explicit Exit and page navigation. The in-memory counter remains exact during a session; an unexpected process crash may lose up to approximately ten seconds of unflushed practice time.
+
+### Not changed intentionally
+- Gaze event frequency, hit testing, scoring, cursor smoothing, dwell activation duration, Level 0 moving target cadence and all TD Control/device cleanup sequencing.
+- Continuous rendering of the Level 0 pursuit target remains refresh-synchronized to preserve smooth motion.
+
+### Required validation
+1. Windows x64 Debug/Release builds using VS2022 and Windows UWP tooling.
+2. Live PCEye 5 gaze target acquisition and 1,500 ms menu dwell, including the visible progress ring at 0%, 50%, 100% and after look-away/rearm.
+3. Gaze sample buffer rollover under sustained 60+ Hz tracking; validate jitter/accuracy metrics against baseline.
+4. Practice time across ten seconds, completed run, Back/Exit, relaunch and failed shutdown; verify bounded lost time on process crash.
+5. Repeated launch/exit with TD Control running; no freezes or regressions.
+6. Mouse fallback, ten-second notice, diagnostics and Exit remain accessible.
+7. Compare CPU %, process private working set/RAM, allocations/sec, and frame responsiveness on identical hardware/tasks before and after the changes. No measured reduction is claimed here.
+
+### Further opportunities pending profiling
+- Cache gaze button bounds when layout is stable instead of evaluating per-button TransformToVisual during every gaze event.
+- Reduce potentially redundant Canvas position writes and screen property updates when coordinates are unchanged.
+- Examine whether refresh-synchronized pursuit motion is CPU-intensive on high-refresh displays; do not throttle it without observing effect on tracking accuracy.
