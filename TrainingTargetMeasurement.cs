@@ -24,7 +24,7 @@ namespace EyeGazeApiViability
             public Point Raw;
         }
 
-        private readonly List<GazeSample> samples = new List<GazeSample>();
+        private readonly Queue<GazeSample> samples = new Queue<GazeSample>(MaximumSamples);
         private DateTimeOffset shownAt;
         private DateTimeOffset enteredAt;
         private DateTimeOffset lastSampleAt;
@@ -79,8 +79,8 @@ namespace EyeGazeApiViability
                 // samples so its eventual click can be measured accurately.
                 if (inside && Valid(raw))
                 {
-                    samples.Add(new GazeSample { When = now, Raw = raw });
-                    if (samples.Count > MaximumSamples) samples.RemoveAt(0);
+                    if (samples.Count == MaximumSamples) samples.Dequeue();
+                    samples.Enqueue(new GazeSample { When = now, Raw = raw });
                 }
                 return false;
             }
@@ -98,8 +98,8 @@ namespace EyeGazeApiViability
             }
 
             lastSampleAt = now;
-            samples.Add(new GazeSample { When = now, Raw = raw });
-            if (samples.Count > MaximumSamples) samples.RemoveAt(0);
+            if (samples.Count == MaximumSamples) samples.Dequeue();
+            samples.Enqueue(new GazeSample { When = now, Raw = raw });
 
             HoldProgress = Math.Max(0, Math.Min(1,
                 (now - enteredAt).TotalMilliseconds / TargetHoldMilliseconds));
