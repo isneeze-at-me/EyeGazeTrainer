@@ -23,6 +23,13 @@ namespace EyeGazeApiViability
         private readonly Canvas overlay;
         private readonly Canvas wheel;
         private readonly Path progressArc;
+        // Reuse the path and both arc segments rather than allocate a new
+        // visual tree on every eye-tracker sample.
+        private readonly PathFigure progressFigure;
+        private readonly ArcSegment firstArc;
+        private readonly ArcSegment secondArc;
+        private double previousProgress = -1;
+        private Point previousCenter = new Point(double.NaN, double.NaN);
 
         public SharedButtonDwellWheel(Canvas overlay)
         {
@@ -56,6 +63,29 @@ namespace EyeGazeApiViability
                 StrokeEndLineCap = PenLineCap.Round,
                 IsHitTestVisible = false
             };
+            double arcCenter = wheel.Width * 0.5;
+            firstArc = new ArcSegment
+            {
+                Size = new Size(Radius, Radius),
+                SweepDirection = SweepDirection.Clockwise,
+                IsLargeArc = false
+            };
+            secondArc = new ArcSegment
+            {
+                Size = new Size(Radius, Radius),
+                SweepDirection = SweepDirection.Clockwise,
+                IsLargeArc = false
+            };
+            progressFigure = new PathFigure
+            {
+                StartPoint = new Point(arcCenter, arcCenter - Radius),
+                IsClosed = false
+            };
+            progressFigure.Segments.Add(firstArc);
+            progressFigure.Segments.Add(secondArc);
+            var progressGeometry = new PathGeometry();
+            progressGeometry.Figures.Add(progressFigure);
+            progressArc.Data = progressGeometry;
             wheel.Children.Add(progressArc);
             Canvas.SetZIndex(wheel, 100);
             overlay.Children.Add(wheel);
@@ -94,44 +124,33 @@ namespace EyeGazeApiViability
                 return;
             }
 
-            Canvas.SetLeft(wheel, centerPoint.X - wheel.Width * 0.5);
-            Canvas.SetTop(wheel, centerPoint.Y - wheel.Height * 0.5);
-
-            double p = Math.Max(0, Math.Min(1, progress));
-            double center = wheel.Width * 0.5;
-            if (p <= 0)
+            if (previousCenter.X != centerPoint.X ||
+                previousCenter.Y != centerPoint.Y)
             {
-                progressArc.Data = null;
+                Canvas.SetLeft(wheel, centerPoint.X - wheel.Width * 0.5);
+                Canvas.SetTop(wheel, centerPoint.Y - wheel.Height * 0.5);
+                previousCenter = centerPoint;
             }
-            else
+
+            // Avoid expensive composition updates for negligible changes.
+            // Dwell timing/activation are handled by the caller, not here.
+            double p = Math.Max(0, Math.Min(1, progress));
+            double rendered = Math.Round(p * 120) / 120;
+            if (rendered != previousProgress)
             {
-                // UWP ArcSegment cannot represent a full circle with one arc.
-                // Construct two arcs, preserving a complete visible ring at 100%.
-                double firstSweep = Math.Min(Math.PI, p * Math.PI * 2);
-                double secondSweep = Math.Max(0, p * Math.PI * 2 - Math.PI);
-                var start = new Point(center, center - Radius);
-                var firstEnd = PolarPoint(center, firstSweep);
-                var figure = new PathFigure { StartPoint = start, IsClosed = false };
-                figure.Segments.Add(new ArcSegment
-                {
-                    Point = firstEnd,
-                    Size = new Size(Radius, Radius),
-                    SweepDirection = SweepDirection.Clockwise,
-                    IsLargeArc = false
-                });
-                if (secondSweep > 0)
-                {
-                    figure.Segments.Add(new ArcSegment
-                    {
-                        Point = PolarPoint(center, firstSweep + secondSweep),
-                        Size = new Size(Radius, Radius),
-                        SweepDirection = SweepDirection.Clockwise,
-                        IsLargeArc = secondSweep > Math.PI
-                    });
-                }
-                var geometry = new PathGeometry();
-                geometry.Figures.Add(figure);
-                progressArc.Data = geometry;
+                previousProgress = rendered;
+                double center = wheel.Width * 0.5;
+                double totalSweep = rendered * Math.PI * 2;
+                double firstSweep = Math.Min(Math.PI, totalSweep);
+                double secondSweep = Math.Max(0, totalSweep - Math.PI);
+
+                firstArc.Point = PolarPoint(center, firstSweep);
+                // Keep two arcs so a full 360-degree dwell stays visible.
+                secondArc.Point = PolarPoint(center, firstSweep + secondSweep);
+                // At 0 progress, keep the arc path invisible rather than
+                // recreating/destroying its geometry each frame.
+                progressArc.Visibility = rendered <= 0
+                    ? Visibility.Collapsed : Visibility.Visible;
             }
             wheel.Visibility = Visibility.Visible;
         }
@@ -144,8 +163,9 @@ namespace EyeGazeApiViability
 
         public void Hide()
         {
-            progressArc.Data = null;
             wheel.Visibility = Visibility.Collapsed;
+            previousProgress = -1;
+            previousCenter = new Point(double.NaN, double.NaN);
         }
 
         public void Reset()
