@@ -249,7 +249,11 @@
           <StackPanel Spacing="18" VerticalAlignment="Center">
             <TextBlock Text="YOUR PROGRESS" Foreground="White" FontSize="26"
                        FontWeight="Bold" TextAlignment="Center"/>
-            <TextBlock Text="▲ Improving    ▼ Declining    — Stable / awaiting history"
+            <TextBlock Text="RECOMMENDED DWELL" Foreground="#9CE4F8" FontSize="21" FontWeight="Bold" TextAlignment="Center"/>
+             <TextBlock x:Name="RecommendedDwellText" Text="500 ms" Foreground="White" FontSize="32" FontWeight="Bold" TextAlignment="Center"/>
+             <TextBlock x:Name="RecommendedDwellEvidenceText" Text="Starting estimate; awaiting practice" Foreground="#D4E6F8" FontSize="16" TextWrapping="Wrap" TextAlignment="Center"/>
+             <TextBlock Text="This is a provisional estimate, not an applied setting or verified optimum." Foreground="#D4E6F8" FontSize="15" TextWrapping="Wrap" TextAlignment="Center"/>
+             <TextBlock Text="▲ Improving    ▼ Declining    — Stable / awaiting history"
                        Foreground="#D4E6F8" FontSize="19" TextWrapping="Wrap"
                        TextAlignment="Center"/>
             <TextBlock Text="Performance trends compare recent practice results. Changes in tracking, positioning, fatigue, or task difficulty can affect the scores."
