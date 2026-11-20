@@ -488,7 +488,7 @@ namespace EyeGazeApiViability
                 case MovementStep.Horizontal:
                     return "Try looking left, then right, and repeat.";
                 case MovementStep.Circles:
-                    return "Try making a comfortable circular movement with your eyes. You don't need to follow the displayed circle.";
+                    return "Try making comfortable circles with your eyes.";
                 default:
                     return "Try moving your eyes around the screen.";
             }
@@ -580,15 +580,15 @@ namespace EyeGazeApiViability
             {
                 case MovementStep.Discover:
                     NextMovementStep(MovementStep.Vertical,
-                        "Good effort, let's move on. Follow the up and down arrow directions with your eyes for fifteen seconds. You don't need to look directly at the line.");
+                        "Good effort, let's move on. Practice looking up and down for fifteen seconds.");
                     break;
                 case MovementStep.Vertical:
                     NextMovementStep(MovementStep.Horizontal,
-                        "Good effort, let's move on. Practice looking left and right for fifteen seconds. The arrows are only a guide.");
+                        "Good effort, let's move on. Practice looking left and right for fifteen seconds.");
                     break;
                 case MovementStep.Horizontal:
                     NextMovementStep(MovementStep.Circles,
-                        "Good effort, let's move on. Practice making comfortable circles with your eyes for fifteen seconds. The circle is just a guide, not a target.");
+                        "Good effort, let's move on. Practice making comfortable circles with your eyes for fifteen seconds.");
                     break;
                 case MovementStep.Circles:
                     GoToLevelZeroPursuit(true);
@@ -605,7 +605,7 @@ namespace EyeGazeApiViability
                 case MovementStep.Horizontal:
                     return "For this exercise, look to the left, then right, and repeat.";
                 case MovementStep.Circles:
-                    return "For this exercise, move your eyes in comfortable circles. The circle shown is just a visual guide.";
+                    return "For this exercise, move your eyes in comfortable circles.";
                 default:
                     return "look around the screen and move the eye cursor with you.";
             }
@@ -738,7 +738,7 @@ namespace EyeGazeApiViability
                 RecordLevelZeroCorrectMovement(dt);
                 if (discoveryMotionSeconds >= 15.0 && stepTravel >= .50)
                     NextMovementStep(MovementStep.Vertical,
-                        "There you go! You're moving the cursor. Now look toward the top, then down toward the bottom. The line with arrows shows the direction to practice. Move your eyes up and down for fifteen seconds.");
+                        "There you go! You're moving the cursor. Now look toward the top, then down toward the bottom. Move your eyes up and down for fifteen seconds.");
                 return;
             }
 
@@ -868,10 +868,10 @@ namespace EyeGazeApiViability
             {
                 if (movementStep == MovementStep.Vertical)
                     NextMovementStep(MovementStep.Horizontal,
-                        "Great work! You've completed fifteen seconds of up and down movement. Next, look left and right for fifteen seconds. The arrows show the direction to practice.");
+                        "Great work! You've completed fifteen seconds of up and down movement. Next, look left and right for fifteen seconds.");
                 else
                     NextMovementStep(MovementStep.Circles,
-                        "Excellent! You've practiced left and right. Now let's try making comfortable circles with your eyes for fifteen seconds. The large circle is just a visual guide. You don't need to follow its outline.");
+                        "Excellent! You've practiced left and right. Now let's try making comfortable circles with your eyes for fifteen seconds.");
             }
         }
 
