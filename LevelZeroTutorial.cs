@@ -17,7 +17,7 @@ namespace EyeGazeApiViability
     {
         private const string LevelZeroDoneKey = "EyeGazeTrainer.LevelZero.CompletedV1";
         private enum LevelZeroStage { Explore, Pursue, Continue }
-        private enum MovementStep { Discover, Vertical, Horizontal, Circles }
+        private enum MovementStep { Discover, Vertical, Horizontal, DiagonalDown, DiagonalUp, Circles }
         private MovementStep movementStep;
         private bool movementWaitingForInstructions;
         private string movementInstructionSpeech;
@@ -231,6 +231,8 @@ namespace EyeGazeApiViability
             LevelZeroMovementGuide.Visibility = Visibility.Collapsed;
             LevelZeroVerticalGuide.Visibility = Visibility.Collapsed;
             LevelZeroHorizontalGuide.Visibility = Visibility.Collapsed;
+            LevelZeroDiagonalDownGuide.Visibility = Visibility.Collapsed;
+            LevelZeroDiagonalUpGuide.Visibility = Visibility.Collapsed;
             LevelZeroCircleGuide.Visibility = Visibility.Collapsed;
             LevelZeroEyeCursor.Visibility = Visibility.Collapsed;
         }
@@ -533,6 +535,10 @@ namespace EyeGazeApiViability
                     return "Good job! That's up and down.";
                 case MovementStep.Horizontal:
                     return "Good job! That's left and right.";
+                case MovementStep.DiagonalDown:
+                    return "Good job! You're moving from top left to bottom right.";
+                case MovementStep.DiagonalUp:
+                    return "Good job! You're moving from bottom left to top right.";
                 case MovementStep.Circles:
                     return "Good job! Keep those circles going.";
                 default:
@@ -551,7 +557,11 @@ namespace EyeGazeApiViability
                 case MovementStep.Vertical:
                     return "Try looking up, then down, and repeat.";
                 case MovementStep.Horizontal:
-                    return "Try looking left, then right, and repeat.";
+                    return "Try looking from left to right and back again.";
+                case MovementStep.DiagonalDown:
+                    return "Try looking diagonally between the top left and bottom right.";
+                case MovementStep.DiagonalUp:
+                    return "Try looking diagonally between the bottom left and top right.";
                 case MovementStep.Circles:
                     return "Try making comfortable circles with your eyes.";
                 default:
@@ -652,8 +662,16 @@ namespace EyeGazeApiViability
                         "Good effort, let's move on. Practice looking left and right for fifteen seconds.");
                     break;
                 case MovementStep.Horizontal:
+                    NextMovementStep(MovementStep.DiagonalDown,
+                        "Good effort! Next, look diagonally from the top left toward the bottom right, then back. Practice for fifteen seconds.");
+                    break;
+                case MovementStep.DiagonalDown:
+                    NextMovementStep(MovementStep.DiagonalUp,
+                        "Good effort! Now look diagonally from the bottom left toward the top right, then back. Practice for fifteen seconds.");
+                    break;
+                case MovementStep.DiagonalUp:
                     NextMovementStep(MovementStep.Circles,
-                        "Good effort, let's move on. Practice making comfortable circles with your eyes for fifteen seconds.");
+                        "Good effort! Next, practice making comfortable circles with your eyes for fifteen seconds.");
                     break;
                 case MovementStep.Circles:
                     GoToLevelZeroPursuit(true);
@@ -669,6 +687,10 @@ namespace EyeGazeApiViability
                     return "For this exercise, look up toward the top, then down toward the bottom, and repeat.";
                 case MovementStep.Horizontal:
                     return "For this exercise, look to the left, then right, and repeat.";
+                case MovementStep.DiagonalDown:
+                    return "For this exercise, look between the top left and bottom right.";
+                case MovementStep.DiagonalUp:
+                    return "For this exercise, look between the bottom left and top right.";
                 case MovementStep.Circles:
                     return "For this exercise, move your eyes in comfortable circles.";
                 default:
@@ -711,6 +733,12 @@ namespace EyeGazeApiViability
                     ? Visibility.Visible : Visibility.Collapsed;
             LevelZeroHorizontalGuide.Visibility =
                 exploring && movementStep == MovementStep.Horizontal
+                    ? Visibility.Visible : Visibility.Collapsed;
+            LevelZeroDiagonalDownGuide.Visibility =
+                exploring && movementStep == MovementStep.DiagonalDown
+                    ? Visibility.Visible : Visibility.Collapsed;
+            LevelZeroDiagonalUpGuide.Visibility =
+                exploring && movementStep == MovementStep.DiagonalUp
                     ? Visibility.Visible : Visibility.Collapsed;
             LevelZeroCircleGuide.Visibility =
                 exploring && movementStep == MovementStep.Circles
@@ -788,6 +816,9 @@ namespace EyeGazeApiViability
                 if (movementStep == MovementStep.Vertical ||
                     movementStep == MovementStep.Horizontal)
                     ObserveDirectionWindow(gaze, width, height, now);
+                else if (movementStep == MovementStep.DiagonalDown ||
+                         movementStep == MovementStep.DiagonalUp)
+                    ObserveDiagonalWindow(gaze, width, height, now);
                 return;
             }
             hasActualMovement = true;
@@ -821,6 +852,12 @@ namespace EyeGazeApiViability
                 movementStep == MovementStep.Horizontal)
             {
                 ObserveDirectionWindow(gaze, width, height, now);
+                return;
+            }
+            if (movementStep == MovementStep.DiagonalDown ||
+                movementStep == MovementStep.DiagonalUp)
+            {
+                ObserveDiagonalWindow(gaze, width, height, now);
                 return;
             }
 
@@ -1002,8 +1039,72 @@ namespace EyeGazeApiViability
                     NextMovementStep(MovementStep.Horizontal,
                         "Great work! You've completed fifteen seconds of up and down movement. Next, look left and right for fifteen seconds.");
                 else
+                    NextMovementStep(MovementStep.DiagonalDown,
+                        "Excellent! You've practiced left and right. Now look diagonally from the top left toward the bottom right, then back again. Practice for fifteen seconds.");
+            }
+        }
+
+        // The two diagonal lessons measure the direction of gaze over 350 ms,
+        // not where the eye cursor crosses the decorative arrow. Screen
+        // proportions are normalized so the same diagonal is usable on wide
+        // and narrow displays. Both outward and return sweeps count.
+        private void ObserveDiagonalWindow(Point gaze, double width,
+                                            double height, DateTimeOffset now)
+        {
+            if (!directionWindowInitialized)
+            {
+                directionWindowStart = gaze;
+                directionWindowStarted = now;
+                directionWindowInitialized = true;
+                return;
+            }
+            double seconds = (now - directionWindowStarted).TotalSeconds;
+            if (seconds < .35) return;
+            Point start = directionWindowStart;
+            directionWindowStart = gaze;
+            directionWindowStarted = now;
+            if (seconds > 1.2) return; // A tracker gap is not exercise time.
+
+            double dx = (gaze.X - start.X) / width;
+            double dy = (gaze.Y - start.Y) / height;
+            double absX = Math.Abs(dx), absY = Math.Abs(dy);
+            // Two substantive components, with comparable normalized travel.
+            // Perpendicular diagonals, horizontal/vertical and jitter do not
+            // qualify. A deliberate 180-degree return is valid.
+            const double minComponent = .008;
+            bool correctSlope = movementStep == MovementStep.DiagonalDown
+                ? dx * dy > 0 : dx * dy < 0;
+            if (!correctSlope || absX < minComponent || absY < minComponent ||
+                absX < absY * .50 || absY < absX * .50 ||
+                absX > .32 || absY > .32)
+            {
+                return;
+            }
+
+            int direction = Math.Sign(dx);
+            if (lastAxisDirection != 0 && direction != lastAxisDirection)
+                axisReversals++;
+            lastAxisDirection = direction;
+            lastCorrectAxisMovement = now;
+            recentCorrectSweeps++;
+            diagonalSamples++;
+            lastMovement = now;
+            double creditedSeconds = Math.Min(.5, seconds);
+            stepMotionSeconds += creditedSeconds;
+            stepTravel += Math.Sqrt(dx * dx + dy * dy);
+            RecordLevelZeroCorrectMovement(creditedSeconds);
+
+            // Count measured correct-direction movement for 15 seconds,
+            // including at least two reversals and meaningful gaze travel.
+            if (stepMotionSeconds >= 15.0 && axisReversals >= 2 &&
+                stepTravel >= .35)
+            {
+                if (movementStep == MovementStep.DiagonalDown)
+                    NextMovementStep(MovementStep.DiagonalUp,
+                        "Great work! You've completed the first diagonal. Now look from the bottom left toward the top right, then back again. Practice for fifteen seconds.");
+                else
                     NextMovementStep(MovementStep.Circles,
-                        "Excellent! You've practiced left and right. Now let's try making comfortable circles with your eyes for fifteen seconds.");
+                        "Excellent! You've practiced both diagonal directions. Now make comfortable circles with your eyes for fifteen seconds.");
             }
         }
 
