@@ -545,3 +545,14 @@ Required hardware regression: perform cold launch and second launch, test arrow 
 - Replaying or leaving Level 0 clears the instruction panel. Gaze input processing, movement classification, dwell, TD Control handoff, and exit cleanup are unchanged.
 
 **Regression tests:** introductory text visible before first exercise; each narration/text/guide transition; long spoken instructions; delayed speech synthesis; coaching while guide active; speech unavailable; Home and congratulation sequence; Level 0 replay; PCEye 5 repeated startup and exit. Windows build and hardware testing not yet performed.
+
+
+## Level 0 instruction styling and circle duration fix (2026-11-19 — Test)
+
+- Instruction screen now matches the existing introduction congratulations presentation: dark #101827 backdrop, centered content, cyan bold 55pt heading, white semibold 32pt spoken instruction text; no separate rounded instructional border.
+- Prior circle recognition applied a large minimum displacement to each ~100 ms gaze sample and credited time only when instantaneous velocity angle changed within a narrow band. Valid slow circular motion could be rejected repeatedly, leading to the user's reported ~35 seconds for nominal 15 seconds.
+- New `ObserveCircleWindow` computes a 350 ms gaze displacement vector, detects coherent turning of consecutive vectors with forgiving noise thresholds, and credits measured elapsed time (max 0.5 sec/window) only on a valid turn. It still requires 15 cumulative seconds, at least 1.5π radians of accumulated direction change, ten valid turning windows, and five heading sectors. It does not use a fixed on-screen circle or force tracing the visual guide.
+- Two consecutive convincing reverse turns can correct an accidentally established circle direction without forcing the learner to restart. Gaze jumps, stationary gaze, tracker gaps, and straight-line motion do not earn credit.
+- The existing feedback counters and activity timestamps continue to be updated for valid circle movement.
+
+Developer-only deterministic source-equivalent math checks (not a Windows build or PCEye 5 test): synthetic circular trajectories with 3/5/8/10-second revolutions each met completion at ~15.6 seconds; a small-noise 8-second-revolution example met at ~17.2 seconds. Re-run on device for actual gaze tracking artifacts, with both clockwise and counter-clockwise circles, different centers and sizes, intentional pauses, straight lines, and tracker gaps. Also confirm speech text transitions and TD Control works after app exit.
