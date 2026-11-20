@@ -63,6 +63,12 @@ namespace EyeGazeTrainer.OverlayCompanion
                         if (appWindow != IntPtr.Zero)
                         {
                             startupActivationRequested = true;
+                            // This is the same maximize operation formerly
+                            // performed after the first menu click. Moving it
+                            // to launch also gives Windows a chance to activate
+                            // the trainer without requiring user interaction.
+                            ShowWindow(appWindow, SwMaximize);
+                            maximized = appWindow;
                             if (GetForegroundWindow() != appWindow)
                                 SetForegroundWindow(appWindow);
                         }
