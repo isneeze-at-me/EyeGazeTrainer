@@ -44,80 +44,84 @@ namespace EyeGazeTrainer.OverlayCompanion
             IntPtr changed = IntPtr.Zero;
             IntPtr seen = IntPtr.Zero;
             IntPtr maximized = IntPtr.Zero;
-            bool startupActivationRequested = false;
+            bool foregroundSeen = false;
             DateTime started = DateTime.UtcNow;
             DateTime missingSince = DateTime.MinValue;
             try
             {
                 while ((DateTime.UtcNow - started).TotalSeconds < MaxSeconds)
                 {
-                    // Windows can launch a packaged app behind TD Control's
-                    // foreground window. The prior loop only recognized the
-                    // trainer after a click gave it focus. Bring this app's
-                    // own window forward once on initial launch, never later
-                    // during a session or after the user switches away.
-                    if (!startupActivationRequested &&
-                        (DateTime.UtcNow - started).TotalSeconds < 20)
-                    {
-                        IntPtr appWindow = FindVisibleTrainerWindow();
-                        if (appWindow != IntPtr.Zero)
-                        {
-                            startupActivationRequested = true;
-                            // This is the same maximize operation formerly
-                            // performed after the first menu click. Moving it
-                            // to launch also gives Windows a chance to activate
-                            // the trainer without requiring user interaction.
-                            ShowWindow(appWindow, SwMaximize);
-                            maximized = appWindow;
-                            if (GetForegroundWindow() != appWindow)
-                                SetForegroundWindow(appWindow);
-                        }
-                    }
                     IntPtr foreground = GetForegroundWindow();
-                    bool target = IsTarget(foreground);
-                    if (changed != IntPtr.Zero && (foreground != changed || !target))
+                    bool foregroundIsTrainer = IsTarget(foreground);
+
+                    // Apply the gaze-aware window style as soon as our own
+                    // visible ApplicationFrameWindow exists, not only after
+                    // Windows grants it foreground focus. On the first launch
+                    // the foreground grant can arrive after the gaze page is
+                    // already visible, making the overlay disappear only when
+                    // the user clicks a menu button.
+                    IntPtr target = foregroundIsTrainer
+                        ? foreground : (seen == IntPtr.Zero
+                            ? FindVisibleTrainerWindow() : seen);
+                    if (target != IntPtr.Zero && !IsWindow(target))
+                        target = IntPtr.Zero;
+                    if (target != IntPtr.Zero && !IsTarget(target))
+                        target = IntPtr.Zero;
+
+                    // After foreground has been observed once, honor normal
+                    // application switching by restoring the original style.
+                    // Before that first activation, don't undo the initial
+                    // handoff just because Windows still reports TD Control
+                    // (or another application) as foreground.
+                    if (changed != IntPtr.Zero &&
+                        (target != changed ||
+                         (foregroundSeen && !foregroundIsTrainer)))
                     {
                         Restore(changed);
                         changed = IntPtr.Zero;
                     }
 
-                    if (target)
+                    if (target != IntPtr.Zero &&
+                        (!foregroundSeen || foregroundIsTrainer))
                     {
-                        // Apply only once per observed app window. This is a
-                        // normal maximized desktop window, NOT full-screen mode.
-                        // The same exact-window allowlist protects other apps.
-                        if (foreground != maximized)
+                        if (target != maximized)
                         {
-                            ShowWindow(foreground, SwMaximize);
-                            maximized = foreground;
+                            ShowWindow(target, SwMaximize);
+                            maximized = target;
                         }
-                        seen = foreground;
+                        seen = target;
                         missingSince = DateTime.MinValue;
                         if (changed == IntPtr.Zero)
                         {
-                            int style = GetWindowLong(foreground, GwlExStyle);
+                            int style = GetWindowLong(target, GwlExStyle);
                             if ((style & GazeAwareBit) == 0)
                             {
-                                Marshal.GetLastWin32Error();
-                                SetWindowLong(foreground, GwlExStyle, style | GazeAwareBit);
-                                int confirmed = GetWindowLong(foreground, GwlExStyle);
-                                if ((confirmed & GazeAwareBit) != 0) changed = foreground;
+                                SetWindowLong(target, GwlExStyle,
+                                              style | GazeAwareBit);
+                                int confirmed = GetWindowLong(target, GwlExStyle);
+                                if ((confirmed & GazeAwareBit) != 0)
+                                    changed = target;
                             }
                         }
                     }
-                    else if (seen != IntPtr.Zero && !IsWindow(seen))
+                    if (foregroundIsTrainer)
+                        foregroundSeen = true;
+
+                    if (seen != IntPtr.Zero && !IsWindow(seen))
                     {
-                        if (missingSince == DateTime.MinValue) missingSince = DateTime.UtcNow;
-                        else if ((DateTime.UtcNow - missingSince).TotalSeconds >= 2) break;
+                        if (missingSince == DateTime.MinValue)
+                            missingSince = DateTime.UtcNow;
+                        else if ((DateTime.UtcNow - missingSince).TotalSeconds >= 2)
+                            break;
                     }
                     else if (seen != IntPtr.Zero)
                     {
                         missingSince = DateTime.MinValue;
                     }
-                    // If packaging fails to give the expected title/class, exit
-                    // without touching any other windows.
+
                     if (seen == IntPtr.Zero &&
-                        (DateTime.UtcNow - started).TotalSeconds >= 40) break;
+                        (DateTime.UtcNow - started).TotalSeconds >= 40)
+                        break;
                     Thread.Sleep(250);
                 }
             }
