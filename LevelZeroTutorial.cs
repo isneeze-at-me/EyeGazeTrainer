@@ -354,7 +354,30 @@ namespace EyeGazeApiViability
             try
             {
                 if (levelZeroSynth == null) levelZeroSynth = new SpeechSynthesizer();
-                var stream = await levelZeroSynth.SynthesizeTextToStreamAsync(words);
+                // The final Home instruction used to lose the end of "try!"
+                // when the app transitioned as MediaEnded fired. Put actual
+                // silence in the synthesized stage-instruction stream, so the
+                // last spoken syllable has drained before MediaEnded can
+                // release the instruction gate and reveal the Home button.
+                bool isStageInstruction =
+                    (movementWaitingForInstructions &&
+                     words == movementInstructionSpeech) ||
+                    (levelZeroStageWaitingForInstructions &&
+                     words == levelZeroStageInstructionSpeech);
+                SpeechSynthesisStream stream;
+                if (isStageInstruction)
+                {
+                    string safeWords = System.Security.SecurityElement.Escape(words);
+                    string ssml = "<speak version='1.0' " +
+                        "xmlns='http://www.w3.org/2001/10/synthesis' " +
+                        "xml:lang='en-US'>" + safeWords +
+                        "<break time='650ms'/></speak>";
+                    stream = await levelZeroSynth.SynthesizeSsmlToStreamAsync(ssml);
+                }
+                else
+                {
+                    stream = await levelZeroSynth.SynthesizeTextToStreamAsync(words);
+                }
                 if (version != levelZeroNarrationVersion ||
                     currentScreen != AppScreen.LevelZero || exitRequested)
                 {
