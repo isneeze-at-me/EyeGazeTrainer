@@ -737,6 +737,14 @@ namespace EyeGazeApiViability
             double displacement = Math.Sqrt(dx * dx + dy * dy);
             if (displacement > .32) return; // Likely a tracking jump.
 
+            // Circles use longer direction windows instead of rejecting
+            // gentle movements based on the size of each 100 ms sample.
+            if (movementStep == MovementStep.Circles)
+            {
+                ObserveCircleWindow(gaze, width, height, now);
+                return;
+            }
+
             // A tiny change is not evidence of intentional movement.
             // A less stringent threshold is reserved for later directions
             // so slow but deliberate vertical/horizontal motion still counts.
@@ -783,40 +791,82 @@ namespace EyeGazeApiViability
                 return;
             }
 
-            // Recognize circular motion by changes in the direction of
-            // measured gaze travel, NOT position relative to the displayed
-            // circle or the center of the screen. The guide is visual only.
-            // Noise and implausible jumps were already excluded above.
-            double angle = Math.Atan2(dyPixels, dxPixels);
-            int sector = (int)Math.Floor((angle + Math.PI) / (Math.PI / 4));
+            // Circular movement is measured in 350 ms direction windows
+            // below, not in individual noisy tracker samples.
+        }
+
+        // A measured sweep is long enough to recognize gentle eye movement,
+        // but short enough to follow a comfortable circle. The guide itself
+        // has no scoring role; the user may draw a circle anywhere.
+        private void ObserveCircleWindow(Point gaze, double width,
+                                         double height, DateTimeOffset now)
+        {
+            if (!directionWindowInitialized)
+            {
+                directionWindowStart = gaze;
+                directionWindowStarted = now;
+                directionWindowInitialized = true;
+                return;
+            }
+            double seconds = (now - directionWindowStarted).TotalSeconds;
+            if (seconds < .35) return;
+            Point start = directionWindowStart;
+            directionWindowStart = gaze;
+            directionWindowStarted = now;
+            if (seconds > 1.2)
+            {
+                // Lost tracker samples cannot count toward practice.
+                hasPreviousCircleAngle = false;
+                return;
+            }
+
+            double x = gaze.X - start.X;
+            double y = gaze.Y - start.Y;
+            double travel = Math.Sqrt(x * x + y * y);
+            double minTravel = Math.Max(8.0, Math.Min(width, height) * .007);
+            if (travel < minTravel ||
+                travel > Math.Max(width, height) * .32)
+            {
+                // No intentional displacement, or an implausible tracker jump.
+                return;
+            }
+
+            double heading = Math.Atan2(y, x);
+            int sector = (int)Math.Floor((heading + Math.PI) / (Math.PI / 4));
             circleSectorMask |= 1 << Math.Max(0, Math.Min(7, sector));
+
             if (hasPreviousCircleAngle)
             {
-                double delta = angle - previousCircleAngle;
-                while (delta > Math.PI) delta -= 2 * Math.PI;
-                while (delta < -Math.PI) delta += 2 * Math.PI;
-                if (Math.Abs(delta) >= .035 && Math.Abs(delta) < .9)
+                double turn = heading - previousCircleAngle;
+                while (turn > Math.PI) turn -= 2 * Math.PI;
+                while (turn < -Math.PI) turn += 2 * Math.PI;
+                // A gentle circle may turn only a few degrees per window.
+                // Reject near-straight travel, sudden direction reversals,
+                // and tracker noise without requiring a particular radius.
+                double magnitude = Math.Abs(turn);
+                if (magnitude >= .06 && magnitude <= 1.65)
                 {
-                    int sign = Math.Sign(delta);
+                    int sign = Math.Sign(turn);
                     if (circleDirection == 0) circleDirection = sign;
                     if (circleDirection == sign)
                     {
-                        circleTravelRadians += Math.Abs(delta);
+                        double creditedSeconds = Math.Min(.5, seconds);
+                        circleTravelRadians += magnitude;
                         circleSamples++;
                         diagnosticCircleSamples++;
-                        stepMotionSeconds += dt;
-                        RecordLevelZeroCorrectMovement(dt);
+                        stepMotionSeconds += creditedSeconds;
+                        RecordLevelZeroCorrectMovement(creditedSeconds);
                     }
                 }
             }
-            previousCircleAngle = angle;
+            previousCircleAngle = heading;
             hasPreviousCircleAngle = true;
-            // Require a sustained turning pattern in multiple directions
-            // over fifteen seconds, independently of the reference drawing.
-            // Stationary, straight-line and invalid samples do not advance.
+            // Fifteen seconds of detected turning movement, not time since
+            // the instruction ended. A complete pattern must cover different
+            // headings and a meaningful amount of total angular travel.
             if (stepMotionSeconds >= 15.0 &&
-                circleTravelRadians >= Math.PI * 1.5 && circleSamples >= 10 &&
-                CountBits(circleSectorMask) >= 5)
+                circleTravelRadians >= Math.PI * 1.5 &&
+                circleSamples >= 10 && CountBits(circleSectorMask) >= 5)
                 GoToLevelZeroPursuit();
         }
 
