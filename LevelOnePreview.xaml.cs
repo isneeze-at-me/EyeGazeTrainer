@@ -258,7 +258,11 @@ namespace EyeGazeApiViability
 
         private void OnPageLoaded(object sender, RoutedEventArgs e)
         {
-            // Keep Windows mouse pointer available until gaze input starts.
+            // Restore the previously working cursor behavior: hide the
+            // Windows arrow as soon as the gaze trainer page loads, not only
+            // when a Ready notification finally subscribes to GazeMoved.
+            // Mouse-only fallback restores it before displaying its notice.
+            HideWindowsPointerCursor();
             // Preserve the pre-splash initialization sequence: connect the
             // gaze watcher as soon as the page is loaded. The branding
             // overlay stays visible for its full three seconds independently.
@@ -2252,6 +2256,10 @@ namespace EyeGazeApiViability
                             watcher.Added -= OnDeviceAdded;
                             watcher.Updated -= OnDeviceUpdated;
                             watcher.Removed -= OnDeviceRemoved;
+                            // Added by mouse-fallback detection; must release
+                            // during normal gaze shutdown too. Otherwise a
+                            // watcher callback can outlive the closing page.
+                            watcher.EnumerationCompleted -= OnTrackerEnumerationCompleted;
                         }
                         break;
                     case 3:
