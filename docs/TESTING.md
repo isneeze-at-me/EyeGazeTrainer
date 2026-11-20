@@ -556,3 +556,10 @@ Required hardware regression: perform cold launch and second launch, test arrow 
 - The existing feedback counters and activity timestamps continue to be updated for valid circle movement.
 
 Developer-only deterministic source-equivalent math checks (not a Windows build or PCEye 5 test): synthetic circular trajectories with 3/5/8/10-second revolutions each met completion at ~15.6 seconds; a small-noise 8-second-revolution example met at ~17.2 seconds. Re-run on device for actual gaze tracking artifacts, with both clockwise and counter-clockwise circles, different centers and sizes, intentional pauses, straight lines, and tracker gaps. Also confirm speech text transitions and TD Control works after app exit.
+
+
+## Level 0 diagonal practice (2026-11-19 — Test)
+
+Two additional exercises now follow horizontal practice and precede circles: top-left ↔ bottom-right (`DiagonalDown`), followed by bottom-left ↔ top-right (`DiagonalUp`). Each has a centered, large, noninteractive double-headed diagonal arrow guide. Its narration is shown as text until voice playback ends, then the guide appears; short coaching and praise remain audio-only. Each uses 15 cumulative seconds of detected direction-correct gaze movement, requiring meaningful travel and at least two direction reversals. Correct movement is evaluated from 350-ms normalized X/Y gaze displacement, with both components required and approximately comparable; tracing the illustrated line precisely is not required. Existing sixty-second per-stage assistive fallback is preserved, and the final moving-target introduction now mentions diagonal practice.
+
+Required hardware tests on Test: complete vertical, horizontal, both diagonals, circles in order; confirm each guide switches only after spoken instructions, opposing diagonal and straight-axis movement do not count, gentle slower back-and-forth diagonal gaze is accepted, coaching/encouragement are spoken, a nonmoving gaze does not complete practice, and 60-second fallback works. Confirm exit/relaunch returns control to TD Control. Source inspection only; Windows compilation and PCEye 5 validation remain pending.
