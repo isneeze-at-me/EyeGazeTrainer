@@ -29,7 +29,7 @@ namespace EyeGazeApiViability
         private bool hasPreviousMotionPoint, hasPreviousCircleAngle, hasActualMovement;
         private double discoveryMotionSeconds, stepMotionSeconds, stepTravel;
         private double circleTravelRadians, previousCircleAngle;
-        private int circleDirection, circleSectorMask, axisReversals, lastAxisDirection;
+        private int circleDirection, circleOppositeTurnWindows, circleSectorMask, axisReversals, lastAxisDirection;
         private int verticalSamples, horizontalSamples, diagonalSamples, circleSamples;
         private DateTimeOffset lastCorrectAxisMovement;
         private DateTimeOffset coachingWindowStarted;
@@ -658,8 +658,8 @@ namespace EyeGazeApiViability
             directionWindowInitialized = false;
             discoveryMotionSeconds = stepMotionSeconds = stepTravel = 0;
             circleTravelRadians = 0;
-            circleDirection = circleSectorMask = axisReversals =
-                lastAxisDirection = verticalSamples = horizontalSamples =
+            circleDirection = circleOppositeTurnWindows = circleSectorMask =
+                axisReversals = lastAxisDirection = verticalSamples = horizontalSamples =
                 diagonalSamples = circleSamples = 0;
         }
 
@@ -848,6 +848,19 @@ namespace EyeGazeApiViability
                 {
                     int sign = Math.Sign(turn);
                     if (circleDirection == 0) circleDirection = sign;
+                    if (circleDirection != sign)
+                    {
+                        // One bad turn must not lock a learner into the wrong
+                        // direction for the entire lesson. Two consecutive
+                        // opposite turns permit a genuine direction change.
+                        circleOppositeTurnWindows++;
+                        if (circleOppositeTurnWindows >= 2)
+                        {
+                            circleDirection = sign;
+                            circleOppositeTurnWindows = 0;
+                        }
+                    }
+                    else circleOppositeTurnWindows = 0;
                     if (circleDirection == sign)
                     {
                         double creditedSeconds = Math.Min(.5, seconds);
