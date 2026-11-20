@@ -831,6 +831,8 @@ namespace EyeGazeApiViability
                 return;
             }
 
+            hasActualMovement = true;
+            lastMovement = now;
             double heading = Math.Atan2(y, x);
             int sector = (int)Math.Floor((heading + Math.PI) / (Math.PI / 4));
             circleSectorMask |= 1 << Math.Max(0, Math.Min(7, sector));
