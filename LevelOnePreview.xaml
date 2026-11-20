@@ -113,6 +113,34 @@
                         StrokeLineJoin="Round" StrokeStartLineCap="Round"
                         StrokeEndLineCap="Round" Fill="Transparent"/>
             </Canvas>
+            <!-- Top-left ↔ bottom-right and bottom-left ↔ top-right.
+                 Decorative only; practice is judged from gaze displacement. -->
+            <Canvas x:Name="LevelZeroDiagonalDownGuide" Visibility="Collapsed">
+              <Line X1="225" Y1="75" X2="675" Y2="525"
+                    Stroke="#66DCEFFF" StrokeThickness="14"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+              <Polyline Points="225,147 225,75 297,75"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+              <Polyline Points="603,525 675,525 675,453"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+            </Canvas>
+            <Canvas x:Name="LevelZeroDiagonalUpGuide" Visibility="Collapsed">
+              <Line X1="225" Y1="525" X2="675" Y2="75"
+                    Stroke="#66DCEFFF" StrokeThickness="14"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+              <Polyline Points="225,453 225,525 297,525"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+              <Polyline Points="603,75 675,75 675,147"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+            </Canvas>
             <Canvas x:Name="LevelZeroCircleGuide" Visibility="Collapsed">
               <Ellipse Canvas.Left="200" Canvas.Top="50"
                        Width="500" Height="500" Stroke="#66DCEFFF"
