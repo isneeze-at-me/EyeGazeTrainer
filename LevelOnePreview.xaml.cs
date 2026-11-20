@@ -253,6 +253,7 @@ namespace EyeGazeApiViability
             lastPracticeTick = DateTimeOffset.UtcNow;
             practiceTimer.Start();
             RootLayout.SizeChanged += OnGazeLayoutSizeChanged;
+            Window.Current.Activated += OnTrainerWindowActivated;
             Loaded += OnPageLoaded;
         }
 
@@ -278,16 +279,42 @@ namespace EyeGazeApiViability
             startupSplashTimer.Start();
         }
 
+        // Reapply the page-specific pointer policy whenever the UWP window
+        // becomes active. A mouse click can activate the app for the first
+        // time; that should not be required to establish its cursor state.
+        private void OnTrainerWindowActivated(object sender,
+            WindowActivatedEventArgs args)
+        {
+            if (exitRequested || stopping || mouseOnlyFallback) return;
+            if (args.WindowActivationState == CoreWindowActivationState.Deactivated)
+                return;
+            HideWindowsPointerCursor();
+            try
+            {
+                Trace("Window activated; gaze subscribed=" + gazeSubscribed +
+                    "; pointer null=" + (Window.Current.CoreWindow.PointerCursor == null));
+            }
+            catch (Exception) { /* Activation diagnostics cannot block gaze. */ }
+        }
+
         // Hide only the Windows arrow within this UWP window. The trainer
         // continues drawing its own eye-gaze cursor; the tracker, TD Control
         // companion, and pointer input event handling are unchanged.
         private void HideWindowsPointerCursor()
         {
-            if (pointerCursorHidden) return;
             try
             {
                 var coreWindow = Window.Current.CoreWindow;
-                previousPointerCursor = coreWindow.PointerCursor;
+                // Windows may reset a CoreWindow cursor as its activation
+                // changes. Check actual state instead of trusting a cached
+                // boolean that was set on the page's first load.
+                if (coreWindow.PointerCursor == null)
+                {
+                    pointerCursorHidden = true;
+                    return;
+                }
+                if (!pointerCursorHidden)
+                    previousPointerCursor = coreWindow.PointerCursor;
                 coreWindow.PointerCursor = null;
                 pointerCursorHidden = true;
             }
@@ -2329,6 +2356,7 @@ namespace EyeGazeApiViability
         {
             // Navigation follows staged gaze release; make the Windows arrow
             // available again on the gaze-free closing page and desktop.
+            Window.Current.Activated -= OnTrainerWindowActivated;
             RestoreWindowsPointerCursor();
             StopStartupDiscoveryTimer();
             if (startupSplashTimer != null)
