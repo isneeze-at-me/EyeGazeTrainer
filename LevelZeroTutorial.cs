@@ -1322,7 +1322,7 @@ namespace EyeGazeApiViability
             levelZeroFeedbackQueue.Clear();
             string explanation = skipped
                 ? "Good effort, let's move on. A large glowing circle will move around the screen. Keep your eye cursor inside the circle for fifteen seconds of practice."
-                : "Excellent work! You practiced moving up and down, left and right, and drawing circles. Next, a large glowing circle will move around the screen. Follow it with your eyes and keep your eye cursor inside the circle for fifteen seconds.";
+                : "Excellent work! You practiced moving up and down, left and right, both diagonal directions, and drawing circles. Next, a large glowing circle will move around the screen. Follow it with your eyes and keep your eye cursor inside the circle for fifteen seconds.";
             levelZeroStageInstructionSpeech = explanation;
             SpeakLevelZero(explanation, true);
         }
