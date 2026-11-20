@@ -21,6 +21,14 @@ namespace EyeGazeTrainer.OverlayCompanion
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
         [DllImport("user32.dll")]
         private static extern bool IsWindow(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        private static extern bool IsWindowVisible(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+        private delegate bool EnumWindowsCallback(IntPtr hWnd, IntPtr lParam);
+        [DllImport("user32.dll")]
+        private static extern bool EnumWindows(EnumWindowsCallback callback,
+                                               IntPtr lParam);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern int GetWindowText(IntPtr hWnd, StringBuilder buffer, int length);
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
@@ -36,12 +44,29 @@ namespace EyeGazeTrainer.OverlayCompanion
             IntPtr changed = IntPtr.Zero;
             IntPtr seen = IntPtr.Zero;
             IntPtr maximized = IntPtr.Zero;
+            bool startupActivationRequested = false;
             DateTime started = DateTime.UtcNow;
             DateTime missingSince = DateTime.MinValue;
             try
             {
                 while ((DateTime.UtcNow - started).TotalSeconds < MaxSeconds)
                 {
+                    // Windows can launch a packaged app behind TD Control's
+                    // foreground window. The prior loop only recognized the
+                    // trainer after a click gave it focus. Bring this app's
+                    // own window forward once on initial launch, never later
+                    // during a session or after the user switches away.
+                    if (!startupActivationRequested &&
+                        (DateTime.UtcNow - started).TotalSeconds < 20)
+                    {
+                        IntPtr appWindow = FindVisibleTrainerWindow();
+                        if (appWindow != IntPtr.Zero)
+                        {
+                            startupActivationRequested = true;
+                            if (GetForegroundWindow() != appWindow)
+                                SetForegroundWindow(appWindow);
+                        }
+                    }
                     IntPtr foreground = GetForegroundWindow();
                     bool target = IsTarget(foreground);
                     if (changed != IntPtr.Zero && (foreground != changed || !target))
@@ -94,6 +119,20 @@ namespace EyeGazeTrainer.OverlayCompanion
             {
                 if (changed != IntPtr.Zero) Restore(changed);
             }
+        }
+
+        private static IntPtr FindVisibleTrainerWindow()
+        {
+            IntPtr found = IntPtr.Zero;
+            // Only the already allowlisted application frame is eligible.
+            // Do not enumerate or alter TD Control windows themselves.
+            EnumWindows((hWnd, lParam) =>
+            {
+                if (!IsWindowVisible(hWnd) || !IsTarget(hWnd)) return true;
+                found = hWnd;
+                return false;
+            }, IntPtr.Zero);
+            return found;
         }
 
         private static bool IsTarget(IntPtr hWnd)
