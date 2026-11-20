@@ -23,8 +23,6 @@ namespace EyeGazeTrainer.OverlayCompanion
         private static extern bool IsWindow(IntPtr hWnd);
         [DllImport("user32.dll")]
         private static extern bool IsWindowVisible(IntPtr hWnd);
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
         private delegate bool EnumWindowsCallback(IntPtr hWnd, IntPtr lParam);
         [DllImport("user32.dll")]
         private static extern bool EnumWindows(EnumWindowsCallback callback,
