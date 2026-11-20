@@ -124,16 +124,16 @@
       <!-- Spoken exercise directions are displayed instead of the movement
            guide until narration has completed. Noninteractive by design. -->
       <Grid x:Name="LevelZeroInstructionPanel" Visibility="Collapsed"
-            Background="#080F1C" IsHitTestVisible="False">
-        <Border HorizontalAlignment="Center" VerticalAlignment="Center"
-                MaxWidth="1050" Margin="48" Padding="36,30"
-                Background="#17283E" CornerRadius="24"
-                BorderBrush="#6FC9F9" BorderThickness="3">
+            Background="#101827" IsHitTestVisible="False">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MaxWidth="1050" Margin="48" Spacing="26">
+          <TextBlock Text="EYE GAZE PRACTICE"
+                     Foreground="#69E6FF" FontSize="55" FontWeight="Bold"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
           <TextBlock x:Name="LevelZeroInstructionText" Text=""
-                     Foreground="White" FontSize="34" FontWeight="SemiBold"
-                     TextWrapping="Wrap" TextAlignment="Center"
-                     MaxLines="12"/>
-        </Border>
+                     Foreground="White" FontSize="32" FontWeight="SemiBold"
+                     TextWrapping="Wrap" TextAlignment="Center"/>
+        </StackPanel>
       </Grid>
       <Button x:Name="LevelZeroContinueButton"
               Style="{StaticResource PrimaryGazeButton}"
