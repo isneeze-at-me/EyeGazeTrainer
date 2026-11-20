@@ -372,7 +372,17 @@ namespace EyeGazeApiViability
                         "xmlns='http://www.w3.org/2001/10/synthesis' " +
                         "xml:lang='en-US'>" + safeWords +
                         "<break time='650ms'/></speak>";
-                    stream = await levelZeroSynth.SynthesizeSsmlToStreamAsync(ssml);
+                    try
+                    {
+                        stream = await levelZeroSynth.SynthesizeSsmlToStreamAsync(ssml);
+                    }
+                    catch (Exception ex)
+                    {
+                        // SSML support must never disable spoken guidance.
+                        Trace("Instruction SSML unavailable; using text speech: " +
+                            ex.GetType().Name);
+                        stream = await levelZeroSynth.SynthesizeTextToStreamAsync(words);
+                    }
                 }
                 else
                 {
