@@ -503,3 +503,13 @@ Validation required: finish Level 0 with PCEye 5, verify no inadvertent Home rea
 - Circle detection uses turning of the gaze movement vector instead of angular position about the display center, so a learner can make circles away from the drawing. The existing sustained-motion, directional sector, and sample-count checks still apply.
 
 Required tests: check guide visibility throughout transitions, all window aspect ratios, on/off center circular movements, slow and fast movements, no accidental completion by staring at or tracing a guide, the later moving-target pursuit activity, narrated instructions, and repeated sessions. Build and PCEye 5 hardware testing remain pending.
+
+## Cursor and TD Control shutdown regression (2026-11-19 — Test branch)
+
+Observed on hardware per user: Windows arrow remained visible until a main menu selection, and TD Control became unresponsive after app exit.
+
+Source corrections:
+- Hide the Windows arrow at gaze page load (the prior working behavior), rather than waiting for the device's Ready/gaze-event subscription; on no-tracker mouse fallback it is restored immediately, and it is restored on navigation to the gaze-free closing page.
+- Unsubscribe `GazeDeviceWatcherPreview.EnumerationCompleted` in the normal staged shutdown handler-removal phase. This handler was newly added for mouse fallback detection but not included in the normal cleanup sequence. No change to the established ordered phases: GazeMoved unsubscribe, watcher stop, watcher handler removal, local references drop, navigate, exit.
+
+Regression validation required on PCEye 5/TD Control: start twice, confirm no Windows arrow while trainer active, complete Level 0 and navigate through all menus without cursor reappearing, exit using gaze, and verify TD Control immediately operates outside the app after each close. Also verify no-tracker Microsoft Store mouse fallback retains a visible pointer and exits successfully. Examine `level1-live-gaze-trace.txt` and `gaze-lifecycle-trace.txt` if TD Control still stops responding. This was reviewed and committed as source only; no hardware validation claimed.
