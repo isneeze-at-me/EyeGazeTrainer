@@ -534,3 +534,14 @@ Repeated user tests confirmed earlier UWP cursor reassertion did not change the 
 User observed: first launch still shows arrow until menu click; second launch has no arrow. The previous companion enhancement only requested foreground activation; Windows may decline that request. The companion is now changed to locate the **visible, exact allowlisted EyeGazeTrainer window** and apply the existing gaze-aware bit during startup before foreground activation. It no longer calls SetForegroundWindow or relies on that call's success. It maximizes the allowlisted app window once as before. After foreground activation has occurred, it restores the bit on normal app switching and restores its own modification during companion termination. It never modifies TD Control windows/processes, and the UWP gaze API cleanup/exit order is untouched.
 
 Required hardware regression: perform cold launch and second launch, test arrow before any menu selection, verify TD Control gaze while trainer active and after both exits, repeat with another window in foreground while launching, test Alt-Tab away/back, test mouse fallback without gaze hardware, and watch for old/stale OverlayCompanion processes. This source change has not been built or hardware validated.
+
+
+## Level 0 instruction text and movement-guide sequence (2026-11-19 — Test)
+
+- During each narrated **stage instruction** (intro/free exploration, up/down, left/right, circles, pursuit, and Home selection), show its full spoken text in a centered, high-contrast, noninteractive text panel.
+- Do not show the directional guide during narration. Only show the appropriate vertical/horizontal/circle guide after the narration completes and the movement practice begins; free exploration has no directional guide.
+- Pursuit remains hidden until speech completes, then starts moving normally; Home selection remains hidden until its explanation finishes. Coaching and praise do not hide the active movement guide.
+- A speech failure releases the instruction gate, removes the text, and resumes the existing activity without trapping a gaze-only user.
+- Replaying or leaving Level 0 clears the instruction panel. Gaze input processing, movement classification, dwell, TD Control handoff, and exit cleanup are unchanged.
+
+**Regression tests:** introductory text visible before first exercise; each narration/text/guide transition; long spoken instructions; delayed speech synthesis; coaching while guide active; speech unavailable; Home and congratulation sequence; Level 0 replay; PCEye 5 repeated startup and exit. Windows build and hardware testing not yet performed.
