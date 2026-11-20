@@ -148,6 +148,7 @@ namespace EyeGazeApiViability
             levelZeroFinishAfterSpeech = false;
             StopLevelZeroCompletionTimer();
             LevelZeroCompletionPanel.Visibility = Visibility.Collapsed;
+            HideLevelZeroInstructionText();
             levelZeroSelectionTimedOut = false;
             levelZeroStageWaitingForInstructions = false;
             levelZeroStageInstructionSpeech = null;
@@ -185,6 +186,7 @@ namespace EyeGazeApiViability
         {
             StopLevelZeroCompletionTimer();
             LevelZeroCompletionPanel.Visibility = Visibility.Collapsed;
+            HideLevelZeroInstructionText();
             levelZeroNarrationVersion++;
             if (levelZeroCoachTimer != null)
             {
@@ -257,12 +259,34 @@ namespace EyeGazeApiViability
                     () => completion.TrySetResult(playedToEnd));
         }
 
+        private void ShowLevelZeroInstructionText(string words)
+        {
+            LevelZeroInstructionText.Text = words;
+            LevelZeroInstructionPanel.Visibility = Visibility.Visible;
+            // The guidance is a replacement for the movement drawing,
+            // never an overlay drawn over the guide while instructions play.
+            LevelZeroMovementGuide.Visibility = Visibility.Collapsed;
+        }
+
+        private void HideLevelZeroInstructionText()
+        {
+            LevelZeroInstructionPanel.Visibility = Visibility.Collapsed;
+            LevelZeroInstructionText.Text = "";
+        }
+
         // Important stage directions take precedence over ordinary praise.
         // Keep at most one queued feedback phrase to avoid nonstop chatter.
         private void SpeakLevelZero(string words, bool essential = false)
         {
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested)
                 return;
+            bool stageInstruction = essential &&
+                ((movementWaitingForInstructions &&
+                  words == movementInstructionSpeech) ||
+                 (levelZeroStageWaitingForInstructions &&
+                  words == levelZeroStageInstructionSpeech));
+            if (stageInstruction)
+                ShowLevelZeroInstructionText(words);
             if (levelZeroSpeechUnavailable)
             {
                 // Speech failure must not strand an eye-gaze-only learner.
@@ -285,6 +309,11 @@ namespace EyeGazeApiViability
                 if (levelZeroButtonExplanationPending &&
                     levelZeroStage == LevelZeroStage.Continue)
                     RevealLevelZeroContinueButton();
+                if (stageInstruction)
+                {
+                    HideLevelZeroInstructionText();
+                    UpdateLevelZeroMovementGuide();
+                }
                 return;
             }
             if (essential)
@@ -383,6 +412,8 @@ namespace EyeGazeApiViability
                         ResetMovementStep();
                         movementWaitingForInstructions = false;
                         movementInstructionSpeech = null;
+                        HideLevelZeroInstructionText();
+                        UpdateLevelZeroMovementGuide();
                     }
                     if (levelZeroStageWaitingForInstructions &&
                         words == levelZeroStageInstructionSpeech &&
@@ -391,6 +422,7 @@ namespace EyeGazeApiViability
                         levelZeroStageStarted = DateTimeOffset.UtcNow;
                         levelZeroStageWaitingForInstructions = false;
                         levelZeroStageInstructionSpeech = null;
+                        HideLevelZeroInstructionText();
                         if (levelZeroStage == LevelZeroStage.Pursue)
                             BeginLevelZeroPursuitMotion();
                     }
@@ -635,7 +667,9 @@ namespace EyeGazeApiViability
         {
             // The guides illustrate the motion only: they are never read by
             // gaze hit testing, diagnostics or lesson completion logic.
-            bool exploring = levelZeroStage == LevelZeroStage.Explore;
+            bool exploring = levelZeroStage == LevelZeroStage.Explore &&
+                !movementWaitingForInstructions &&
+                LevelZeroInstructionPanel.Visibility != Visibility.Visible;
             LevelZeroMovementGuide.Visibility =
                 exploring && movementStep != MovementStep.Discover
                     ? Visibility.Visible : Visibility.Collapsed;
