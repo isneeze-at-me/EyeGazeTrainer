@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Windows.Storage;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -35,6 +36,10 @@ namespace EyeGazeApiViability
                 // Do not keep the previous gaze-enabled page in the back stack.
                 Frame.BackStack.Clear();
                 Frame.ForwardStack.Clear();
+                // The gaze-enabled page has already completed cleanup and
+                // companion restoration. Leave immersive mode separately from
+                // window destruction, retaining the existing two-second timer.
+                if (afterGazeCleanup) LeaveFullScreenForExit();
                 ScheduleExit(hardwareFreeExitTest
                     ? "HARDWARE FREE: no gaze APIs opened"
                     : "after gaze-page navigation");
@@ -45,6 +50,21 @@ namespace EyeGazeApiViability
                 // leave the app on its gaze-free closing page instead of
                 // accidentally starting a new gaze session.
                 LogLifecycle("Gaze-free closing page reached without exit route");
+            }
+        }
+
+        private void LeaveFullScreenForExit()
+        {
+            try
+            {
+                var view = ApplicationView.GetForCurrentView();
+                LogLifecycle("BEGIN full-screen exit; fullScreen=" + view.IsFullScreenMode);
+                if (view.IsFullScreenMode) view.ExitFullScreenMode();
+                LogLifecycle("END full-screen exit request; fullScreen=" + view.IsFullScreenMode);
+            }
+            catch (Exception ex)
+            {
+                LogLifecycle("ERROR full-screen exit; continuing normal shutdown: " + ex);
             }
         }
 
@@ -64,6 +84,12 @@ namespace EyeGazeApiViability
             exitTimer.Stop();
             exitTimer.Tick -= OnExitTimer;
             exitTimer = null;
+            try
+            {
+                LogLifecycle("Before termination; fullScreen=" +
+                    ApplicationView.GetForCurrentView().IsFullScreenMode);
+            }
+            catch (Exception ex) { LogLifecycle("Full-screen status unavailable: " + ex.Message); }
             LogLifecycle("CALL Application.Current.Exit() from gaze-free closing page");
             Application.Current.Exit();
         }
