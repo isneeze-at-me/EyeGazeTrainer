@@ -1442,6 +1442,8 @@ namespace EyeGazeApiViability
             // Selecting Home completes the introduction. Show and speak the
             // congratulations before automatically opening the Level Menu.
             // There is no additional button or caregiver action.
+            // Persist immediately, before narration or any exit can intervene.
+            MarkLevelZeroCompleted();
             LevelZeroContinueButton.Visibility = Visibility.Collapsed;
             buttonDwellWheel.Hide();
             gazeControlTarget = null;
@@ -1518,12 +1520,17 @@ namespace EyeGazeApiViability
             catch (Exception) { /* Measurements never block learner navigation. */ }
         }
 
-        private void FinishLevelZero()
+        private static void MarkLevelZeroCompleted()
         {
-            SaveLevelZeroMeasurements();
-            SaveLevelZeroExtraDiagnostics();
             try { ApplicationData.Current.LocalSettings.Values[LevelZeroDoneKey] = true; }
             catch (Exception) { /* A storage error never prevents access to Levels. */ }
+        }
+
+        private void FinishLevelZero()
+        {
+            MarkLevelZeroCompleted();
+            SaveLevelZeroMeasurements();
+            SaveLevelZeroExtraDiagnostics();
             StopLevelZero();
             UpdateLevelBadges();
             LevelsNoticeText.Text = "";
