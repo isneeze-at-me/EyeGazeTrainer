@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -14,6 +16,23 @@ namespace EyeGazeTrainer.OverlayCompanion
         private const int GazeAwareBit = 0x2;
         private const int MaxSeconds = 8 * 60 * 60;
         private const int SwMaximize = 3;
+        private static readonly string LogName = "overlay-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + "-" + Process.GetCurrentProcess().Id + ".txt";
+
+        private static void Log(string message)
+        {
+            try
+            {
+                string directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "EyeGazeTrainer", "Diagnostics");
+                Directory.CreateDirectory(directory);
+                byte[] bytes = Encoding.UTF8.GetBytes(DateTimeOffset.Now.ToString("O") + " | OVERLAY | " + message + "\r\n");
+                using (var stream = new FileStream(Path.Combine(directory, LogName), FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
+                {
+                    stream.Write(bytes, 0, bytes.Length);
+                    stream.Flush(true);
+                }
+            }
+            catch (Exception) { /* Diagnostics never alter the handoff. */ }
+        }
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
@@ -39,6 +58,7 @@ namespace EyeGazeTrainer.OverlayCompanion
         [STAThread]
         private static void Main()
         {
+            Log("Companion started");
             IntPtr changed = IntPtr.Zero;
             IntPtr seen = IntPtr.Zero;
             IntPtr maximized = IntPtr.Zero;
@@ -75,6 +95,7 @@ namespace EyeGazeTrainer.OverlayCompanion
                         (target != changed ||
                          (foregroundSeen && !foregroundIsTrainer)))
                     {
+                        Log("Restore requested: trainer foreground=" + foregroundIsTrainer + "; target changed=" + (target != changed));
                         Restore(changed);
                         changed = IntPtr.Zero;
                     }
@@ -94,21 +115,30 @@ namespace EyeGazeTrainer.OverlayCompanion
                             int style = GetWindowLong(target, GwlExStyle);
                             if ((style & GazeAwareBit) == 0)
                             {
-                                SetWindowLong(target, GwlExStyle,
+                                Log("BEGIN set gaze-aware bit; original=0x" + style.ToString("X8"));
+                                int previous = SetWindowLong(target, GwlExStyle,
                                               style | GazeAwareBit);
+                                int setError = Marshal.GetLastWin32Error();
+                                Log("END set gaze-aware bit; previous=" + previous + "; lastError=" + setError);
                                 int confirmed = GetWindowLong(target, GwlExStyle);
                                 if ((confirmed & GazeAwareBit) != 0)
                                     changed = target;
                             }
                         }
                     }
-                    if (foregroundIsTrainer)
+                    if (foregroundIsTrainer && !foregroundSeen)
+                    {
+                        Log("Trainer foreground first observed");
                         foregroundSeen = true;
+                    }
 
                     if (seen != IntPtr.Zero && !IsWindow(seen))
                     {
                         if (missingSince == DateTime.MinValue)
+                        {
                             missingSince = DateTime.UtcNow;
+                            Log("Trainer window no longer exists");
+                        }
                         else if ((DateTime.UtcNow - missingSince).TotalSeconds >= 2)
                             break;
                     }
@@ -123,9 +153,15 @@ namespace EyeGazeTrainer.OverlayCompanion
                     Thread.Sleep(250);
                 }
             }
+            catch (Exception ex)
+            {
+                Log("Companion exception: " + ex);
+                throw;
+            }
             finally
             {
                 if (changed != IntPtr.Zero) Restore(changed);
+                Log("Companion exiting");
             }
         }
 
@@ -160,10 +196,17 @@ namespace EyeGazeTrainer.OverlayCompanion
 
         private static void Restore(IntPtr hWnd)
         {
-            if (!IsWindow(hWnd)) return;
+            if (!IsWindow(hWnd)) { Log("Restore skipped: trainer window no longer exists"); return; }
             int style = GetWindowLong(hWnd, GwlExStyle);
+            Log("BEGIN restore gaze-aware bit; style=0x" + style.ToString("X8"));
             if ((style & GazeAwareBit) != 0)
-                SetWindowLong(hWnd, GwlExStyle, style & ~GazeAwareBit);
+            {
+                int previous = SetWindowLong(hWnd, GwlExStyle, style & ~GazeAwareBit);
+                int error = Marshal.GetLastWin32Error();
+                Log("Restore previous=" + previous + "; lastError=" + error);
+            }
+            int confirmed = GetWindowLong(hWnd, GwlExStyle);
+            Log("END restore; style=0x" + confirmed.ToString("X8"));
         }
     }
 }
