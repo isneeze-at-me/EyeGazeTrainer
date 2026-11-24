@@ -33,8 +33,8 @@ namespace EyeGazeApiViability
             double rawDpi = display.RawDpiX;
             // Default to 480 physical screen pixels, independent of Windows
             // display scaling. A saved per-display adjustment still overrides it.
-            double automatic = DefaultReferenceWidthScreenPixels /
-                pixelsPerView / ReferenceWidthMillimeters;
+            double automatic = GetViewUnitsPerMillimeter(
+                DefaultReferenceWidthScreenPixels / pixelsPerView);
             viewUnitsPerMillimeter = Clamp(automatic, MinimumViewUnitsPerMillimeter,
                                           MaximumViewUnitsPerMillimeter);
 
@@ -66,9 +66,20 @@ namespace EyeGazeApiViability
             return millimeters * viewUnitsPerMillimeter;
         }
 
+        // Inverse of ToViewUnits: convert measured on-screen distances to physical mm.
+        public double ToMillimeters(double viewUnits)
+        {
+            return viewUnits / viewUnitsPerMillimeter;
+        }
+
+        public static double GetViewUnitsPerMillimeter(double referenceViewWidth)
+        {
+            return referenceViewWidth / ReferenceWidthMillimeters;
+        }
+
         public void SaveReferenceWidth(double displayedWidth)
         {
-            double units = displayedWidth / ReferenceWidthMillimeters;
+            double units = GetViewUnitsPerMillimeter(displayedWidth);
             if (!IsValid(units)) throw new ArgumentOutOfRangeException(nameof(displayedWidth));
             ApplicationData.Current.LocalSettings.Values[displayKey] = units;
             viewUnitsPerMillimeter = units;
