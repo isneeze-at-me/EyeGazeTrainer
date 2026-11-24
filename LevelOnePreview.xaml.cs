@@ -63,10 +63,9 @@ namespace EyeGazeApiViability
         private bool therapistExportInProgress;
         private DispatcherTimer therapistExportConfirmationTimer;
         private static readonly string[] TherapistSkillCategoryNames =
-            { "Level 0", "Targets", "Dwell", "Tracking", "Endurance", "Function" };
+            { "Targets", "Dwell", "Tracking", "Endurance", "Function", "Navigation" };
         private Button[] skillCategoryButtons;
         private int selectedSkillCategory;
-        private bool levelZeroShowingExtra;
         private readonly TextBlock[] skillMetricNames = new TextBlock[6];
         private readonly TextBlock[] skillMetricValues = new TextBlock[6];
         private readonly TextBlock[] skillMetricStatuses = new TextBlock[6];
@@ -75,15 +74,6 @@ namespace EyeGazeApiViability
         // until validated event-based statistics are implemented.
         private static readonly string[][] SkillMetrics =
         {
-            new[]
-            {
-                "Time to first gaze|Time until valid gaze is available after tutorial launch",
-                "Cursor screen coverage|Percent of coarse screen regions visited during free exploration",
-                "Stable corner visits|Corners reached with reliable repeated gaze samples",
-                "Horizontal and vertical range|Measured extent of gaze-controlled cursor exploration",
-                "Moving-target pursuit|Valid tracked time spent near the slow moving target",
-                "First selection|Started and completed dwells on the large Main Screen button"
-            },
             new[]
             {
                 "Target acquisition time|Average time from target appearance to first valid arrival",
@@ -128,6 +118,15 @@ namespace EyeGazeApiViability
                 "Functional task completion|Independent completion of practical communication tasks",
                 "Independent navigation|Successful Back, menu, recovery and exit use",
                 "Configuration and effort|Dwell duration, smoothing, hitbox size and effort rating"
+            },
+            new[]
+            {
+                "Menu navigation accuracy|Correct selections across independently navigated menus",
+                "Back navigation success|Successful returns without assistance",
+                "Task sequence completion|Independent completion of guided multi-step tasks",
+                "Recovery from mistakes|Correcting mistaken selections and continuing",
+                "Navigation efficiency|Time and selections to reach intended destination",
+                "Independent exit reliability|Successful completion of the safe exit sequence"
             }
         };
         private Point targetPosition;
@@ -222,7 +221,7 @@ namespace EyeGazeApiViability
                 DiagnosticsOverviewTabButton, DiagnosticsSkillsTabButton,
                 DiagnosticsMapsTabButton, DiagnosticsSessionsTabButton,
                 SkillsIntroButton, SkillsTargetsButton, SkillsDwellButton, SkillsTrackingButton,
-                SkillsEnduranceButton, SkillsFunctionButton, LevelZeroMoreButton };
+                SkillsEnduranceButton, SkillsFunctionButton };
             BuildDiagnosticGrids();
             BuildSkillsGrid();
             SelectSkillsCategory(0);
@@ -774,8 +773,6 @@ namespace EyeGazeApiViability
                 SelectDiagnosticsTab(target);
             else if (target == TherapistExportButton)
                 OnExportTherapistReport(null, null);
-            else if (target == LevelZeroMoreButton)
-                OnLevelZeroMore(null, null);
             else if (target == LevelZeroContinueButton)
                 OnLevelZeroContinue(null, null);
             else if (target == SkillsIntroButton || target == SkillsTargetsButton ||
@@ -1197,39 +1194,19 @@ namespace EyeGazeApiViability
             SelectSkillsCategory(Array.IndexOf(skillCategoryButtons, sender as Button));
         }
 
-        private void OnLevelZeroMore(object sender, RoutedEventArgs e)
-        {
-            if (currentScreen != AppScreen.Diagnostics ||
-                selectedDiagnosticsTab != DiagnosticsTab.Skills ||
-                selectedSkillCategory != 0 || stopping || exitRequested) return;
-            levelZeroShowingExtra = !levelZeroShowingExtra;
-            SelectSkillsCategory(0);
-        }
-
         private void SelectSkillsCategory(int category)
         {
             if (category < 0 || category >= SkillMetrics.Length) return;
-            if (selectedSkillCategory != category) levelZeroShowingExtra = false;
             selectedSkillCategory = category;
-            bool extra = category == 0 && levelZeroShowingExtra;
-            LevelZeroMoreButton.Visibility = category == 0 ?
-                Visibility.Visible : Visibility.Collapsed;
-            LevelZeroMoreButton.Content = extra ? "BASIC" : "MORE";
             for (int i = 0; i < 6; i++)
             {
-                string[] parts = extra ? new[] {
-                    LevelZeroExtraLabels[i], LevelZeroExtraDetails[i] } :
-                    SkillMetrics[category][i].Split('|');
+                string[] parts = SkillMetrics[category][i].Split('|');
                 skillMetricNames[i].Text = parts[0];
                 skillMetricDetails[i].Text = parts[1];
-                string observed = category == 0 ?
-                    (extra ? LevelZeroExtraValue(i) : LevelZeroMetricValue(i)) : "NA";
-                skillMetricValues[i].Text = observed;
-                // Extra Level 0 values include units and qualifiers; fit
-                // them without clipping inside the existing six cards.
-                skillMetricValues[i].FontSize = extra ? 20 : 30;
-                skillMetricStatuses[i].Text = observed == "NA"
-                    ? "NOT YET RECORDED" : "RECORDED IN LEVEL 0";
+                // Future-level measures remain NA until collected.
+                skillMetricValues[i].Text = "NA";
+                skillMetricValues[i].FontSize = 30;
+                skillMetricStatuses[i].Text = "NOT YET RECORDED";
             }
             for (int i = 0; i < skillCategoryButtons.Length; i++)
                 skillCategoryButtons[i].Style = (Style)Resources[
