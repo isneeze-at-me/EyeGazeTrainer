@@ -46,6 +46,70 @@ function Copy-NewTraceLines {
         } catch { Write-Trace ('Trace read error: ' + $_.Exception.Message) }
     }
 }
+# Read-only Win32 snapshots. No titles, input injection, or window changes.
+$windowProbeReady = $false
+try {
+    Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+public static class TrainerWindowProbe {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT { public int Left, Top, Right, Bottom; }
+    public delegate bool EnumProc(IntPtr hwnd, IntPtr data);
+    [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] public static extern IntPtr GetShellWindow();
+    [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hwnd);
+    [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr hwnd);
+    [DllImport("user32.dll")] public static extern bool IsZoomed(IntPtr hwnd);
+    [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hwnd, out RECT rect);
+    [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
+    [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetClassName(IntPtr hwnd, StringBuilder name, int max);
+    [DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc callback, IntPtr data);
+    [DllImport("dwmapi.dll")] public static extern int DwmGetWindowAttribute(IntPtr hwnd, int attribute, out int value, int size);
+    public static IntPtr[] TopLevelWindows() {
+        var windows = new System.Collections.Generic.List<IntPtr>();
+        EnumWindows((h,d) => { windows.Add(h); return true; }, IntPtr.Zero);
+        return windows.ToArray();
+    }
+}
+'@
+    $windowProbeReady = $true
+} catch { Write-Trace ('Window probe unavailable: ' + $_.Exception.Message) }
+
+function Get-WindowSnapshot([IntPtr]$handle) {
+    if ($handle -eq [IntPtr]::Zero) { return 'none' }
+    [uint32]$ownerId = 0
+    [void][TrainerWindowProbe]::GetWindowThreadProcessId($handle,[ref]$ownerId)
+    $owner = Get-Process -Id $ownerId -ErrorAction SilentlyContinue
+    $name = if ($owner) { $owner.ProcessName } else { 'unknown' }
+    if ($owner) { $owner.Dispose() }
+    $class = [Text.StringBuilder]::new(256)
+    [void][TrainerWindowProbe]::GetClassName($handle,$class,$class.Capacity)
+    $rect = New-Object TrainerWindowProbe+RECT
+    $bounds = if ([TrainerWindowProbe]::GetWindowRect($handle,[ref]$rect)) {
+        '{0},{1},{2},{3}' -f $rect.Left,$rect.Top,$rect.Right,$rect.Bottom
+    } else { 'unknown' }
+    [int]$cloaked = 0
+    $cloakState = if ([TrainerWindowProbe]::DwmGetWindowAttribute($handle,14,[ref]$cloaked,4) -eq 0) { [string]$cloaked } else { 'unknown' }
+    'hwnd=0x{0:X} owner={1} pid={2} class={3} visible={4} minimized={5} maximized={6} cloaked={7} bounds={8}' -f $handle.ToInt64(),$name,$ownerId,$class.ToString(),[TrainerWindowProbe]::IsWindowVisible($handle),[TrainerWindowProbe]::IsIconic($handle),[TrainerWindowProbe]::IsZoomed($handle),$cloakState,$bounds
+}
+function Get-WindowState($processes) {
+    if (-not $windowProbeReady) { return 'Window probe unavailable' }
+    $foreground = [TrainerWindowProbe]::GetForegroundWindow()
+    $shell = [TrainerWindowProbe]::GetShellWindow()
+    $knownIds = @($processes | ForEach-Object { [uint32]$_.Id })
+    $windows = foreach ($handle in [TrainerWindowProbe]::TopLevelWindows()) {
+        [uint32]$ownerId = 0
+        [void][TrainerWindowProbe]::GetWindowThreadProcessId($handle,[ref]$ownerId)
+        $class = [Text.StringBuilder]::new(256)
+        [void][TrainerWindowProbe]::GetClassName($handle,$class,$class.Capacity)
+        if ($knownIds -contains $ownerId -or ($class.ToString() -eq 'ApplicationFrameWindow' -and [TrainerWindowProbe]::IsWindowVisible($handle))) {
+            Get-WindowSnapshot $handle
+        }
+    }
+    'FOREGROUND: ' + (Get-WindowSnapshot $foreground) + ' | SHELL: ' + (Get-WindowSnapshot $shell) + ' | OBSERVED WINDOWS: ' + (($windows | Sort-Object) -join '; ')
+}
 function Get-ObservedProcesses {
     @(Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -match 'EyeGazeApiViability|EyeGazeTrainer|OverlayCompanion|Tobii|Dynavox|TDControl|TD.Control|GazeInteraction' })
 }
@@ -65,6 +129,7 @@ Write-Trace 'External monitor started. Process/window responsiveness is not proo
 $seenTrainer = $false
 $exitObserved = $null
 $lastState = ''
+$lastWindowState = ''
 $lastHeartbeat = [DateTime]::MinValue
 try {
     while ($true) {
@@ -77,6 +142,15 @@ try {
             Write-Trace $state
             $lastState = $state
             $lastHeartbeat = $now
+        }
+        if ($windowProbeReady) {
+            try {
+                $windowState = Get-WindowState $processes
+                if ($windowState -ne $lastWindowState) {
+                    Write-Trace $windowState
+                    $lastWindowState = $windowState
+                }
+            } catch { Write-Trace ('Window snapshot error: ' + $_.Exception.Message) }
         }
         if ($trainer.Count -gt 0 -and -not $seenTrainer) {
             $seenTrainer = $true
