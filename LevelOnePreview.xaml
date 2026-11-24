@@ -803,7 +803,7 @@
             </Canvas>
           </Viewbox>
         </Border>
-        <TextBlock Text="Make the line below the same physical width as the center glass. The 85 mm reference is temporary."
+        <TextBlock Text="Match the bar to the center glass, then save. Training object sizes use this scale (provisional 85 mm reference)."
                    FontSize="16" TextWrapping="Wrap" TextAlignment="Center" Foreground="#CAD5E5"/>
       </StackPanel>
       <Grid Grid.Row="2" MinHeight="36" IsHitTestVisible="False">
