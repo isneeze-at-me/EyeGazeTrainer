@@ -258,11 +258,7 @@ namespace EyeGazeApiViability
 
         private void OnPageLoaded(object sender, RoutedEventArgs e)
         {
-            // Restore the previously working cursor behavior: hide the
-            // Windows arrow as soon as the gaze trainer page loads, not only
-            // when a Ready notification finally subscribes to GazeMoved.
-            // Mouse-only fallback restores it before displaying its notice.
-            HideWindowsPointerCursor();
+            // Keep normal mouse input until an eye-tracking device is detected.
             // Preserve the pre-splash initialization sequence: connect the
             // gaze watcher as soon as the page is loaded. The branding
             // overlay stays visible for its full three seconds independently.
@@ -284,7 +280,7 @@ namespace EyeGazeApiViability
         private void OnTrainerWindowActivated(object sender,
             WindowActivatedEventArgs args)
         {
-            if (exitRequested || stopping || mouseOnlyFallback) return;
+            if (exitRequested || stopping || mouseOnlyFallback || !trackerSeenDuringEnumeration) return;
             if (args.WindowActivationState == CoreWindowActivationState.Deactivated)
                 return;
             HideWindowsPointerCursor();
@@ -351,7 +347,6 @@ namespace EyeGazeApiViability
             startupSplashCompleted = true;
             // Never block splash dismissal on the Windows gaze watcher:
             // EnumerationCompleted is not guaranteed to arrive promptly.
-            StartupSplashPanel.Visibility = Visibility.Collapsed;
             CompleteStartupAfterTrackerScan();
             if (!startupRouted && !exitRequested && !stopping)
             {
@@ -390,12 +385,16 @@ namespace EyeGazeApiViability
             if (!trackerSeenDuringEnumeration && !trackerEnumerationFinished) return;
             startupRouted = true;
             StopStartupDiscoveryTimer();
+            StartupSplashPanel.Visibility = Visibility.Collapsed;
             if (!trackerSeenDuringEnumeration)
             {
                 EnterMouseOnlyFallback();
                 return;
             }
 
+            // Only the confirmed eye-tracking path may hide the cursor or launch the companion.
+            HideWindowsPointerCursor();
+            (Application.Current as App)?.TryStartOverlayCompanion();
             // Keep the existing single-owner gaze startup and tutorial route.
             if (ShouldStartLevelZero())
                 StartLevelZero();
@@ -521,10 +520,12 @@ namespace EyeGazeApiViability
         private void OnDeviceAdded(GazeDeviceWatcherPreview sender,
                                    GazeDeviceWatcherAddedPreviewEventArgs args)
         {
-            if (args.Device != null) trackerSeenDuringEnumeration = true;
+            if (args.Device != null && args.Device.CanTrackEyes) trackerSeenDuringEnumeration = true;
             _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
-                UseReadyDevice(args.Device);
+                if (mouseOnlyFallback || stopping || exitRequested) return;
+                if (args.Device != null && args.Device.CanTrackEyes)
+                    UseReadyDevice(args.Device);
                 CompleteStartupAfterTrackerScan();
             });
         }
@@ -532,10 +533,12 @@ namespace EyeGazeApiViability
         private void OnDeviceUpdated(GazeDeviceWatcherPreview sender,
                                      GazeDeviceWatcherUpdatedPreviewEventArgs args)
         {
-            if (args.Device != null) trackerSeenDuringEnumeration = true;
+            if (args.Device != null && args.Device.CanTrackEyes) trackerSeenDuringEnumeration = true;
             _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
-                UseReadyDevice(args.Device);
+                if (mouseOnlyFallback || stopping || exitRequested) return;
+                if (args.Device != null && args.Device.CanTrackEyes)
+                    UseReadyDevice(args.Device);
                 CompleteStartupAfterTrackerScan();
             });
         }
@@ -2183,13 +2186,14 @@ namespace EyeGazeApiViability
             ExitButton.IsEnabled = false;
             SettingsExitButton.IsEnabled = false;
             Trace("EXIT requested; source active=" + live);
-            if (live) BeginCleanup();
+            if (mouseOnlyFallback) NavigateToCleanExit();
+            else if (live) BeginCleanup();
             else NavigateToCleanExit();
         }
 
         private void BeginCleanup()
         {
-            if (!live || stopping) return;
+            if (mouseOnlyFallback || !live || stopping) return;
             stopping = true;
             ExitButton.IsEnabled = false;
             SettingsExitButton.IsEnabled = false;
@@ -2334,7 +2338,7 @@ namespace EyeGazeApiViability
             // Navigation follows staged gaze release; make the Windows arrow
             // available again on the gaze-free closing page and desktop.
             Window.Current.Activated -= OnTrainerWindowActivated;
-            RestoreWindowsPointerCursor();
+            if (!mouseOnlyFallback) RestoreWindowsPointerCursor();
             StopStartupDiscoveryTimer();
             if (startupSplashTimer != null)
             {
