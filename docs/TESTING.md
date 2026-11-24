@@ -432,3 +432,134 @@ Scoring is **asymmetric per training level**: Level 1 has 7% gain weighting towa
 7. Simulate a watcher initialization failure and optional trace-file write failure; verify mouse fallback still works.
 
 **Not verified:** Actual Microsoft Store certification, PCEye 5 model identity, Windows SDK build/packaging, and hardware-dependent gaze/TD Control behavior.
+
+
+## Performance and memory optimization review (2026-11-19 — code changes on Test, NOT benchmarked)
+
+### Implemented
+- Reuse dwell-wheel PathGeometry, PathFigure and ArcSegment objects instead of allocating them for each gaze update; redraw at 1/120 progress increments.
+- Use a bounded 120-entry FIFO for raw gaze samples instead of a List that shifts earlier elements when full. Samples remain in chronological order and stay in memory only.
+- Batch practice-seconds LocalSettings writes at approximately ten seconds of valid practice, flushing on completed runs, explicit Exit and page navigation. The in-memory counter remains exact during a session; an unexpected process crash may lose up to approximately ten seconds of unflushed practice time.
+
+### Not changed intentionally
+- Gaze event frequency, hit testing, scoring, cursor smoothing, dwell activation duration, Level 0 moving target cadence and all TD Control/device cleanup sequencing.
+- Continuous rendering of the Level 0 pursuit target remains refresh-synchronized to preserve smooth motion.
+
+### Required validation
+1. Windows x64 Debug/Release builds using VS2022 and Windows UWP tooling.
+2. Live PCEye 5 gaze target acquisition and 1,500 ms menu dwell, including the visible progress ring at 0%, 50%, 100% and after look-away/rearm.
+3. Gaze sample buffer rollover under sustained 60+ Hz tracking; validate jitter/accuracy metrics against baseline.
+4. Practice time across ten seconds, completed run, Back/Exit, relaunch and failed shutdown; verify bounded lost time on process crash.
+5. Repeated launch/exit with TD Control running; no freezes or regressions.
+6. Mouse fallback, ten-second notice, diagnostics and Exit remain accessible.
+7. Compare CPU %, process private working set/RAM, allocations/sec, and frame responsiveness on identical hardware/tasks before and after the changes. No measured reduction is claimed here.
+
+### Further opportunities pending profiling
+- Cache gaze button bounds when layout is stable instead of evaluating per-button TransformToVisual during every gaze event.
+- Reduce potentially redundant Canvas position writes and screen property updates when coordinates are unchanged.
+- Examine whether refresh-synchronized pursuit motion is CPU-intensive on high-refresh displays; do not throttle it without observing effect on tracking accuracy.
+
+
+## Performance optimization second pass (2026-11-19 — Test branch, source reviewed; hardware measurements pending)
+
+Implemented:
+- Cache per-screen gaze-button hit rectangles to avoid TransformToVisual for every button on every gaze event. Clear on screen/tab transitions, root layout resize, and display-size recalibration; still check live visibility/enabled state and actual dimensions before using a rectangle.
+- Reduce redundant cursor Canvas position writes for movement under 0.35 view units. All raw gaze observations, target scoring, hit tests, and dwell activation timing remain unchanged.
+- Reduce Level 0 moving-target layout churn: update the visual at ~60 Hz maximum on high-refresh screens, and skip updates under 0.35 view units. The learning task, gaze tracking, and accumulated pursuit time are not rate-limited.
+- Read Level 0 saved session history once when refreshing the Sessions diagnostics tab rather than twice.
+
+Need verification:
+1. Build UWP x64 Release and Debug, and run both with Tobii PCEye 5 and without tracker (mouse fallback).
+2. Check layout cache after switching every menu/diagnostics tab, changing display reference size, Windows DPI changes, window resize, bonus screen transitions, and target/bounds redraw.
+3. Check Exit safety fallback with raw gaze and normal TD Control handoff, including consecutive app launches.
+4. Verify smooth pursuit and target hit timing on 60/120/144 Hz displays; measure frame rate, CPU, allocations/sec, private working set and responsive dwell.
+5. Repeat Level 0 and verify Diagnostics → Sessions counts/history as before.
+
+No measured CPU/RAM savings, Microsoft certification outcome, or hardware stability claims are made.
+
+
+## Level Menu wording and display-edge cursor continuity (2026-11-19 — Test branch)
+
+- Level 0's spoken Home-button guidance now calls the destination the "Level Menu"; the corresponding button's screen-reader label says "Open Level Menu".
+- The previous out-of-view gaze branch reset the smoothing filter and hid the cursor on each sample. Near the screen edge, small gaze excursions could trigger repeated resets and visibility flips.
+- Edge samples now drive a **visual-only** clamped and smoothed cursor. The app still interrupts training holds and excludes those samples from Level 0 and Level 1 measurements, preserving the original no-scoring-outside-the-display rule.
+- Cursor rendering also clamps coordinates within the overlay instead of hiding the cursor when the smoothed point exceeds the drawing area.
+
+**Hardware checks required:** gaze slowly across all four edges and corners, return inward repeatedly, look toward the Back/Exit boundaries, verify look-away rearm and no accidental target completions, then complete a full Level 0 and Level 1 session. Also test 60/120 Hz displays, repeated launch/exit with TD Control, and mouse fallback. Validate with PCEye 5; source review cannot establish the actual reduction in choppiness.
+
+
+## Level 0 completion acknowledgement (2026-11-19 — Test branch)
+
+After the Level 0 Home selection, a full-screen noninteractive congratulations message is displayed and spoken, explaining that six more lessons follow and levels may be replayed as often as desired. It automatically advances to the Level Menu when the utterance completes; no new input skill is required. If speech is already unavailable, it shows the message for nine seconds. A 35-second safety limit prevents indefinite waiting if playback never finishes. The ordinary gaze-owner/TD Control exit sequencing is unchanged.
+
+Validation required: finish Level 0 with PCEye 5, verify no inadvertent Home reactivation, message readability and complete narration, automatic Level Menu transition, practice replay, speech failure fallback, and safe exit/relaunch. Source checks only; not yet built or hardware tested.
+
+
+## Level 0 directional practice guides (2026-11-19 — Test branch)
+
+- Removed the spoken phrase "Pauses and sideways movement won't count" from the first up/down practice instruction.
+- Added a large centered vertical line with arrowheads at both ends during Vertical, a horizontal line with arrowheads during Horizontal, and a large circle during Circles.
+- The guides are noninteractive and hidden during Discover, Pursue, Continue, completion, and when leaving Level 0. No gaze hitbox, scoring data, dwell timer, progress counter, or event handler is attached to them.
+- Circle detection uses turning of the gaze movement vector instead of angular position about the display center, so a learner can make circles away from the drawing. The existing sustained-motion, directional sector, and sample-count checks still apply.
+
+Required tests: check guide visibility throughout transitions, all window aspect ratios, on/off center circular movements, slow and fast movements, no accidental completion by staring at or tracing a guide, the later moving-target pursuit activity, narrated instructions, and repeated sessions. Build and PCEye 5 hardware testing remain pending.
+
+## Cursor and TD Control shutdown regression (2026-11-19 — Test branch)
+
+Observed on hardware per user: Windows arrow remained visible until a main menu selection, and TD Control became unresponsive after app exit.
+
+Source corrections:
+- Hide the Windows arrow at gaze page load (the prior working behavior), rather than waiting for the device's Ready/gaze-event subscription; on no-tracker mouse fallback it is restored immediately, and it is restored on navigation to the gaze-free closing page.
+- Unsubscribe `GazeDeviceWatcherPreview.EnumerationCompleted` in the normal staged shutdown handler-removal phase. This handler was newly added for mouse fallback detection but not included in the normal cleanup sequence. No change to the established ordered phases: GazeMoved unsubscribe, watcher stop, watcher handler removal, local references drop, navigate, exit.
+
+Regression validation required on PCEye 5/TD Control: start twice, confirm no Windows arrow while trainer active, complete Level 0 and navigate through all menus without cursor reappearing, exit using gaze, and verify TD Control immediately operates outside the app after each close. Also verify no-tracker Microsoft Store mouse fallback retains a visible pointer and exits successfully. Examine `level1-live-gaze-trace.txt` and `gaze-lifecycle-trace.txt` if TD Control still stops responding. This was reviewed and committed as source only; no hardware validation claimed.
+
+
+## Cursor still visible until first menu click (2026-11-19 — Test branch)
+
+User reproduced the arrow disappearing **exactly when the first main-menu button is clicked**, regardless of elapsed startup time. This is not a splash timing defect. The app now reasserts its hidden Windows `CoreWindow.PointerCursor` on `Window.Current.Activated` and checks the actual cursor value instead of only a page-local cached boolean. Activation tracing records whether the app's own pointer was null and whether gaze was subscribed. The event is removed on navigation away from the gaze page. Mouse fallback still restores the pointer. TD Control's window, processes, gaze-aware companion, and ordered gaze exit cleanup are not changed by this correction.
+
+**Required testing:** Launch with PCEye 5/TD Control and do not click any button; compare arrow behavior across splash, main menu, and first gaze dwell. Check whether cursor is genuinely the Windows arrow or a TD Control overlay, since UWP `PointerCursor = null` cannot control a separate application's cursor. Confirm mouse fallback shows arrow. Exit/relaunch twice and verify TD Control responds. If the arrow persists until click or TD Control still freezes, collect `level1-live-gaze-trace.txt` and `gaze-lifecycle-trace.txt`, plus whether the app window gained focus on first click. Hardware testing was not possible here.
+
+
+## Cursor disappearance only after first button click — foreground companion investigation (2026-11-19)
+
+Repeated user tests confirmed earlier UWP cursor reassertion did not change the behavior. The packaged OverlayCompanion only applied its app-window gaze-aware flag after GetForegroundWindow() began returning the EyeGazeTrainer window; the first click could be the trigger that activated the window. To test that mechanism, the companion now performs one initial search for a visible, exactly title/class-matched EyeGazeTrainer ApplicationFrameWindow within 20 seconds of companion startup, maximizes that window using the existing ShowWindow operation, then requests foreground activation with SetForegroundWindow. It never repeatedly steals focus and does not apply gaze-aware flags to TD Control or other windows; the existing foreground-only mark/restore loop remains intact.
+
+**Validate on the actual PCEye 5 machine:** The arrow should disappear before any main menu button selection. Test launch with no click, later navigate to all menu screens, switch temporarily to another application, and verify normal focus return and TD Control use. Exit and launch a second time, confirming TD Control remains functional. Windows is permitted to deny SetForegroundWindow in some focus-lock situations, so this is a candidate fix, not a verified outcome. If still reproducible, capture whether the trainer window is foreground prior to first click and inspect companion packaging/launch; do not speculate that CoreWindow.PointerCursor alone controls TD Control overlays.
+
+
+## First vs second launch overlay race (2026-11-19 — Test)
+
+User observed: first launch still shows arrow until menu click; second launch has no arrow. The previous companion enhancement only requested foreground activation; Windows may decline that request. The companion is now changed to locate the **visible, exact allowlisted EyeGazeTrainer window** and apply the existing gaze-aware bit during startup before foreground activation. It no longer calls SetForegroundWindow or relies on that call's success. It maximizes the allowlisted app window once as before. After foreground activation has occurred, it restores the bit on normal app switching and restores its own modification during companion termination. It never modifies TD Control windows/processes, and the UWP gaze API cleanup/exit order is untouched.
+
+Required hardware regression: perform cold launch and second launch, test arrow before any menu selection, verify TD Control gaze while trainer active and after both exits, repeat with another window in foreground while launching, test Alt-Tab away/back, test mouse fallback without gaze hardware, and watch for old/stale OverlayCompanion processes. This source change has not been built or hardware validated.
+
+
+## Level 0 instruction text and movement-guide sequence (2026-11-19 — Test)
+
+- During each narrated **stage instruction** (intro/free exploration, up/down, left/right, circles, pursuit, and Home selection), show its full spoken text in a centered, high-contrast, noninteractive text panel.
+- Do not show the directional guide during narration. Only show the appropriate vertical/horizontal/circle guide after the narration completes and the movement practice begins; free exploration has no directional guide.
+- Pursuit remains hidden until speech completes, then starts moving normally; Home selection remains hidden until its explanation finishes. Coaching and praise do not hide the active movement guide.
+- A speech failure releases the instruction gate, removes the text, and resumes the existing activity without trapping a gaze-only user.
+- Replaying or leaving Level 0 clears the instruction panel. Gaze input processing, movement classification, dwell, TD Control handoff, and exit cleanup are unchanged.
+
+**Regression tests:** introductory text visible before first exercise; each narration/text/guide transition; long spoken instructions; delayed speech synthesis; coaching while guide active; speech unavailable; Home and congratulation sequence; Level 0 replay; PCEye 5 repeated startup and exit. Windows build and hardware testing not yet performed.
+
+
+## Level 0 instruction styling and circle duration fix (2026-11-19 — Test)
+
+- Instruction screen now matches the existing introduction congratulations presentation: dark #101827 backdrop, centered content, cyan bold 55pt heading, white semibold 32pt spoken instruction text; no separate rounded instructional border.
+- Prior circle recognition applied a large minimum displacement to each ~100 ms gaze sample and credited time only when instantaneous velocity angle changed within a narrow band. Valid slow circular motion could be rejected repeatedly, leading to the user's reported ~35 seconds for nominal 15 seconds.
+- New `ObserveCircleWindow` computes a 350 ms gaze displacement vector, detects coherent turning of consecutive vectors with forgiving noise thresholds, and credits measured elapsed time (max 0.5 sec/window) only on a valid turn. It still requires 15 cumulative seconds, at least 1.5π radians of accumulated direction change, ten valid turning windows, and five heading sectors. It does not use a fixed on-screen circle or force tracing the visual guide.
+- Two consecutive convincing reverse turns can correct an accidentally established circle direction without forcing the learner to restart. Gaze jumps, stationary gaze, tracker gaps, and straight-line motion do not earn credit.
+- The existing feedback counters and activity timestamps continue to be updated for valid circle movement.
+
+Developer-only deterministic source-equivalent math checks (not a Windows build or PCEye 5 test): synthetic circular trajectories with 3/5/8/10-second revolutions each met completion at ~15.6 seconds; a small-noise 8-second-revolution example met at ~17.2 seconds. Re-run on device for actual gaze tracking artifacts, with both clockwise and counter-clockwise circles, different centers and sizes, intentional pauses, straight lines, and tracker gaps. Also confirm speech text transitions and TD Control works after app exit.
+
+
+## Level 0 diagonal practice (2026-11-19 — Test)
+
+Two additional exercises now follow horizontal practice and precede circles: top-left ↔ bottom-right (`DiagonalDown`), followed by bottom-left ↔ top-right (`DiagonalUp`). Each has a centered, large, noninteractive double-headed diagonal arrow guide. Its narration is shown as text until voice playback ends, then the guide appears; short coaching and praise remain audio-only. Each uses 15 cumulative seconds of detected direction-correct gaze movement, requiring meaningful travel and at least two direction reversals. Correct movement is evaluated from 350-ms normalized X/Y gaze displacement, with both components required and approximately comparable; tracing the illustrated line precisely is not required. Existing sixty-second per-stage assistive fallback is preserved, and the final moving-target introduction now mentions diagonal practice.
+
+Required hardware tests on Test: complete vertical, horizontal, both diagonals, circles in order; confirm each guide switches only after spoken instructions, opposing diagonal and straight-axis movement do not count, gentle slower back-and-forth diagonal gaze is accepted, coaching/encouragement are spoken, a nonmoving gaze does not complete practice, and 60-second fallback works. Confirm exit/relaunch returns control to TD Control. Source inspection only; Windows compilation and PCEye 5 validation remain pending.

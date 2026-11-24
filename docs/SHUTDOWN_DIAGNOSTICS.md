@@ -1,0 +1,7 @@
+# Shutdown diagnostics (Test branch)
+
+The trainer automatically writes a timestamped internal session trace under its package LocalState directory. The existing overlay companion writes its own timestamped trace to Documents\\EyeGazeTrainer\\Diagnostics (gaze mode only). Neither changes the order of shutdown or the behavior of TD Control.
+
+For independent post-exit observation, run tools/StartShutdownMonitor.bat before launching the trainer. This independent PowerShell process is outside the app package. The monitor copies new internal and companion trace lines into Documents\\EyeGazeTrainer\\Diagnostics\\Shutdown-*.txt and polls matching process states, targeting a 500 ms interval, with a heartbeat every five seconds when polling is responsive. It continues for 60 seconds after the trainer process disappears. If the trainer remains running, monitoring continues until stopped manually. Start the monitor before each session; avoid overlapping sessions. No administrator privileges are required. Process names are heuristic and may miss renamed TD Control components. Responding is a main-window message-loop observation, not proof that gaze control works. No gaze coordinates or window titles are collected. Do not intentionally reproduce a loss of access without a reliable alternative recovery method.
+
+The external monitor is opt-in and should be used for eye-gaze troubleshooting, not mouse-only sessions. The app and monitor have not been built or validated on Windows in this change.

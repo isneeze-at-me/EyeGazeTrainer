@@ -80,17 +80,7 @@ namespace EyeGazeApiViability
 
         private void LogLifecycle(string message)
         {
-            try
-            {
-                string path = Path.Combine(ApplicationData.Current.LocalFolder.Path,
-                                           "gaze-lifecycle-trace.txt");
-                File.AppendAllText(path, DateTimeOffset.Now.ToString("O") +
-                                   " | " + message + "\r\n");
-            }
-            catch (Exception)
-            {
-                // Logging failure must never interfere with controlled exit.
-            }
+            App.TraceLifecycle("CLOSING | " + message);
         }
     }
 }

@@ -79,6 +79,90 @@
         <Ellipse x:Name="LevelZeroPursuitCenter" Width="18" Height="18"
                  Fill="#C7F0FF" Visibility="Collapsed"/>
       </Canvas>
+      <!-- Visual-only Level 0 movement examples. They never take input
+           or participate in eye-gaze movement scoring. -->
+      <Grid x:Name="LevelZeroMovementGuide" Visibility="Collapsed"
+            IsHitTestVisible="False" HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch">
+        <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch"
+                 VerticalAlignment="Stretch" Margin="70,56">
+          <Canvas Width="900" Height="600">
+            <Canvas x:Name="LevelZeroVerticalGuide" Visibility="Collapsed">
+              <Line X1="450" Y1="92" X2="450" Y2="508"
+                    Stroke="#66DCEFFF" StrokeThickness="14"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+              <Polyline Points="404,140 450,88 496,140"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+              <Polyline Points="404,460 450,512 496,460"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+            </Canvas>
+            <Canvas x:Name="LevelZeroHorizontalGuide" Visibility="Collapsed">
+              <Line X1="115" Y1="300" X2="785" Y2="300"
+                    Stroke="#66DCEFFF" StrokeThickness="14"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+              <Polyline Points="168,252 110,300 168,348"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+              <Polyline Points="732,252 790,300 732,348"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+            </Canvas>
+            <!-- Top-left ↔ bottom-right and bottom-left ↔ top-right.
+                 Decorative only; practice is judged from gaze displacement. -->
+            <Canvas x:Name="LevelZeroDiagonalDownGuide" Visibility="Collapsed">
+              <Line X1="225" Y1="75" X2="675" Y2="525"
+                    Stroke="#66DCEFFF" StrokeThickness="14"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+              <Polyline Points="225,147 225,75 297,75"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+              <Polyline Points="603,525 675,525 675,453"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+            </Canvas>
+            <Canvas x:Name="LevelZeroDiagonalUpGuide" Visibility="Collapsed">
+              <Line X1="225" Y1="525" X2="675" Y2="75"
+                    Stroke="#66DCEFFF" StrokeThickness="14"
+                    StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+              <Polyline Points="225,453 225,525 297,525"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+              <Polyline Points="603,75 675,75 675,147"
+                        Stroke="#B5F3FF" StrokeThickness="14"
+                        StrokeLineJoin="Round" StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round" Fill="Transparent"/>
+            </Canvas>
+            <Canvas x:Name="LevelZeroCircleGuide" Visibility="Collapsed">
+              <Ellipse Canvas.Left="200" Canvas.Top="50"
+                       Width="500" Height="500" Stroke="#66DCEFFF"
+                       StrokeThickness="14" Fill="Transparent"/>
+            </Canvas>
+          </Canvas>
+        </Viewbox>
+      </Grid>
+      <!-- Spoken exercise directions are displayed instead of the movement
+           guide until narration has completed. Noninteractive by design. -->
+      <Grid x:Name="LevelZeroInstructionPanel" Visibility="Collapsed"
+            Background="#101827" IsHitTestVisible="False">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MaxWidth="1050" Margin="48" Spacing="26">
+          <TextBlock Text="EYE GAZE PRACTICE"
+                     Foreground="#69E6FF" FontSize="55" FontWeight="Bold"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock x:Name="LevelZeroInstructionText" Text=""
+                     Foreground="White" FontSize="32" FontWeight="SemiBold"
+                     TextWrapping="Wrap" TextAlignment="Center"/>
+        </StackPanel>
+      </Grid>
       <Button x:Name="LevelZeroContinueButton"
               Style="{StaticResource PrimaryGazeButton}"
               Content="⌂" FontSize="88" FontWeight="Bold"
@@ -86,8 +170,31 @@
               HorizontalAlignment="Left" VerticalAlignment="Top"
               Margin="36,36,0,0"
               Visibility="Collapsed"
-              AutomationProperties.Name="Open levels screen"
+              AutomationProperties.Name="Open Level Menu"
               Click="OnLevelZeroContinue"/>
+      <!-- Noninteractive, fully automatic celebration after Home is selected.
+           No additional dwell/click skill is required to continue. -->
+      <Grid x:Name="LevelZeroCompletionPanel" Visibility="Collapsed"
+            Background="#101827" IsHitTestVisible="False">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MaxWidth="1050" Margin="48" Spacing="26">
+          <TextBlock Text="INTRODUCTION COMPLETE!"
+                     Foreground="#69E6FF" FontSize="55" FontWeight="Bold"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock Text="Congratulations on completing your introduction!"
+                     Foreground="White" FontSize="32" FontWeight="SemiBold"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock Text="You have six more lessons to continue your eye-gaze training."
+                     Foreground="White" FontSize="29"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock Text="Replay any level as often as you like, because practice makes perfect!"
+                     Foreground="#9CE4F8" FontSize="29"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+          <TextBlock Text="Opening the Level Menu automatically…"
+                     Foreground="#D4E6F8" FontSize="21"
+                     TextAlignment="Center" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Grid>
       <!-- Speech plays through a nonvisual Windows MediaPlayer instance. -->
     </Grid>
 
@@ -266,7 +373,7 @@
         </Border>
       </Grid>
 
-      <!-- Skills: user can open five large, gaze-accessible categories.
+      <!-- Skills: six skill categories, one for each of Levels 1-6.
            Every new measurement is NA until a validated recorder exists. -->
       <Grid x:Name="DiagnosticsSkillsPanel" Grid.Row="2" Visibility="Collapsed"
             RowSpacing="12">
@@ -279,11 +386,6 @@
           <TextBlock Text="SKILL MEASUREMENTS" FontSize="25"
                      FontWeight="Bold" TextAlignment="Center" Foreground="White"
                      VerticalAlignment="Center"/>
-          <Button x:Name="LevelZeroMoreButton" Content="MORE"
-                  Style="{StaticResource SecondaryGazeButton}"
-                  Click="OnLevelZeroMore" HorizontalAlignment="Right"
-                  VerticalAlignment="Center" MinWidth="160" MinHeight="64"
-                  FontSize="22" FontWeight="Bold"/>
         </Grid>
         <Grid Grid.Row="1" ColumnSpacing="12">
           <Grid.ColumnDefinitions>
@@ -291,27 +393,27 @@
             <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
           </Grid.ColumnDefinitions>
-          <Button x:Name="SkillsIntroButton" Grid.Column="0" Content="LEVEL 0"
+          <Button x:Name="SkillsIntroButton" Grid.Column="0" Content="TARGETS"
                   Style="{StaticResource PrimaryGazeButton}" Click="OnSkillsCategoryClicked"
                   FontSize="19" FontWeight="Bold" HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button x:Name="SkillsTargetsButton" Grid.Column="1" Content="TARGETS"
+          <Button x:Name="SkillsTargetsButton" Grid.Column="1" Content="DWELL"
                   Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
                   FontSize="19" FontWeight="Bold" HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button x:Name="SkillsDwellButton" Grid.Column="2" Content="DWELL"
+          <Button x:Name="SkillsDwellButton" Grid.Column="2" Content="TRACKING"
                   Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
                   FontSize="19" FontWeight="Bold" HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button x:Name="SkillsTrackingButton" Grid.Column="3" Content="TRACKING"
+          <Button x:Name="SkillsTrackingButton" Grid.Column="3" Content="ENDURANCE"
                   Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
                   FontSize="19" FontWeight="Bold" HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button x:Name="SkillsEnduranceButton" Grid.Column="4" Content="ENDURANCE"
+          <Button x:Name="SkillsEnduranceButton" Grid.Column="4" Content="FUNCTION"
                   Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
                   FontSize="19" FontWeight="Bold" HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button x:Name="SkillsFunctionButton" Grid.Column="5" Content="FUNCTION"
+          <Button x:Name="SkillsFunctionButton" Grid.Column="5" Content="NAVIGATION"
                   Style="{StaticResource SecondaryGazeButton}" Click="OnSkillsCategoryClicked"
                   FontSize="19" FontWeight="Bold" HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
@@ -659,7 +761,7 @@
         <TextBlock Text="Trivia Time!" Foreground="#FFD84D"
                    FontFamily="Comic Sans MS" FontWeight="Bold" FontSize="76"
                    TextAlignment="Center" TextWrapping="Wrap"/>
-        <TextBlock Text="10 fun facts! Look at TRUE or FALSE and hold your gaze to choose."
+        <TextBlock Text="10 fun facts! Look at TRUE or FALSE to choose your answer. Try to look directly at the center of the button and keep your eyes steady until the button is selected."
                    Foreground="#69E6FF" FontFamily="Comic Sans MS"
                    FontWeight="Bold" FontSize="42"
                    TextAlignment="Center" TextWrapping="Wrap"/>
@@ -813,7 +915,7 @@
         <StackPanel Spacing="24">
           <TextBlock Text="NO EYE TRACKER DETECTED" FontSize="32" FontWeight="Bold"
                      Foreground="White" TextAlignment="Center"/>
-          <TextBlock Text="This software requires Tobii PCEye 5 for training. No eye tracker detected. Switching to mouse control. Diagnostics data won&apos;t be collected."
+          <TextBlock Text="Eye Gaze Trainer requires a Tobii PCEye 5 for eye-gaze control. No eye tracker was detected. The app will start in mouse mode. Eye-gaze diagnostics will not be collected."
                      FontSize="25" Foreground="White" TextWrapping="Wrap" TextAlignment="Center"/>
           <Button Content="CONTINUE WITH MOUSE" Click="OnDismissNoTrackerNotice"
                   Style="{StaticResource PrimaryGazeButton}" MinWidth="350" MinHeight="88"
