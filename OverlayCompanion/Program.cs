@@ -16,6 +16,41 @@ namespace EyeGazeTrainer.OverlayCompanion
         private const int GazeAwareBit = 0x2;
         private const int MaxSeconds = 8 * 60 * 60;
         private const int SwMaximize = 3;
+        private static string restoreRequest;
+        private static string restoreAck;
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        private static extern int GetCurrentPackageFamilyName(ref int length, StringBuilder name);
+
+        private static void InitializeRestoreChannel()
+        {
+            try
+            {
+                int length = 0;
+                GetCurrentPackageFamilyName(ref length, null);
+                if (length <= 0) return;
+                var name = new StringBuilder(length);
+                if (GetCurrentPackageFamilyName(ref length, name) != 0) return;
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Packages", name.ToString(), "LocalState");
+                string session = File.ReadAllText(Path.Combine(folder, "overlay-session.txt")).Trim();
+                if (session.Length == 0 || session.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return;
+                restoreRequest = Path.Combine(folder, "overlay-restore-" + session + ".request");
+                restoreAck = Path.Combine(folder, "overlay-restore-" + session + ".ack");
+                Log("Restore channel ready; session=" + session);
+            }
+            catch (Exception ex) { Log("Restore channel unavailable: " + ex); }
+        }
+
+        private static bool RestoreRequested()
+        {
+            return restoreRequest != null && File.Exists(restoreRequest);
+        }
+
+        private static void AcknowledgeRestore(string result)
+        {
+            try { File.WriteAllText(restoreAck, result); Log("RESTORE ACK written: " + result); }
+            catch (Exception ex) { Log("RESTORE ACK error: " + ex); }
+        }
         private static readonly string LogName = "overlay-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + "-" + Process.GetCurrentProcess().Id + ".txt";
 
         private static void Log(string message)
@@ -59,6 +94,7 @@ namespace EyeGazeTrainer.OverlayCompanion
         private static void Main()
         {
             Log("Companion started");
+            InitializeRestoreChannel();
             IntPtr changed = IntPtr.Zero;
             IntPtr seen = IntPtr.Zero;
             IntPtr maximized = IntPtr.Zero;
@@ -69,6 +105,20 @@ namespace EyeGazeTrainer.OverlayCompanion
             {
                 while ((DateTime.UtcNow - started).TotalSeconds < MaxSeconds)
                 {
+                    // A shutdown request is terminal for this helper instance.
+                    // Never apply the style again after acknowledging restoration.
+                    if (RestoreRequested())
+                    {
+                        Log("Explicit restore request received");
+                        string result = "NOT_CHANGED";
+                        if (changed != IntPtr.Zero)
+                        {
+                            result = Restore(changed) ? "RESTORED" : "FAILED";
+                            changed = IntPtr.Zero;
+                        }
+                        AcknowledgeRestore(result);
+                        break;
+                    }
                     IntPtr foreground = GetForegroundWindow();
                     bool foregroundIsTrainer = IsTarget(foreground);
 
@@ -194,9 +244,9 @@ namespace EyeGazeTrainer.OverlayCompanion
                                  StringComparison.Ordinal);
         }
 
-        private static void Restore(IntPtr hWnd)
+        private static bool Restore(IntPtr hWnd)
         {
-            if (!IsWindow(hWnd)) { Log("Restore skipped: trainer window no longer exists"); return; }
+            if (!IsWindow(hWnd) || !IsTarget(hWnd)) { Log("Restore skipped: trainer window no longer exists or no longer matches"); return false; }
             int style = GetWindowLong(hWnd, GwlExStyle);
             Log("BEGIN restore gaze-aware bit; style=0x" + style.ToString("X8"));
             if ((style & GazeAwareBit) != 0)
@@ -206,7 +256,9 @@ namespace EyeGazeTrainer.OverlayCompanion
                 Log("Restore previous=" + previous + "; lastError=" + error);
             }
             int confirmed = GetWindowLong(hWnd, GwlExStyle);
-            Log("END restore; style=0x" + confirmed.ToString("X8"));
+            bool restored = IsWindow(hWnd) && (confirmed & GazeAwareBit) == 0;
+            Log("END restore; style=0x" + confirmed.ToString("X8") + "; verified=" + restored);
+            return restored;
         }
     }
 }
