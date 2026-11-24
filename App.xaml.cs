@@ -3,6 +3,7 @@ using System.IO;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Storage;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -49,6 +50,20 @@ namespace EyeGazeApiViability
                 frame.Navigate(typeof(LevelOnePreview));
             }
 
+            // Size the app independently of the gaze-aware companion. Request
+            // full-screen launch before activation, so the splash occupies the
+            // entire display even when tracker discovery has not finished.
+            try
+            {
+                ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.FullScreen;
+                var view = ApplicationView.GetForCurrentView();
+                bool fullScreen = view.IsFullScreenMode || view.TryEnterFullScreenMode();
+                TraceLifecycle("Startup full-screen request before activation: " + fullScreen);
+            }
+            catch (Exception ex)
+            {
+                TraceLifecycle("Startup full-screen request failed: " + ex);
+            }
             Window.Current.Activate();
             TraceLifecycle("Window.Activate completed");
         }
