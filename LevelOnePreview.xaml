@@ -806,12 +806,14 @@
         <TextBlock Text="Make the line below the same physical width as the center glass. The 85 mm reference is temporary."
                    FontSize="16" TextWrapping="Wrap" TextAlignment="Center" Foreground="#CAD5E5"/>
       </StackPanel>
-      <Grid Grid.Row="1" Margin="20,6,20,8" Background="#17253D" MinHeight="65">
-        <Rectangle x:Name="CalibrationReferenceBar" Height="12" Width="230"
+      <Grid Grid.Row="2" MinHeight="36" IsHitTestVisible="False">
+        <Rectangle x:Name="CalibrationReferenceBar" Height="32" Width="230"
                    HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                   Margin="0,0,0,16" RadiusX="6" RadiusY="6" Fill="#60BDFB"/>
+                   RadiusX="16" RadiusY="16" Fill="#60BDFB"
+                   Stroke="#D5F2FF" StrokeThickness="2"/>
       </Grid>
-      <StackPanel Grid.Row="2" Margin="20,4,20,16" Spacing="8">
+      <StackPanel Grid.Row="1" VerticalAlignment="Center"
+                  HorizontalAlignment="Stretch" Margin="32,8,32,8" Spacing="12">
         <TextBlock x:Name="CalibrationStatusText"
                    Text="Adjust the length, then save."
                    TextAlignment="Center" FontSize="18" Foreground="#E2E8F0"/>
