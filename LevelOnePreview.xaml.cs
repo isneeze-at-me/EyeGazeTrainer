@@ -1094,8 +1094,7 @@ namespace EyeGazeApiViability
         {
             if (!live || result == null || !result.JitterViewUnits.HasValue ||
                 displayScale == null || displayScale.ViewUnitsPerMillimeter <= 0) return;
-            double jitterMillimeters = result.JitterViewUnits.Value /
-                                        displayScale.ViewUnitsPerMillimeter;
+            double jitterMillimeters = displayScale.ToMillimeters(result.JitterViewUnits.Value);
             spatialJitter.Record(screenCenter, RootLayout.ActualWidth,
                                  RootLayout.ActualHeight, jitterMillimeters);
             trainingReport.RecordJitter(jitterMillimeters);
@@ -1525,8 +1524,9 @@ namespace EyeGazeApiViability
                 ? Math.Max(1.0, displayInformation.RawPixelsPerViewPixel) : 1.0;
             CalibrationStatusText.Text = string.Format(
                 System.Globalization.CultureInfo.InvariantCulture,
-                "Bar width: {0:0.00} DIP  |  {1:0.00} screen pixels",
-                pendingReferenceWidth, pendingReferenceWidth * rawPixelsPerView);
+                "Bar width: {0:0.00} DIP  |  {1:0.00} screen pixels  |  {2:0.000} pixels/mm",
+                pendingReferenceWidth, pendingReferenceWidth * rawPixelsPerView,
+                DisplayScaleManager.GetViewUnitsPerMillimeter(pendingReferenceWidth) * rawPixelsPerView);
         }
 
         private void OnDisplaySettingsRequested(object sender, RoutedEventArgs e)
