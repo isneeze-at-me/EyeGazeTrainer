@@ -1521,8 +1521,12 @@ namespace EyeGazeApiViability
             pendingReferenceWidth = Math.Max(30,
                 Math.Min(limit, pendingReferenceWidth));
             CalibrationReferenceBar.Width = pendingReferenceWidth;
-            CalibrationStatusText.Text =
-                "Match the line to the middle camera glass, then SAVE.";
+            double rawPixelsPerView = displayInformation != null
+                ? Math.Max(1.0, displayInformation.RawPixelsPerViewPixel) : 1.0;
+            CalibrationStatusText.Text = string.Format(
+                System.Globalization.CultureInfo.InvariantCulture,
+                "Bar width: {0:0.00} DIP  |  {1:0.00} screen pixels",
+                pendingReferenceWidth, pendingReferenceWidth * rawPixelsPerView);
         }
 
         private void OnDisplaySettingsRequested(object sender, RoutedEventArgs e)
