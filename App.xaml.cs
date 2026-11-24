@@ -12,6 +12,7 @@ namespace EyeGazeApiViability
     {
         private bool windowEventsRegistered;
         private bool overlayHelperLaunchAttempted;
+        private static readonly string ShutdownSessionId = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 8);
 
         public App()
         {
@@ -136,8 +137,17 @@ namespace EyeGazeApiViability
                 // Event names + timestamps only, no gaze positions or other personal data.
                 string path = Path.Combine(ApplicationData.Current.LocalFolder.Path,
                                            "gaze-lifecycle-trace.txt");
-                File.AppendAllText(path, DateTimeOffset.Now.ToString("O") +
-                                   " | " + message + "\r\n");
+                string line = DateTimeOffset.Now.ToString("O") + " | " + message + "\r\n";
+                string sessionPath = Path.Combine(ApplicationData.Current.LocalFolder.Path,
+                    "shutdown-" + ShutdownSessionId + ".txt");
+                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(line);
+                using (var stream = new FileStream(sessionPath, FileMode.Append,
+                    FileAccess.Write, FileShare.ReadWrite))
+                {
+                    stream.Write(bytes, 0, bytes.Length);
+                    stream.Flush(true);
+                }
+                File.AppendAllText(path, line);
             }
             catch (Exception)
             {
