@@ -47,12 +47,11 @@ namespace EyeGazeApiViability
 
             Window.Current.Activate();
             TraceLifecycle("Window.Activate completed");
-            TryStartOverlayCompanion();
         }
 
         // The helper operates on this app's own foreground window, not the
         // gaze APIs or TD Control. Never delay or fail gaze startup if absent.
-        private async void TryStartOverlayCompanion()
+        internal async void TryStartOverlayCompanion()
         {
             if (overlayHelperLaunchAttempted) return;
             overlayHelperLaunchAttempted = true;
