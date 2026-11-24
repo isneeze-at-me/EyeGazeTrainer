@@ -2298,8 +2298,18 @@ namespace EyeGazeApiViability
             }
         }
 
-        private void NavigateToCleanExit()
+        private bool cleanExitNavigationPending;
+
+        private async void NavigateToCleanExit()
         {
+            if (cleanExitNavigationPending) return;
+            cleanExitNavigationPending = true;
+            // Mouse mode has no companion and must not run gaze handoff tasks.
+            if (!mouseOnlyFallback)
+            {
+                var app = Application.Current as App;
+                if (app != null) await app.RequestOverlayRestorationAsync();
+            }
             // Based on the successful observed Back -> X run, not a safety guarantee.
             Trace("BEGIN navigation away from gaze page");
             try
@@ -2309,6 +2319,7 @@ namespace EyeGazeApiViability
                 Trace("END navigation; result=" + navigated);
                 if (!navigated)
                 {
+                    cleanExitNavigationPending = false;
                     Trace("ERROR navigation returned false; exit cancelled");
                     LiveStatusText.Visibility = Visibility.Visible;
                 LiveStatusText.Text = "Unable to navigate; app remains open.";
@@ -2318,6 +2329,7 @@ namespace EyeGazeApiViability
             }
             catch (Exception ex)
             {
+                cleanExitNavigationPending = false;
                 Trace("ERROR navigation: " + ex);
                 LiveStatusText.Visibility = Visibility.Visible;
                 LiveStatusText.Text = "Navigation failed; app remains open.";
