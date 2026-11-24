@@ -761,7 +761,7 @@
         <TextBlock Text="Trivia Time!" Foreground="#FFD84D"
                    FontFamily="Comic Sans MS" FontWeight="Bold" FontSize="76"
                    TextAlignment="Center" TextWrapping="Wrap"/>
-        <TextBlock Text="10 fun facts! Look at TRUE or FALSE and hold your gaze to choose."
+        <TextBlock Text="10 fun facts! Look at TRUE or FALSE to choose your answer. Try to look directly at the center of the button and keep your eyes steady until the button is selected."
                    Foreground="#69E6FF" FontFamily="Comic Sans MS"
                    FontWeight="Bold" FontSize="42"
                    TextAlignment="Center" TextWrapping="Wrap"/>
