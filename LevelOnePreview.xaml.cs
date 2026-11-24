@@ -2161,10 +2161,15 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            Trace("EXIT SELECTED; live=" + live + "; mouse=" + mouseOnlyFallback + "; subscribed=" + gazeSubscribed + "; watcherStarted=" + watcherStarted);
+            Trace("BEGIN stop startup timer");
             StopStartupDiscoveryTimer();
+            Trace("END stop startup timer; BEGIN flush practice time");
             trainingReport.FlushPracticeTime();
+            Trace("END flush practice time; BEGIN dismiss notice and stop Level 0");
             DismissNoTrackerNotice();
             StopLevelZero();
+            Trace("END stop Level 0; BEGIN stop practice and bonus timers");
             HideTherapistExportConfirmation();
             if (practiceTimer != null)
             {
@@ -2185,7 +2190,7 @@ namespace EyeGazeApiViability
             buttonDwellWheel.Hide();
             ExitButton.IsEnabled = false;
             SettingsExitButton.IsEnabled = false;
-            Trace("EXIT requested; source active=" + live);
+            Trace("END stop timers and reset UI; EXIT requested; source active=" + live);
             if (mouseOnlyFallback) NavigateToCleanExit();
             else if (live) BeginCleanup();
             else NavigateToCleanExit();
@@ -2195,6 +2200,7 @@ namespace EyeGazeApiViability
         {
             if (mouseOnlyFallback || !live || stopping) return;
             stopping = true;
+            Trace("BEGIN staged cleanup; subscribed=" + gazeSubscribed + "; watcherStarted=" + watcherStarted);
             ExitButton.IsEnabled = false;
             SettingsExitButton.IsEnabled = false;
             LiveStatusText.Text = "Closing EyeGazeTrainer…";
@@ -2300,6 +2306,7 @@ namespace EyeGazeApiViability
             {
                 bool navigated = Frame.Navigate(typeof(MainPage), mouseOnlyFallback
                     ? "EXIT_NO_GAZE_DIAGNOSTIC" : "EXIT_AFTER_GAZE_CLEANUP");
+                Trace("END navigation; result=" + navigated);
                 if (!navigated)
                 {
                     Trace("ERROR navigation returned false; exit cancelled");
@@ -2321,6 +2328,7 @@ namespace EyeGazeApiViability
 
         private void Trace(string message)
         {
+            App.TraceLifecycle("TRAINER | " + message);
             if (string.IsNullOrEmpty(tracePath)) return;
             try
             {
@@ -2335,10 +2343,12 @@ namespace EyeGazeApiViability
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            Trace("BEGIN OnNavigatedFrom");
             // Navigation follows staged gaze release; make the Windows arrow
             // available again on the gaze-free closing page and desktop.
             Window.Current.Activated -= OnTrainerWindowActivated;
             if (!mouseOnlyFallback) RestoreWindowsPointerCursor();
+            Trace("END cursor restoration");
             StopStartupDiscoveryTimer();
             if (startupSplashTimer != null)
             {
@@ -2368,6 +2378,7 @@ namespace EyeGazeApiViability
             Trace("Page OnNavigatedFrom; gaze active=" + live +
                   " cleanup stage=" + cleanupStage + " exit requested=" + exitRequested);
             base.OnNavigatedFrom(e);
+            Trace("END OnNavigatedFrom");
         }
     }
 }
