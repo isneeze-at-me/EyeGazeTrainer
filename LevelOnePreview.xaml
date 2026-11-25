@@ -689,12 +689,12 @@
                  Visibility="Collapsed" IsHitTestVisible="False"/>
       </Canvas>
       <!-- Remaining targets: visual only, never a gaze or mouse action. -->
-      <Border x:Name="TargetCountdown" Width="180" Height="68"
+      <Border x:Name="TargetCountdown" Width="90" Height="34"
               HorizontalAlignment="Left" VerticalAlignment="Bottom"
-              Margin="20,0,0,16" Background="#152235" CornerRadius="10"
+              Margin="20,0,0,16" Background="#152235" CornerRadius="5"
               Visibility="Collapsed" IsHitTestVisible="False">
         <TextBlock x:Name="TargetCountdownText" Text="35 remaining"
-                   Foreground="White" FontSize="24" FontWeight="SemiBold"
+                   Foreground="White" FontSize="12" FontWeight="SemiBold"
                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
       </Border>
       <!-- Intro uses the same bright, playful style as Level 1 completion. -->
