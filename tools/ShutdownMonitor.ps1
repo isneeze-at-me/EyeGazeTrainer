@@ -69,6 +69,14 @@ public static class TrainerWindowProbe {
     [StructLayout(LayoutKind.Sequential)]
     public struct RECT { public int Left, Top, Right, Bottom; }
     public delegate bool EnumProc(IntPtr hwnd, IntPtr data);
+    [DllImport("user32.dll", SetLastError=true)] public static extern bool GetClipCursor(out RECT rect);
+    [DllImport("user32.dll")] public static extern int GetSystemMetrics(int index);
+    public static string CursorClip() {
+        RECT r;
+        if (!GetClipCursor(out r)) return "unavailable; error=" + Marshal.GetLastWin32Error();
+        int x=GetSystemMetrics(76), y=GetSystemMetrics(77), w=GetSystemMetrics(78), h=GetSystemMetrics(79);
+        return String.Format("clip={0},{1},{2},{3}; virtualDesktop={4},{5},{6},{7}; restricted={8}", r.Left,r.Top,r.Right,r.Bottom,x,y,x+w,y+h,r.Left!=x || r.Top!=y || r.Right!=x+w || r.Bottom!=y+h);
+    }
     [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll")] public static extern IntPtr GetShellWindow();
     [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hwnd);
@@ -137,7 +145,7 @@ function Get-State($processes) {
     return ($items -join '; ')
 }
 Write-Host "External shutdown log: $log"
-Write-Trace 'External monitor started; build=2026-11-24-native-close-v2. Process/window responsiveness is not proof of functional gaze control.'
+Write-Trace 'External monitor started; build=2026-11-24-direct-gaze-v4. Process/window responsiveness is not proof of functional gaze control.'
 $sessionCount = 0
 $activeTrainerIds = ''
 $lastLogicalLaunch = ''
@@ -149,6 +157,7 @@ foreach ($folder in $packageFolders) {
 $exitObserved = $null
 $lastState = ''
 $lastWindowState = ''
+$lastCursorClip = ''
 $lastHeartbeat = [DateTime]::MinValue
 try {
     while ($true) {
@@ -164,6 +173,11 @@ try {
         }
         if ($windowProbeReady) {
             try {
+                $cursorClip = [TrainerWindowProbe]::CursorClip()
+                if ($cursorClip -ne $lastCursorClip) {
+                    Write-Trace ('CURSOR CLIP | ' + $cursorClip)
+                    $lastCursorClip = $cursorClip
+                }
                 $windowState = Get-WindowState $processes
                 if ($windowState -ne $lastWindowState) {
                     Write-Trace $windowState

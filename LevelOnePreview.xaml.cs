@@ -165,6 +165,10 @@ namespace EyeGazeApiViability
         private readonly TrainingTargetMeasurement targetMeasurement = new TrainingTargetMeasurement();
         private bool completed;
         private bool exitRequested;
+        private DispatcherTimer isolationTimer;
+        private bool isolationSampleSeen;
+        private bool directGazeAttempted;
+        private bool directTrackingInterrupted;
         private bool autoStartAttempted;
         private volatile bool trackerSeenDuringEnumeration;
         private bool trackerEnumerationFinished;
@@ -258,15 +262,41 @@ namespace EyeGazeApiViability
 
         private void OnPageLoaded(object sender, RoutedEventArgs e)
         {
-            // Keep normal mouse input until an eye-tracking device is detected.
-            // Preserve the pre-splash initialization sequence: connect the
-            // gaze watcher as soon as the page is loaded. The branding
-            // overlay stays visible for its full three seconds independently.
+            // Normal startup uses direct gaze events, never a device watcher.
+            // The legacy watcher is retained only in explicitly selected isolation tests.
+            var mode = (Application.Current as App)?.IsolationMode;
+            if (mode != null && mode != "A" && isolationTimer == null && !autoStartAttempted)
+            {
+                isolationTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+                isolationTimer.Tick += OnIsolationElapsed;
+                isolationTimer.Start();
+                Trace("ISOLATION " + mode + ": automatic exit scheduled");
+            }
             if (!autoStartAttempted)
             {
                 autoStartAttempted = true;
-                OnEnableLive(null, null);
+                if (mode == "D")
+                {
+                    Trace("ISOLATION D: no gaze API calls");
+                    startupSplashCompleted = true;
+                    startupRouted = true;
+                    StartupSplashPanel.Visibility = Visibility.Collapsed;
+                    ShowScreen(AppScreen.Menu);
+                    return;
+                }
+                if (mode == "H" || mode == "I")
+                {
+                    startupSplashCompleted = true;
+                    startupRouted = true;
+                    StartupSplashPanel.Visibility = Visibility.Collapsed;
+                    ShowScreen(AppScreen.Menu);
+                    StartDirectGazeIsolation(mode);
+                    return;
+                }
+                if (mode == null) TryStartDirectGaze();
+                else OnEnableLive(null, null);
             }
+            if (mode == "D" || mode == "H" || mode == "I") return;
             if (startupSplashCompleted || startupSplashTimer != null) return;
             startupSplashTimer = new DispatcherTimer
                 { Interval = TimeSpan.FromSeconds(StartupSplashDurationSeconds) };
@@ -283,6 +313,8 @@ namespace EyeGazeApiViability
             if (exitRequested || stopping || mouseOnlyFallback || !trackerSeenDuringEnumeration) return;
             if (args.WindowActivationState == CoreWindowActivationState.Deactivated)
                 return;
+            var mode = (Application.Current as App)?.IsolationMode;
+            if (mode == "D" || mode == "E" || mode == "F" || mode == "G" || mode == "H" || mode == "I") return;
             HideWindowsPointerCursor();
             try
             {
@@ -363,7 +395,9 @@ namespace EyeGazeApiViability
         {
             StopStartupDiscoveryTimer();
             if (startupRouted || exitRequested || stopping) return;
-            Trace("Initial gaze enumeration timed out; selecting startup mode");
+            Trace((Application.Current as App)?.IsolationMode == null
+                ? "Direct gaze startup timed out without valid gaze; selecting mouse mode"
+                : "Initial gaze enumeration timed out; selecting startup mode");
             trackerEnumerationFinished = true;
             CompleteStartupAfterTrackerScan();
         }
@@ -392,19 +426,74 @@ namespace EyeGazeApiViability
                 return;
             }
 
-            // Only the confirmed eye-tracking path may hide the cursor or launch the companion.
-            HideWindowsPointerCursor();
-            (Application.Current as App)?.TryStartOverlayCompanion();
+            // Keep pointer policy identical in D–G; do not hide the arrow or launch a companion.
+            var isolationMode = (Application.Current as App)?.IsolationMode;
+            if (isolationMode != "D" && isolationMode != "E" && isolationMode != "F" && isolationMode != "G")
+            {
+                HideWindowsPointerCursor();
+                (Application.Current as App)?.TryStartOverlayCompanion();
+            }
+            else Trace("ISOLATION " + isolationMode + ": pointer unchanged; companion skipped");
             // Keep the existing single-owner gaze startup and tutorial route.
-            if (ShouldStartLevelZero())
+            if ((Application.Current as App)?.IsolationMode != null)
+                ShowScreen(AppScreen.Menu);
+            else if (ShouldStartLevelZero())
                 StartLevelZero();
             else
                 ShowScreen(AppScreen.Menu);
         }
 
+        private void TryStartDirectGaze()
+        {
+            if (exitRequested || stopping || mouseOnlyFallback || gazeSubscribed ||
+                (Application.Current as App)?.IsolationMode != null) return;
+            directGazeAttempted = true;
+            try
+            {
+                Trace("DIRECT GAZE: acquiring source; watcher disabled");
+                if (gazeSource == null) gazeSource = GazeInputSourcePreview.GetForCurrentView();
+                if (gazeSource == null) { Trace("DIRECT GAZE: source unavailable"); return; }
+                live = true;
+                gazeSource.GazeMoved += OnGazeMoved;
+                gazeSubscribed = true;
+                Trace("DIRECT GAZE: subscribed; awaiting valid gaze sample");
+            }
+            catch (Exception ex) { Trace("DIRECT GAZE: setup failed: " + ex); }
+        }
+
+        private void StartDirectGazeIsolation(string mode)
+        {
+            // No watcher, no tracker enumeration, no cursor or overlay modifications.
+            Trace("ISOLATION " + mode + ": BEGIN direct GetForCurrentView; watcher not created");
+            try
+            {
+                gazeSource = GazeInputSourcePreview.GetForCurrentView();
+                Trace("ISOLATION " + mode + ": END direct GetForCurrentView; source=" + (gazeSource != null));
+                if (gazeSource == null)
+                {
+                    Trace("ISOLATION INVALID: direct gaze source unavailable");
+                    return;
+                }
+                live = true;
+                if (mode == "I")
+                {
+                    Trace("ISOLATION I: BEGIN GazeMoved subscription");
+                    gazeSource.GazeMoved += OnGazeMoved;
+                    gazeSubscribed = true;
+                    Trace("ISOLATION I: END GazeMoved subscription");
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace("ISOLATION INVALID: direct gaze setup failed: " + ex);
+            }
+        }
+
         private void OnEnableLive(object sender, RoutedEventArgs e)
         {
-            if (live || stopping) return;
+            var mode = (Application.Current as App)?.IsolationMode;
+            if (mode == null) { TryStartDirectGaze(); return; }
+            if (live || stopping || mode == "D" || mode == "H" || mode == "I") return;
             try
             {
                 tracePath = Path.Combine(ApplicationData.Current.LocalFolder.Path,
@@ -460,9 +549,27 @@ namespace EyeGazeApiViability
         {
             if (mouseOnlyFallback || exitRequested || stopping) return;
             mouseOnlyFallback = true;
-            live = false;
-            gazeSubscribed = false;
-            gazeSource = null;
+            // Direct acquisition can succeed even without a physical tracker.
+            // Unsubscribe before releasing the source, including mouse fallback.
+            if (directGazeAttempted && gazeSource != null && gazeSubscribed)
+            {
+                try
+                {
+                    gazeSource.GazeMoved -= OnGazeMoved;
+                    gazeSubscribed = false;
+                    Trace("DIRECT GAZE: unsubscribed for mouse fallback");
+                }
+                catch (Exception ex)
+                {
+                    Trace("DIRECT GAZE: fallback unsubscribe failed; retain source for exit retry: " + ex);
+                }
+            }
+            live = directGazeAttempted && gazeSubscribed;
+            if (!live)
+            {
+                gazeSubscribed = false;
+                gazeSource = null;
+            }
             // Stop only the app's watcher. Never alter TD Control.
             if (watcher != null)
             {
@@ -595,9 +702,13 @@ namespace EyeGazeApiViability
                 return;
             }
 
+            var mode = (Application.Current as App)?.IsolationMode;
+            if (mode == "E") return;
+            if (mode == "F" && gazeSource != null) return;
             try
             {
                 Trace("BEGIN gaze source subscription");
+                if (mode == "F" || mode == "G") Trace("ISOLATION " + mode + ": acquiring gaze source");
                 var newSource = GazeInputSourcePreview.GetForCurrentView();
                 if (newSource == null)
                 {
@@ -606,10 +717,17 @@ namespace EyeGazeApiViability
                     Trace("Gaze source unavailable; awaiting device update");
                     return;
                 }
+                if (mode == "F")
+                {
+                    gazeSource = newSource;
+                    Trace("ISOLATION F: source acquired; no event subscription");
+                    return;
+                }
                 newSource.GazeMoved += OnGazeMoved;
                 gazeSource = newSource;
                 gazeSubscribed = true;
-                HideWindowsPointerCursor();
+                if (mode != "G") HideWindowsPointerCursor();
+                else Trace("ISOLATION G: subscribed; pointer unchanged");
                 Trace("END gaze source subscription");
                 LiveStatusText.Visibility = Visibility.Collapsed;
                 LiveStatusText.Text = "Eye tracking ready. Look at LEVELS to start.";
@@ -624,7 +742,18 @@ namespace EyeGazeApiViability
 
         private void OnGazeMoved(GazeInputSourcePreview sender, GazeMovedPreviewEventArgs e)
         {
-            if (!live || stopping) return;
+            if (!live || stopping || exitRequested || mouseOnlyFallback) return;
+            // G isolates delivery of gaze events from training/dwell actions.
+            var mode = (Application.Current as App)?.IsolationMode;
+            if (mode == "G" || mode == "I")
+            {
+                if (!isolationSampleSeen)
+                {
+                    isolationSampleSeen = true;
+                    Trace("ISOLATION " + mode + ": first gaze event received");
+                }
+                return;
+            }
             Point? screenPoint = e.CurrentPoint?.EyeGazePosition;
             if (!screenPoint.HasValue) return;
             var p = screenPoint.Value;
@@ -632,6 +761,21 @@ namespace EyeGazeApiViability
                 double.IsInfinity(p.X) || double.IsInfinity(p.Y)) return;
             mostRecentRawGazePosition = p;
             lastValidGazeSampleAt = DateTimeOffset.UtcNow;
+            if (mode == null)
+            {
+                if (!trackerSeenDuringEnumeration)
+                {
+                    trackerSeenDuringEnumeration = true;
+                    Trace("DIRECT GAZE: first valid sample; watcher not created");
+                    CompleteStartupAfterTrackerScan();
+                }
+                if (!startupRouted) return;
+                if (directTrackingInterrupted)
+                {
+                    directTrackingInterrupted = false;
+                    Trace("DIRECT GAZE: valid tracking resumed");
+                }
+            }
             if (LiveStatusText.Visibility == Visibility.Visible &&
                 gazeSubscribed)
             {
@@ -948,7 +1092,28 @@ namespace EyeGazeApiViability
             DateTimeOffset now = DateTimeOffset.UtcNow;
             double elapsed = (now - lastPracticeTick).TotalSeconds;
             lastPracticeTick = now;
-            if (exitRequested || stopping || !live ||
+            if (!exitRequested && !stopping && !mouseOnlyFallback &&
+                (Application.Current as App)?.IsolationMode == null)
+            {
+                if (!startupRouted && !gazeSubscribed) TryStartDirectGaze();
+                if (startupRouted && gazeSubscribed && trackerSeenDuringEnumeration &&
+                    !directTrackingInterrupted && (now - lastValidGazeSampleAt).TotalSeconds > 2)
+                {
+                    directTrackingInterrupted = true;
+                    cursorFilter.Reset();
+                    targetMeasurement.CancelHold();
+                    bonusButtonMeasurement.CancelHold();
+                    ObserveLevelZeroDwellTarget(false);
+                    gazeControlTarget = null;
+                    gazeControlTriggered = false;
+                    HideTargetDwellVisual();
+                    buttonDwellWheel.Hide();
+                    LiveStatusText.Text = "Waiting for gaze input…";
+                    LiveStatusText.Visibility = Visibility.Visible;
+                    Trace("DIRECT GAZE: tracking gap; existing subscription retained for recovery");
+                }
+            }
+            if (exitRequested || stopping || mouseOnlyFallback || !live ||
                 (currentScreen != AppScreen.Lesson && currentScreen != AppScreen.Bonus) ||
                 lastValidGazeSampleAt == default(DateTimeOffset) ||
                 (now - lastValidGazeSampleAt).TotalSeconds > 2) return;
@@ -2161,10 +2326,26 @@ namespace EyeGazeApiViability
             return Math.Max(min, Math.Min(max, value));
         }
 
+        private void StopIsolationTimer()
+        {
+            if (isolationTimer == null) return;
+            isolationTimer.Stop();
+            isolationTimer.Tick -= OnIsolationElapsed;
+            isolationTimer = null;
+        }
+
+        private void OnIsolationElapsed(object sender, object e)
+        {
+            StopIsolationTimer();
+            Trace("ISOLATION automatic exit; mode=" + (Application.Current as App)?.IsolationMode + "; live=" + live + "; mouse=" + mouseOnlyFallback + "; watcher=" + watcherStarted + "; source=" + (gazeSource != null) + "; subscribed=" + gazeSubscribed + "; eventReceived=" + isolationSampleSeen);
+            OnExitRequested(null, null);
+        }
+
         private void OnExitRequested(object sender, RoutedEventArgs e)
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            StopIsolationTimer();
             Trace("EXIT SELECTED; live=" + live + "; mouse=" + mouseOnlyFallback + "; subscribed=" + gazeSubscribed + "; watcherStarted=" + watcherStarted);
             Trace("BEGIN stop startup timer");
             StopStartupDiscoveryTimer();
@@ -2195,14 +2376,13 @@ namespace EyeGazeApiViability
             ExitButton.IsEnabled = false;
             SettingsExitButton.IsEnabled = false;
             Trace("END stop timers and reset UI; EXIT requested; source active=" + live);
-            if (mouseOnlyFallback) NavigateToCleanExit();
-            else if (live) BeginCleanup();
+            if (live && (!mouseOnlyFallback || gazeSubscribed)) BeginCleanup();
             else NavigateToCleanExit();
         }
 
         private void BeginCleanup()
         {
-            if (mouseOnlyFallback || !live || stopping) return;
+            if (!live || stopping) return;
             stopping = true;
             Trace("BEGIN staged cleanup; subscribed=" + gazeSubscribed + "; watcherStarted=" + watcherStarted);
             ExitButton.IsEnabled = false;
@@ -2318,7 +2498,7 @@ namespace EyeGazeApiViability
             Trace("BEGIN navigation away from gaze page");
             try
             {
-                bool navigated = Frame.Navigate(typeof(MainPage), mouseOnlyFallback
+                bool navigated = Frame.Navigate(typeof(MainPage), mouseOnlyFallback && !directGazeAttempted && (Application.Current as App)?.IsolationMode == null
                     ? "EXIT_NO_GAZE_DIAGNOSTIC" : "EXIT_AFTER_GAZE_CLEANUP");
                 Trace("END navigation; result=" + navigated);
                 if (!navigated)
@@ -2359,6 +2539,7 @@ namespace EyeGazeApiViability
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            StopIsolationTimer();
             Trace("BEGIN OnNavigatedFrom");
             // Navigation follows staged gaze release; make the Windows arrow
             // available again on the gaze-free closing page and desktop.

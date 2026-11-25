@@ -32,6 +32,13 @@ namespace EyeGazeApiViability
                          afterGazeCleanup + "; hardwareFreeExitTest=" +
                          hardwareFreeExitTest);
 
+            if (route == "ISOLATION_A")
+            {
+                Content = new TextBlock { Text = "Shutdown isolation A — no gaze or companion\nAutomatic close in 30 seconds", FontSize = 32, TextWrapping = TextWrapping.Wrap, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                nativeCloseExperiment = true;
+                ScheduleExit("ISOLATION A", 30);
+                return;
+            }
             if (afterGazeCleanup || hardwareFreeExitTest)
             {
                 // Do not keep the previous gaze-enabled page in the back stack.
@@ -70,13 +77,13 @@ namespace EyeGazeApiViability
             }
         }
 
-        private void ScheduleExit(string reason)
+        private void ScheduleExit(string reason, int seconds = 2)
         {
             if (exitScheduled) return;
             exitScheduled = true;
             LogLifecycle("EXIT scheduled: " + reason);
             exitTimer = new DispatcherTimer();
-            exitTimer.Interval = TimeSpan.FromSeconds(2);
+            exitTimer.Interval = TimeSpan.FromSeconds(seconds);
             exitTimer.Tick += OnExitTimer;
             exitTimer.Start();
         }
@@ -86,6 +93,7 @@ namespace EyeGazeApiViability
             exitTimer.Stop();
             exitTimer.Tick -= OnExitTimer;
             exitTimer = null;
+            if ((Application.Current as App)?.IsolationMode == "A") LeaveFullScreenForExit();
             try
             {
                 LogLifecycle("Before termination; fullScreen=" +
