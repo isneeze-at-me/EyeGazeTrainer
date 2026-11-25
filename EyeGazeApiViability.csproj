@@ -68,6 +68,7 @@
     <Compile Include="AdaptiveGazeProfile.cs" />
     <Compile Include="AdaptiveHitTesting.cs" />
     <Compile Include="TrainingTargetMeasurement.cs" />
+    <Compile Include="LevelOneTargetDiagnostics.cs" />
     <Compile Include="DisplayScaleManager.cs" />
     <Compile Include="TrainingProgress.cs" />
     <Compile Include="TrainingReport.cs" />
