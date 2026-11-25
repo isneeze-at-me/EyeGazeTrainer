@@ -28,7 +28,7 @@ namespace EyeGazeApiViability
         public App()
         {
             InitializeComponent();
-            TraceLifecycle("App constructor; build=2026-11-24-direct-gaze-v4");
+            TraceLifecycle("App constructor; build=2026-11-24-watcher-free-v5");
             Suspending += (s, e) => TraceLifecycle("Application.Suspending");
             Resuming += (s, e) => TraceLifecycle("Application.Resuming");
         }
@@ -211,7 +211,7 @@ namespace EyeGazeApiViability
             overlayHelperLaunchAttempted = false;
             overlayHelperLaunchAccepted = false;
             overlayHelperLaunchFinished = false;
-            TraceLifecycle("OnLaunched START; ISOLATION " + mode + "; 30-second auto-close; build=2026-11-24-direct-gaze-v4");
+            TraceLifecycle("OnLaunched START; ISOLATION " + mode + "; 30-second auto-close; build=2026-11-24-watcher-free-v5");
             frame = new Frame();
             Window.Current.Content = frame;
             if (!windowEventsRegistered)
