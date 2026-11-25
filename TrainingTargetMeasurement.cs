@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: TrainingTargetMeasurement.cs
+// Purpose: Collects in-memory raw gaze samples and calculates performance for individual target attempts.
+// ============================================================================
+
 using System;
 using System.Collections.Generic;
 using Windows.Foundation;
@@ -33,6 +39,7 @@ namespace EyeGazeApiViability
 
         public double HoldProgress { get; private set; }
 
+        // Initialize measurements for a newly presented target.
         public void BeginTarget(DateTimeOffset timestamp)
         {
             samples.Clear();
@@ -55,11 +62,13 @@ namespace EyeGazeApiViability
             // Completion is only established by a valid inside-target gaze
             // sample. A long gap followed by leaving cannot count as success.
             bool missed = dwelling && !acquired &&
-                (now - enteredAt).TotalMilliseconds >= MinimumAttemptMilliseconds;
+                (now - enteredAt).TotalMilliseconds >= MinimumAttemptMilliseconds &&
+                (now - lastSampleAt).TotalMilliseconds <= LostGazeMilliseconds;
             CancelHold();
             return missed;
         }
 
+        // Reset the current hold without completing a target.
         public void CancelHold()
         {
             samples.Clear();
@@ -69,6 +78,7 @@ namespace EyeGazeApiViability
             HoldProgress = 0;
         }
 
+        // Update the current target attempt using the raw sample, time and hit-test result.
         public bool Observe(Point raw, DateTimeOffset now, bool inside)
         {
             if (shownAt == default(DateTimeOffset)) return false;
@@ -108,6 +118,7 @@ namespace EyeGazeApiViability
             return true;
         }
 
+        // Calculate the performance components from the current target measurements.
         public TargetPerformance Measure(Point center, double radius, DateTimeOffset now)
         {
             if (!acquired || radius <= 0) throw new InvalidOperationException();
@@ -156,12 +167,14 @@ namespace EyeGazeApiViability
             return new TargetPerformance(precision, speed, stability, jitter);
         }
 
+        // Reject invalid gaze coordinates before measuring performance.
         private static bool Valid(Point p)
         {
             return !double.IsNaN(p.X) && !double.IsNaN(p.Y) &&
                    !double.IsInfinity(p.X) && !double.IsInfinity(p.Y);
         }
 
+        // Bound normalized performance to the unit interval.
         private static double Clamp01(double x) { return Math.Max(0, Math.Min(1, x)); }
     }
 
@@ -173,6 +186,7 @@ namespace EyeGazeApiViability
         public double? JitterViewUnits { get; private set; }
         public double Overall { get { return Precision * 0.40 + Speed * 0.30 + Stability * 0.30; } }
 
+        // Store the calculated precision, speed and stability components.
         public TargetPerformance(double precision, double speed, double stability,
                                  double? jitterViewUnits = null)
         {
@@ -182,6 +196,7 @@ namespace EyeGazeApiViability
             JitterViewUnits = jitterViewUnits;
         }
 
+        // Bound a displayed performance component to zero through one hundred.
         private static double Clamp(double n) { return Math.Max(0, Math.Min(100, n)); }
     }
 }

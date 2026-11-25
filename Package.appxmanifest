@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     EyeGazeTrainer
+     File: Package.appxmanifest
+     Purpose: Declares package identity, launch integration, gaze capability and full-trust companion registration.
+     ============================================================================ -->
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
          xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
          xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
@@ -23,6 +28,7 @@
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310.png" Square310x310Logo="Assets\Square310.png" />
         <uap:SplashScreen Image="Assets\Splash620.png" BackgroundColor="#101827" />
       </uap:VisualElements>
+      <!-- Protocol activation and packaged companion registration === -->
       <Extensions>
         <uap:Extension Category="windows.protocol">
           <uap:Protocol Name="eyegazetrainer-exittest"/>
@@ -31,6 +37,7 @@
       </Extensions>
     </Application>
   </Applications>
+  <!-- Capabilities required by the application and its helper === -->
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
     <DeviceCapability Name="gazeInput" />

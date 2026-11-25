@@ -1,3 +1,8 @@
+<!-- ============================================================================
+     EyeGazeTrainer
+     File: App.xaml
+     Purpose: Declares the UWP application and its code-behind lifecycle owner.
+     ============================================================================ -->
 <Application x:Class="EyeGazeApiViability.App"
   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">

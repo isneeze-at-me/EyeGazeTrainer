@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: DisplayScaleManager.cs
+// Purpose: Converts between UWP view units and estimated physical millimeters using a saved display reference.
+// ============================================================================
+
 using System;
 using Windows.Graphics.Display;
 using Windows.Storage;
@@ -26,6 +32,7 @@ namespace EyeGazeApiViability
         public double ReferenceBarViewWidth { get { return ReferenceWidthMillimeters * viewUnitsPerMillimeter; } }
         public bool HasSavedAdjustment { get; private set; }
 
+        // Initialize the per-display reference and recover a valid saved calibration.
         public DisplayScaleManager()
         {
             DisplayInformation display = DisplayInformation.GetForCurrentView();
@@ -61,22 +68,26 @@ namespace EyeGazeApiViability
             catch (Exception) { /* No storage issue should prevent eye-gaze usage. */ }
         }
 
+        // Convert a physical length to UWP layout units.
         public double ToViewUnits(double millimeters)
         {
             return millimeters * viewUnitsPerMillimeter;
         }
 
         // Inverse of ToViewUnits: convert measured on-screen distances to physical mm.
+        // Convert a measured layout distance to estimated millimeters.
         public double ToMillimeters(double viewUnits)
         {
             return viewUnits / viewUnitsPerMillimeter;
         }
 
+        // Derive the conversion factor from the displayed reference width.
         public static double GetViewUnitsPerMillimeter(double referenceViewWidth)
         {
             return referenceViewWidth / ReferenceWidthMillimeters;
         }
 
+        // Persist the selected physical-reference width for this display.
         public void SaveReferenceWidth(double displayedWidth)
         {
             double units = GetViewUnitsPerMillimeter(displayedWidth);
@@ -86,6 +97,7 @@ namespace EyeGazeApiViability
             HasSavedAdjustment = true;
         }
 
+        // Validate numeric reference values before using them.
         private static bool IsValid(double value)
         {
             return value >= MinimumViewUnitsPerMillimeter &&
@@ -93,6 +105,7 @@ namespace EyeGazeApiViability
                    !double.IsNaN(value) && !double.IsInfinity(value);
         }
 
+        // Bound the requested reference dimension to the supported range.
         private static double Clamp(double value, double min, double max)
         {
             return Math.Max(min, Math.Min(max, value));

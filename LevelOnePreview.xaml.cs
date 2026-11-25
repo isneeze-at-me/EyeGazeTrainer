@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: LevelOnePreview.xaml.cs
+// Purpose: Coordinates training screens, direct gaze input, adaptive assistance, diagnostics, and native shutdown.
+// ============================================================================
+
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -14,6 +20,9 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Xaml.Media;
 using Windows.UI;
+using Windows.Media.Playback;
+using Windows.Media.Core;
+using Windows.Media.SpeechSynthesis;
 
 namespace EyeGazeApiViability
 {
@@ -28,16 +37,63 @@ namespace EyeGazeApiViability
         private double bullseyeDiameter;
         private double pendingReferenceWidth;
         private bool displaySettingsVisible;
+        private DispatcherTimer exampleBarTimer;
+        private DateTimeOffset exampleBarStarted;
         private DisplayInformation displayInformation;
         private CoreCursor previousPointerCursor;
         private bool pointerCursorHidden;
         private Point lastDrawnGazeCursor = new Point(double.NaN, double.NaN);
         private bool lastDrawnGazeCursorWasLevelZero;
-        private double TargetDiameter { get { return targetDiameter; } }
+        private double TargetDiameter
+        {
+            get
+            {
+                // Keep the nominal 55 mm size unless a small view makes an
+                // outer grid cell physically unreachable with that diameter.
+                double w = TrainingCanvas.ActualWidth, h = TrainingCanvas.ActualHeight;
+                if (w <= 0 || h <= 0) return targetDiameter;
+                return Math.Min(targetDiameter, Math.Max(1, 2 *
+                    (Math.Min(w / SpatialAccuracyMap.Columns, h / SpatialAccuracyMap.Rows) - 8)));
+            }
+        }
         private readonly MasterCursorSmoothingFilter cursorFilter = new MasterCursorSmoothingFilter();
         private readonly AdaptiveGazeProfile gazeProfile = new AdaptiveGazeProfile();
-        private const int TargetsPerLevel = 10;
+        // A completed round visits every cell of the existing full-screen map.
+        private const int TargetsPerLevel = SpatialAccuracyMap.Rows * SpatialAccuracyMap.Columns;
+        private const int InterTargetDelayMilliseconds = 500;
+        private readonly LevelOneTargetDiagnostics levelOneDiagnostics = new LevelOneTargetDiagnostics();
+        private readonly List<int> remainingTargetCells = new List<int>();
+        private readonly int[] plannedDirections = new int[8];
+        private DispatcherTimer targetDelayTimer;
+        private int targetCell = -1;
+        private int targetDirection = -1;
+        private DateTimeOffset targetShownAt, targetLastSampleAt;
+        private double? targetArrivalSeconds;
+        private bool targetTrialInterrupted;
+        private int targetMisses;
+        private DateTimeOffset rawHoldStarted;
+        private int rawHoldMisses;
+        private bool rawFirstHoldCompleted;
+        private bool backOnRight;
         private readonly Random placementRandom = new Random();
+        private readonly Random encouragementRandom = new Random();
+        private readonly Dictionary<string, int> lastEncouragement = new Dictionary<string, int>();
+
+        // Draw a variant other than the previous one for this specific prompt.
+        // Separate random state avoids changing the target-placement sequence.
+        private string ChooseEncouragement(string key, params string[] options)
+        {
+            int last;
+            int index;
+            if (lastEncouragement.TryGetValue(key, out last) && options.Length > 1)
+            {
+                index = encouragementRandom.Next(options.Length - 1);
+                if (index >= last) index++;
+            }
+            else index = encouragementRandom.Next(options.Length);
+            lastEncouragement[key] = index;
+            return options[index];
+        }
         private readonly TrainingProgress trainingProgress = new TrainingProgress();
         private readonly TrainingReport trainingReport = new TrainingReport();
         private readonly DwellRecommendation dwellRecommendation = new DwellRecommendation();
@@ -65,6 +121,11 @@ namespace EyeGazeApiViability
         private static readonly string[] TherapistSkillCategoryNames =
             { "Targets", "Dwell", "Tracking", "Endurance", "Function", "Navigation" };
         private Button[] skillCategoryButtons;
+        private Button directionalDetailsButton;
+        private StackPanel directionalSummaryPanel;
+        private Viewbox directionalGraphic;
+        private Canvas directionalCanvas;
+        private bool directionalDetailsVisible;
         private int selectedSkillCategory;
         private readonly TextBlock[] skillMetricNames = new TextBlock[6];
         private readonly TextBlock[] skillMetricValues = new TextBlock[6];
@@ -76,12 +137,12 @@ namespace EyeGazeApiViability
         {
             new[]
             {
-                "Target acquisition time|Average time from target appearance to first valid arrival",
-                "Target selection time|Average time from target appearance to completed selection",
-                "Acquisition success rate|Successful arrivals divided by comparable target attempts",
-                "Directional access|Left, right, up, down and diagonal success and latency",
-                "Spatial reach and edges|Screen coverage, corners, edges and difficult regions",
-                "Target precision|Gaze offset from intended target center and trial count"
+                "Target acquisition time|Median time to first native gaze hit; excludes dwell",
+                "Target precision|Mean raw settled center-accuracy score",
+                "Target stability|Median raw settled RMS gaze spread (estimated mm)",
+                "First-attempt success|Native first hold completed before assisted selection; gaps excluded",
+                "Directional control|Mean native first-hold success across measured directions",
+                "Spatial reach|Unique cells reached by native gaze out of 35"
             },
             new[]
             {
@@ -159,6 +220,11 @@ namespace EyeGazeApiViability
         private bool triviaFinishing;
         private bool triviaLoading;
         private bool lessonIntroActive;
+        private MediaPlayer lessonNarrationPlayer;
+        private SpeechSynthesizer lessonNarrationSynth;
+        private SpeechSynthesisStream lessonNarrationStream;
+        private TaskCompletionSource<bool> lessonNarrationCompletion;
+        private int lessonNarrationVersion;
         private bool bonusIntroActive;
         private string tracePath;
         private int targetIndex = -1;
@@ -203,6 +269,7 @@ namespace EyeGazeApiViability
         private const double NavigationRearmDistance = 65.0;
         private static readonly TimeSpan ControlDwell = TimeSpan.FromMilliseconds(1500);
 
+        // Initialize persistent training models, visual controls and lifecycle callbacks.
         public LevelOnePreview()
         {
             InitializeComponent();
@@ -228,6 +295,7 @@ namespace EyeGazeApiViability
                 SkillsEnduranceButton, SkillsFunctionButton };
             BuildDiagnosticGrids();
             BuildSkillsGrid();
+            diagnosticsSkillsButtons = diagnosticsSkillsButtons.Concat(new[] { directionalDetailsButton }).ToArray();
             SelectSkillsCategory(0);
             allLevelButtons = new[] { LevelOneButton, LevelTwoButton,
                 LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton };
@@ -238,13 +306,11 @@ namespace EyeGazeApiViability
             levelZeroContinueButtons = new[] { LevelZeroContinueButton };
             bonusButtons = new[] { BonusBackButton, BonusTrueButton, BonusFalseButton };
             bonusBackOnlyButtons = new[] { BonusBackButton };
-            displayButtons = new[] { ShorterButton, LongerButton, SaveDisplayButton,
-                                     CancelDisplayButton, SettingsExitButton };
+            displayButtons = new[] { ShorterButton, LongerButton, SettingsExitButton };
             displayScale = new DisplayScaleManager();
             ApplyDisplaySizes();
             displayInformation = DisplayInformation.GetForCurrentView();
             displayInformation.DpiChanged += OnDisplayDpiChanged;
-            cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
             UpdateAccuracyDisplay();
             UpdateLevelBadges();
             // Do not show Level 0 or open the tracker before the full-screen
@@ -260,6 +326,8 @@ namespace EyeGazeApiViability
             Loaded += OnPageLoaded;
         }
 
+        // Startup and input acquisition ===
+        // Select normal watcher-free startup or the explicitly requested isolation mode.
         private void OnPageLoaded(object sender, RoutedEventArgs e)
         {
             // Normal startup uses direct gaze events, never a device watcher.
@@ -307,6 +375,7 @@ namespace EyeGazeApiViability
         // Reapply the page-specific pointer policy whenever the UWP window
         // becomes active. A mouse click can activate the app for the first
         // time; that should not be required to establish its cursor state.
+        // Reapply the trainer-local pointer policy when the window regains activation.
         private void OnTrainerWindowActivated(object sender,
             WindowActivatedEventArgs args)
         {
@@ -327,6 +396,8 @@ namespace EyeGazeApiViability
         // Hide only the Windows arrow within this UWP window. The trainer
         // continues drawing its own eye-gaze cursor; the tracker, TD Control
         // companion, and pointer input event handling are unchanged.
+        // Local cursor policy ===
+        // Hide only this view's Windows arrow while retaining the original cursor for restoration.
         private void HideWindowsPointerCursor()
         {
             try
@@ -351,6 +422,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Restore the previous view cursor without modifying TD Control or system-wide settings.
         private void RestoreWindowsPointerCursor()
         {
             if (!pointerCursorHidden) return;
@@ -367,6 +439,8 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Startup routing and fallback ===
+        // Finish the splash interval and route startup when gaze evidence is available.
         private void OnStartupSplashElapsed(object sender, object e)
         {
             if (startupSplashTimer != null)
@@ -391,6 +465,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Stop waiting for startup evidence and select the appropriate input mode.
         private void OnStartupDiscoveryTimeout(object sender, object e)
         {
             StopStartupDiscoveryTimer();
@@ -402,6 +477,7 @@ namespace EyeGazeApiViability
             CompleteStartupAfterTrackerScan();
         }
 
+        // Detach the startup timeout handler and release its timer.
         private void StopStartupDiscoveryTimer()
         {
             if (startupDiscoveryTimer == null) return;
@@ -410,6 +486,7 @@ namespace EyeGazeApiViability
             startupDiscoveryTimer = null;
         }
 
+        // Route once after the splash and readiness checks; normal readiness comes from valid gaze samples, not a watcher.
         private void CompleteStartupAfterTrackerScan()
         {
             if (!startupSplashCompleted || startupRouted ||
@@ -443,6 +520,8 @@ namespace EyeGazeApiViability
                 ShowScreen(AppScreen.Menu);
         }
 
+        // Watcher-free normal gaze input ===
+        // Acquire the view's gaze source directly and subscribe once; never create a device watcher during ordinary use.
         private void TryStartDirectGaze()
         {
             if (exitRequested || stopping || mouseOnlyFallback || gazeSubscribed ||
@@ -461,6 +540,8 @@ namespace EyeGazeApiViability
             catch (Exception ex) { Trace("DIRECT GAZE: setup failed: " + ex); }
         }
 
+        // Diagnostic-only gaze isolation ===
+        // Exercise direct source acquisition with optional event delivery but no training actions or companion.
         private void StartDirectGazeIsolation(string mode)
         {
             // No watcher, no tracker enumeration, no cursor or overlay modifications.
@@ -489,6 +570,8 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Legacy watcher isolation path ===
+        // Route normal requests to direct acquisition; create the legacy watcher only for explicit isolation modes.
         private void OnEnableLive(object sender, RoutedEventArgs e)
         {
             var mode = (Application.Current as App)?.IsolationMode;
@@ -534,6 +617,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Finish legacy diagnostic discovery on the UI dispatcher.
         private void OnTrackerEnumerationCompleted(GazeDeviceWatcherPreview sender,
                                                     object args)
         {
@@ -545,6 +629,8 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Mouse fallback ===
+        // Release gaze resources where possible, preserve mouse access and display the temporary notice.
         private void EnterMouseOnlyFallback()
         {
             if (mouseOnlyFallback || exitRequested || stopping) return;
@@ -600,22 +686,26 @@ namespace EyeGazeApiViability
             noTrackerNoticeTimer.Start();
         }
 
+        // Dismiss the fallback notice automatically.
         private void OnNoTrackerNoticeTimeout(object sender, object e)
         {
             DismissNoTrackerNotice();
         }
 
+        // Allow the fallback notice to be dismissed by its button.
         private void OnDismissNoTrackerNotice(object sender, RoutedEventArgs e)
         {
             DismissNoTrackerNotice();
         }
 
+        // Hide the notice and cancel its pending timeout.
         private void DismissNoTrackerNotice()
         {
             StopNoTrackerNoticeTimer();
             NoTrackerNoticePanel.Visibility = Visibility.Collapsed;
         }
 
+        // Detach and release the fallback notice timer.
         private void StopNoTrackerNoticeTimer()
         {
             if (noTrackerNoticeTimer == null) return;
@@ -624,6 +714,8 @@ namespace EyeGazeApiViability
             noTrackerNoticeTimer = null;
         }
 
+        // Legacy watcher callbacks — diagnostic modes only ===
+        // Handle legacy isolation device discovery on the UI dispatcher.
         private void OnDeviceAdded(GazeDeviceWatcherPreview sender,
                                    GazeDeviceWatcherAddedPreviewEventArgs args)
         {
@@ -637,6 +729,7 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Handle readiness changes for the legacy watcher tests.
         private void OnDeviceUpdated(GazeDeviceWatcherPreview sender,
                                      GazeDeviceWatcherUpdatedPreviewEventArgs args)
         {
@@ -650,6 +743,7 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Release a stale legacy gaze subscription unless recent valid data indicates it is still working.
         private void OnDeviceRemoved(GazeDeviceWatcherPreview sender,
                                      GazeDeviceWatcherRemovedPreviewEventArgs args)
         {
@@ -691,6 +785,7 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Acquire or subscribe to the source for eligible legacy diagnostic modes only.
         private void UseReadyDevice(GazeDevicePreview device)
         {
             if (!live || stopping || exitRequested || mouseOnlyFallback ||
@@ -740,6 +835,8 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Gaze sample processing ===
+        // Validate raw gaze data, confirm startup readiness, update visual smoothing and drive screen-specific interaction.
         private void OnGazeMoved(GazeInputSourcePreview sender, GazeMovedPreviewEventArgs e)
         {
             if (!live || stopping || exitRequested || mouseOnlyFallback) return;
@@ -806,6 +903,7 @@ namespace EyeGazeApiViability
                         Clamp(p.Y, 0, height));
                     UpdateCursor(cursorFilter.Update(edge, DateTimeOffset.UtcNow));
                 }
+                cursorFilter.EndHold();
                 RecordInterruptedTargetDwell(DateTimeOffset.UtcNow);
                 HideTargetDwellVisual();
                 buttonDwellWheel.Hide();
@@ -814,7 +912,8 @@ namespace EyeGazeApiViability
                 return;
             }
 
-            Point stabilized = cursorFilter.Update(p, DateTimeOffset.UtcNow);
+            DateTimeOffset sampleTime = DateTimeOffset.UtcNow;
+            Point stabilized = cursorFilter.Update(p, sampleTime);
             UpdateCursor(stabilized);
              if (currentScreen == AppScreen.LevelZero)
                 ProcessLevelZeroGaze(p, stabilized);
@@ -828,12 +927,23 @@ namespace EyeGazeApiViability
                                           p.Y - canvasOrigin.Y));
             }
             ProcessGazeControl(stabilized, p);
+            // On training targets the hold is identified separately below.
+            // For Home and trivia, only an active untriggered dwell qualifies.
+            if (currentScreen != AppScreen.Lesson)
+            {
+                bool trainingHold = !gazeControlTriggered &&
+                    ((currentScreen == AppScreen.LevelZero && gazeControlTarget == LevelZeroContinueButton) ||
+                     (currentScreen == AppScreen.Bonus && IsBonusAnswer(gazeControlTarget)));
+                ObserveJitterAssistance(trainingHold ? gazeControlTarget : null, p, stabilized, sampleTime);
+            }
             e.Handled = true;
         }
 
 
         // All controls use the shared stabilized stream and adaptive hitboxes.
         // Exit additionally accepts a raw-gaze hit to preserve accessibility.
+        // Shared dwell and navigation ===
+        // Resolve an eligible button, maintain uninterrupted dwell and require deliberate rearming after navigation.
         private void ProcessGazeControl(Point stabilizedPoint, Point rawPoint)
         {
             if (!live || stopping || exitRequested) return;
@@ -922,6 +1032,8 @@ namespace EyeGazeApiViability
                 OnExportTherapistReport(null, null);
             else if (target == LevelZeroContinueButton)
                 OnLevelZeroContinue(null, null);
+            else if (target == directionalDetailsButton)
+                OnDirectionalDetailsClicked(null, null);
             else if (target == SkillsIntroButton || target == SkillsTargetsButton ||
                      target == SkillsDwellButton ||
                      target == SkillsTrackingButton || target == SkillsEnduranceButton ||
@@ -947,15 +1059,14 @@ namespace EyeGazeApiViability
                 OnReferenceShorter(null, null);
             else if (target == LongerButton)
                 OnReferenceLonger(null, null);
-            else if (target == SaveDisplayButton)
-                OnSaveDisplay(null, null);
-            else if (target == CancelDisplayButton || target == SettingsExitButton)
+            else if (target == SettingsExitButton)
                 OnCancelDisplay(null, null);
         }
 
         // Central registration point for every gaze button on this page.
         // Future buttons are added to this collection, not given bespoke
         // filters, geometry, or dwell timers.
+        // Return the controls eligible for gaze selection on the current screen.
         private Button[] GetGazeButtons()
         {
             // Reuse registered arrays; no allocations on gaze-move events.
@@ -979,12 +1090,14 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Invalidate cached interaction bounds when layout geometry changes.
         private void OnGazeLayoutSizeChanged(object sender, SizeChangedEventArgs e)
         {
             gazeButtonBounds.Clear();
             lastDrawnGazeCursor = new Point(double.NaN, double.NaN);
         }
 
+        // Find the eligible control using the shared adaptive hit testing policy.
         private Button FindGazeButton(Point stabilizedPoint, Point rawPoint)
         {
             foreach (Button button in GetGazeButtons())
@@ -1002,6 +1115,7 @@ namespace EyeGazeApiViability
             return null;
         }
 
+        // Test the gaze coordinate against a button's current interaction geometry.
         private bool InsideButton(Button button, Point gaze)
         {
             if (button == null || !button.IsEnabled ||
@@ -1025,6 +1139,7 @@ namespace EyeGazeApiViability
                 gaze, bounds, gazeProfile.HitBoxScale);
         }
 
+        // Switch the visible training screen and reset navigation and dwell state.
         private void ShowScreen(AppScreen screen)
         {
             gazeButtonBounds.Clear();
@@ -1033,9 +1148,16 @@ namespace EyeGazeApiViability
                 HideTherapistExportConfirmation();
             if (currentScreen == AppScreen.LevelZero && screen != AppScreen.LevelZero)
                 StopLevelZero();
+            if (currentScreen != screen && (currentScreen == AppScreen.Lesson || currentScreen == AppScreen.Bonus))
+                StopLessonNarration();
             // Navigating away from the celebration must not fire a stale transition.
-            if (screen != AppScreen.Lesson) CancelBonusTransition();
+            if (screen != AppScreen.Lesson)
+            {
+                CancelTargetDelay();
+                CancelBonusTransition();
+            }
             if (screen != AppScreen.Bonus) CancelBonusQuestionTimer();
+            if (screen != AppScreen.Lesson) TargetCountdown.Visibility = Visibility.Collapsed;
             lessonIntroActive = screen == AppScreen.Lesson && lessonIntroActive;
             bonusIntroActive = screen == AppScreen.Bonus && bonusIntroActive;
             if (screen != AppScreen.Lesson) LessonIntroOverlay.Visibility = Visibility.Collapsed;
@@ -1056,6 +1178,8 @@ namespace EyeGazeApiViability
             // Gaze device lifetime and controlled Exit are untouched.
             cursorFilter.Reset();
             displaySettingsVisible = screen == AppScreen.Settings;
+            if (displaySettingsVisible) StartExampleBarAnimation();
+            else StopExampleBarAnimation();
             LevelZeroPanel.Visibility = screen == AppScreen.LevelZero
                 ? Visibility.Visible : Visibility.Collapsed;
             LevelZeroEyeCursor.Visibility = screen == AppScreen.LevelZero
@@ -1087,6 +1211,8 @@ namespace EyeGazeApiViability
 
         // Count only active gaze-guided practice, excluding menu time,
         // unavailable gaze tracking, long suspension gaps, and shutdown.
+        // Practice time and tracking recovery ===
+        // Check gaze readiness and gaps, reset interrupted holds, and accumulate eligible practice time.
         private void OnPracticeTimerTick(object sender, object e)
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -1100,6 +1226,7 @@ namespace EyeGazeApiViability
                     !directTrackingInterrupted && (now - lastValidGazeSampleAt).TotalSeconds > 2)
                 {
                     directTrackingInterrupted = true;
+                    if (currentScreen == AppScreen.Lesson && targetCell >= 0) targetTrialInterrupted = true;
                     cursorFilter.Reset();
                     targetMeasurement.CancelHold();
                     bonusButtonMeasurement.CancelHold();
@@ -1120,6 +1247,7 @@ namespace EyeGazeApiViability
             trainingReport.AddPracticeSeconds(elapsed);
         }
 
+        // Display a directional performance trend with the corresponding visual treatment.
         private static void SetTrend(TextBlock label, int trend)
         {
             // Up means improved; for jitter an improvement is a reduction.
@@ -1130,18 +1258,32 @@ namespace EyeGazeApiViability
 
         // Arrows indicate actual filter percentage rising or falling.
         // A decrease in filtering is not by itself proof of better precision.
+        // Display the direction of assistance changes separately from performance scores.
         private static void SetSmoothingTrend(TextBlock label, int direction)
         {
             label.Text = direction > 0 ? "▲" : direction < 0 ? "▼" : "—";
             label.Foreground = WhiteTextBrush;
         }
 
+        // Report the actual jitter-controlled assistance, never overwrite it
+        // with the accuracy-based profile. Hitbox adaptation is unchanged.
         private void ApplyAdaptiveSmoothingAndRecord()
         {
-            cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
             trainingReport.RecordSmoothing(cursorFilter.SmoothingLevel);
         }
 
+        // Calibrate only during an intentional stationary hold. Filtered data
+        // is used solely by the assistance controller, not skill diagnostics.
+        private void ObserveJitterAssistance(object hold, Point raw, Point filtered, DateTimeOffset now)
+        {
+            if (displayScale == null || mouseOnlyFallback || !live ||
+                (Application.Current as App)?.IsolationMode != null) return;
+            if (cursorFilter.ObserveHold(hold, raw, filtered, now, displayScale.ViewUnitsPerMillimeter))
+                ApplyAdaptiveSmoothingAndRecord();
+        }
+
+        // Diagnostics reporting ===
+        // Update the diagnostics overview from persisted training aggregates.
         private void RefreshTrainingReport()
         {
             int finished = 0;
@@ -1184,6 +1326,7 @@ namespace EyeGazeApiViability
         private static readonly SolidColorBrush WhiteTextBrush =
             new SolidColorBrush(Colors.White);
 
+        // Create the reusable regional accuracy and jitter cell controls.
         private void BuildDiagnosticGrids()
         {
             CreateDiagnosticGrid(AccuracyHeatmapGrid, accuracyCells, accuracyCellBorders);
@@ -1191,6 +1334,7 @@ namespace EyeGazeApiViability
             RefreshDiagnosticGrids();
         }
 
+        // Populate the supplied diagnostic grid and retain references to its labels and borders.
         private static void CreateDiagnosticGrid(Grid container, TextBlock[,] labels,
                                                  Border[,] backgrounds)
         {
@@ -1232,6 +1376,7 @@ namespace EyeGazeApiViability
                 }
         }
 
+        // Refresh regional cell values and visual treatment without rebuilding the grids.
         private void RefreshDiagnosticGrids()
         {
             for (int row = 0; row < SpatialAccuracyMap.Rows; row++)
@@ -1255,6 +1400,7 @@ namespace EyeGazeApiViability
 
         // Store only the physical RMS dispersion of a completed settled hold.
         // Conversion uses the existing DPI/reference-bar screen size setting.
+        // Convert measured spread to millimeters and record the corresponding regional measurement.
         private void RecordMeasuredJitter(Point screenCenter, TargetPerformance result)
         {
             if (!live || result == null || !result.JitterViewUnits.HasValue ||
@@ -1265,6 +1411,8 @@ namespace EyeGazeApiViability
             trainingReport.RecordJitter(jitterMillimeters);
         }
 
+        // Navigation and lesson controls ===
+        // Navigate to the lesson selection screen.
         private void OnOpenLevels(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested) return;
@@ -1273,12 +1421,15 @@ namespace EyeGazeApiViability
             ShowScreen(AppScreen.Levels);
         }
 
+        // Handle the TD Control trainer menu action.
         private void OnTdControlTrainer(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Menu) return;
             HomeNoticeText.Text = "TD Control Trainer is coming soon.";
         }
 
+        // Skills diagnostics ===
+        // Initialize the skills diagnostics display, retaining unavailable measurements as NA.
         private void BuildSkillsGrid()
         {
             for (int i = 0; i < 3; i++)
@@ -1297,7 +1448,7 @@ namespace EyeGazeApiViability
                     BorderThickness = new Thickness(1),
                     CornerRadius = new CornerRadius(10),
                     Padding = new Thickness(15),
-                    IsHitTestVisible = false
+                    IsHitTestVisible = i == 4
                 };
                 var content = new StackPanel
                 {
@@ -1332,6 +1483,7 @@ namespace EyeGazeApiViability
                 var status = new TextBlock
                 {
                     Text = "NOT YET RECORDED",
+                    TextWrapping = TextWrapping.Wrap,
                     Foreground = new SolidColorBrush(
                         Color.FromArgb(255, 174, 200, 230)),
                     FontSize = 13,
@@ -1342,7 +1494,8 @@ namespace EyeGazeApiViability
                 content.Children.Add(value);
                 content.Children.Add(detail);
                 content.Children.Add(status);
-                card.Child = content;
+                if (i == 4) BuildDirectionalCard(card, content);
+                else card.Child = content;
                 Grid.SetRow(card, i / 2);
                 Grid.SetColumn(card, i % 2);
                 SkillsMetricsGrid.Children.Add(card);
@@ -1353,6 +1506,133 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Directional diagnostic details ===
+        // Keep the toggle in one fixed corner of the card so looking at it
+        // cannot immediately select a newly positioned control.
+        private void BuildDirectionalCard(Border card, StackPanel summary)
+        {
+            directionalSummaryPanel = summary;
+            var layout = new Grid();
+            layout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            layout.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            layout.Children.Add(summary);
+            directionalCanvas = new Canvas { Width = 420, Height = 184, IsHitTestVisible = false };
+            directionalGraphic = new Viewbox
+            {
+                Child = directionalCanvas, Stretch = Stretch.Uniform,
+                Visibility = Visibility.Collapsed, IsHitTestVisible = false
+            };
+            layout.Children.Add(directionalGraphic);
+            directionalDetailsButton = new Button
+            {
+                Content = "DETAILS",
+                Style = (Style)Resources["SecondaryGazeButton"],
+                MinWidth = 104, MinHeight = 64,
+                Padding = new Thickness(8),
+                Margin = new Thickness(8, 0, 0, 0),
+                FontSize = 16,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            directionalDetailsButton.Click += OnDirectionalDetailsClicked;
+            Grid.SetColumn(directionalDetailsButton, 1);
+            layout.Children.Add(directionalDetailsButton);
+            card.Child = layout;
+        }
+
+        // Shared click and gaze-dwell action. Do not clear gazeControlTriggered:
+        // the learner must look away before activating the same toggle again.
+        private void OnDirectionalDetailsClicked(object sender, RoutedEventArgs e)
+        {
+            if (stopping || exitRequested || currentScreen != AppScreen.Diagnostics ||
+                selectedDiagnosticsTab != DiagnosticsTab.Skills || selectedSkillCategory != 0) return;
+            SetDirectionalDetails(!directionalDetailsVisible);
+            gazeButtonBounds.Clear();
+        }
+
+        private void SetDirectionalDetails(bool visible)
+        {
+            directionalDetailsVisible = visible;
+            directionalSummaryPanel.Visibility = visible ? Visibility.Collapsed : Visibility.Visible;
+            directionalGraphic.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            directionalDetailsButton.Content = visible ? "SUMMARY" : "DETAILS";
+            if (visible) DrawDirectionalCompass();
+        }
+
+        // Draw eight measured first-hold success rates around the overall
+        // directional score. NA and trial counts distinguish missing data
+        // from actual zero-percent performance. Colors are descriptive only.
+        private void DrawDirectionalCompass()
+        {
+            directionalCanvas.Children.Clear();
+            const double cx = 210, cy = 92;
+            var white = WhiteTextBrush;
+            string[] names = { "Right", "Down-right", "Down", "Down-left",
+                "Left", "Up-left", "Up", "Up-right" };
+            for (int i = 0; i < 8; i++)
+            {
+                int successes, trials;
+                levelOneDiagnostics.GetDirectionCounts(i, out successes, out trials);
+                double rate = trials == 0 ? 0 : 100.0 * successes / trials;
+                Brush brush = trials == 0 ? NoDataBrush :
+                    rate >= 90 ? GoodBrush : rate >= 70 ? MediumBrush : PoorBrush;
+                double angle = i * Math.PI / 4;
+                double dx = Math.Cos(angle), dy = Math.Sin(angle);
+                // Elliptical arrangement fits the existing wide diagnostic card.
+                double ex = cx + dx * 82, ey = cy + dy * 40;
+                var line = new Windows.UI.Xaml.Shapes.Line
+                {
+                    X1 = cx + dx * 31, Y1 = cy + dy * 29,
+                    X2 = ex, Y2 = ey,
+                    Stroke = brush, StrokeThickness = 5,
+                    StrokeStartLineCap = PenLineCap.Round,
+                    StrokeEndLineCap = PenLineCap.Round
+                };
+                directionalCanvas.Children.Add(line);
+                var arrow = new Windows.UI.Xaml.Shapes.Polygon
+                {
+                    Fill = brush,
+                    Points = new PointCollection
+                    {
+                        new Point(ex + dx * 5, ey + dy * 5),
+                        new Point(ex - dx * 8 - dy * 6, ey - dy * 8 + dx * 6),
+                        new Point(ex - dx * 8 + dy * 6, ey - dy * 8 - dx * 6)
+                    }
+                };
+                directionalCanvas.Children.Add(arrow);
+                string score = trials == 0 ? "NA" :
+                    Math.Round(rate).ToString() + "% (" + successes + "/" + trials + ")";
+                var label = new TextBlock
+                {
+                    Width = 116, Height = 38,
+                    Text = names[i] + "\n" + score,
+                    Foreground = white, FontSize = 14,
+                    FontWeight = Windows.UI.Text.FontWeights.SemiBold,
+                    TextAlignment = TextAlignment.Center
+                };
+                Canvas.SetLeft(label, cx + dx * 145 - 58);
+                Canvas.SetTop(label, cy + dy * 72 - 19);
+                directionalCanvas.Children.Add(label);
+            }
+            var center = new Border
+            {
+                Width = 60, Height = 54, CornerRadius = new CornerRadius(27),
+                BorderThickness = new Thickness(2), BorderBrush = white,
+                Background = new SolidColorBrush(Color.FromArgb(255, 33, 78, 131)),
+                Child = new TextBlock
+                {
+                    Text = levelOneDiagnostics.Latest(4), Foreground = white,
+                    FontSize = 18, FontWeight = Windows.UI.Text.FontWeights.Bold,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                }
+            };
+            Canvas.SetLeft(center, cx - 30);
+            Canvas.SetTop(center, cy - 27);
+            directionalCanvas.Children.Add(center);
+        }
+
+        // Select the requested skills diagnostic category.
         private void OnSkillsCategoryClicked(object sender, RoutedEventArgs e)
         {
             if (currentScreen != AppScreen.Diagnostics ||
@@ -1361,10 +1641,13 @@ namespace EyeGazeApiViability
             SelectSkillsCategory(Array.IndexOf(skillCategoryButtons, sender as Button));
         }
 
+        // Populate the six metric slots for the selected category.
         private void SelectSkillsCategory(int category)
         {
             if (category < 0 || category >= SkillMetrics.Length) return;
             selectedSkillCategory = category;
+            SetDirectionalDetails(false);
+            directionalDetailsButton.Visibility = category == 0 ? Visibility.Visible : Visibility.Collapsed;
             for (int i = 0; i < 6; i++)
             {
                 string[] parts = SkillMetrics[category][i].Split('|');
@@ -1374,12 +1657,19 @@ namespace EyeGazeApiViability
                 skillMetricValues[i].Text = "NA";
                 skillMetricValues[i].FontSize = 30;
                 skillMetricStatuses[i].Text = "NOT YET RECORDED";
+                if (category == 0)
+                {
+                    skillMetricValues[i].Text = levelOneDiagnostics.Latest(i);
+                    skillMetricStatuses[i].Text = levelOneDiagnostics.Summary(i);
+                    // Individual direction counts appear in the optional compass view.
+                }
             }
             for (int i = 0; i < skillCategoryButtons.Length; i++)
                 skillCategoryButtons[i].Style = (Style)Resources[
                     i == category ? "PrimaryGazeButton" : "SecondaryGazeButton"];
         }
 
+        // Route a diagnostics tab selection.
         private void OnDiagnosticsTabClicked(object sender, RoutedEventArgs e)
         {
             if (currentScreen != AppScreen.Diagnostics || stopping || exitRequested)
@@ -1387,6 +1677,7 @@ namespace EyeGazeApiViability
             SelectDiagnosticsTab(sender as Button);
         }
 
+        // Update the active diagnostic section and its selection state.
         private void SelectDiagnosticsTab(Button selected)
         {
             gazeButtonBounds.Clear();
@@ -1412,6 +1703,8 @@ namespace EyeGazeApiViability
             DiagnosticsSessionsPanel.Visibility =
                 selectedDiagnosticsTab == DiagnosticsTab.Sessions
                     ? Visibility.Visible : Visibility.Collapsed;
+            if (selectedDiagnosticsTab == DiagnosticsTab.Skills)
+                SelectSkillsCategory(selectedSkillCategory);
             if (selectedDiagnosticsTab == DiagnosticsTab.Sessions)
                 RefreshLevelZeroSessionHistory();
 
@@ -1429,6 +1722,7 @@ namespace EyeGazeApiViability
                     ? "PrimaryGazeButton" : "SecondaryGazeButton"];
         }
 
+        // Display the saved introduction session summaries.
         private void RefreshLevelZeroSessionHistory()
         {
             // Read the bounded session file once per refresh rather than
@@ -1447,6 +1741,7 @@ namespace EyeGazeApiViability
                 recent[0] + "\n" + recent[1];
         }
 
+        // Display the export filename and schedule automatic dismissal.
         private void ShowTherapistExportConfirmation(string fileName)
         {
             HideTherapistExportConfirmation();
@@ -1460,11 +1755,13 @@ namespace EyeGazeApiViability
             therapistExportConfirmationTimer.Start();
         }
 
+        // Dismiss the temporary export confirmation after its interval.
         private void OnTherapistExportConfirmationTick(object sender, object e)
         {
             HideTherapistExportConfirmation();
         }
 
+        // Hide the confirmation and release its timer.
         private void HideTherapistExportConfirmation()
         {
             if (therapistExportConfirmationTimer != null)
@@ -1478,6 +1775,8 @@ namespace EyeGazeApiViability
 
         // Uses the existing gaze-button dwell and saves with no modal picker.
         // Export is strictly opt-in and does not send data anywhere.
+        // Report export ===
+        // Build and save the text report using the current diagnostic aggregates.
         private async void OnExportTherapistReport(object sender, RoutedEventArgs e)
         {
             if (therapistExportInProgress || stopping || exitRequested ||
@@ -1501,7 +1800,7 @@ namespace EyeGazeApiViability
                             LevelZeroMetricValue(2), LevelZeroMetricValue(3),
                             LevelZeroMetricValue(4), LevelZeroMetricValue(5) },
                     Enumerable.Range(0, 6).Select(LevelZeroExtraValue).ToArray(),
-                    LastLevelZeroSessions(100));
+                    LastLevelZeroSessions(100), levelOneDiagnostics);
 
                 string name = "EyeGazeTrainer_TherapistReport_" +
                     now.ToString("yyyyMMdd_HHmmss") + ".txt";
@@ -1534,6 +1833,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Open diagnostics and refresh the displayed measurements.
         private void OnOpenDiagnostics(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Menu) return;
@@ -1541,6 +1841,7 @@ namespace EyeGazeApiViability
             ShowScreen(AppScreen.Diagnostics);
         }
 
+        // Return to the main menu.
         private void OnBackToMenu(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested) return;
@@ -1548,6 +1849,7 @@ namespace EyeGazeApiViability
             ShowScreen(AppScreen.Menu);
         }
 
+        // Return to the lesson selection screen.
         private void OnBackToLevels(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested) return;
@@ -1559,37 +1861,127 @@ namespace EyeGazeApiViability
             ShowScreen(AppScreen.Levels);
         }
 
+        // Target lesson startup ===
+        // Prepare the target lesson and start its introduction.
         private void OnLevelOne(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Levels) return;
             // A completed level stays selectable. Replay resets only the
-            // current ten-target session, never the persisted completion flag.
+            // current 35-target session, never the persisted completion flag.
             ShowScreen(AppScreen.Lesson);
             lessonIntroActive = true;
             ResetLesson();
             BeginLessonIntro();
         }
 
+        // Level 1 narration uses the same Windows speech and media APIs as
+        // Level 0, with independent cancellation and screen-specific callbacks.
+        // Version checks prevent old audio from advancing a replayed lesson.
+        private async Task NarrateLessonAsync(string words, AppScreen screen, Action next,
+            int minimumDisplayMilliseconds = 0)
+        {
+            StopLessonNarration();
+            int version = lessonNarrationVersion;
+            var started = DateTimeOffset.UtcNow;
+            try
+            {
+                lessonNarrationSynth = new SpeechSynthesizer();
+                SpeechSynthesisStream stream;
+                try
+                {
+                    string safe = System.Security.SecurityElement.Escape(words);
+                    stream = await lessonNarrationSynth.SynthesizeSsmlToStreamAsync(
+                        "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'>" +
+                        safe + "<break time='650ms'/></speak>");
+                }
+                catch
+                {
+                    if (version != lessonNarrationVersion) return;
+                    stream = await lessonNarrationSynth.SynthesizeTextToStreamAsync(words);
+                }
+                if (version != lessonNarrationVersion || currentScreen != screen || stopping || exitRequested)
+                {
+                    stream.Dispose();
+                    return;
+                }
+                lessonNarrationStream = stream;
+                var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                lessonNarrationCompletion = completion;
+                var player = new MediaPlayer { Volume = 1, IsMuted = false };
+                lessonNarrationPlayer = player;
+                player.MediaEnded += (sender, args) => completion.TrySetResult(true);
+                player.MediaFailed += (sender, args) => completion.TrySetResult(false);
+                player.Source = MediaSource.CreateFromStream(stream, stream.ContentType);
+                player.Play();
+                // Bound an unexpected missing playback event so speech failure
+                // cannot strand an eye-gaze-only learner.
+                // SpeechSynthesisStream has no Duration property in UWP.
+                // Normal playback advances on MediaEnded; this generous
+                // watchdog is only a fallback for missing media events.
+                var finished = await Task.WhenAny(completion.Task, Task.Delay(TimeSpan.FromMinutes(2)));
+                if (finished != completion.Task || !await completion.Task)
+                    Trace("Level 1 narration failed or timed out; continuing with text.");
+            }
+            catch (Exception ex)
+            {
+                if (version == lessonNarrationVersion)
+                    Trace("Level 1 narration unavailable: " + ex.GetType().Name);
+            }
+            if (version != lessonNarrationVersion || currentScreen != screen || stopping || exitRequested) return;
+            // Keep the original minimum reading time, including on audio failure.
+            int delay = Math.Max(350, minimumDisplayMilliseconds - (int)(DateTimeOffset.UtcNow - started).TotalMilliseconds);
+            await Task.Delay(delay);
+            if (version != lessonNarrationVersion || currentScreen != screen || stopping || exitRequested) return;
+            StopLessonNarration();
+            next?.Invoke();
+        }
+
+        // Stop audio immediately on Back, screen changes, or shutdown, and
+        // release all stream/player resources without touching gaze lifetime.
+        private void StopLessonNarration()
+        {
+            lessonNarrationVersion++;
+            lessonNarrationCompletion?.TrySetResult(false);
+            lessonNarrationCompletion = null;
+            if (lessonNarrationPlayer != null)
+            {
+                try { lessonNarrationPlayer.Pause(); lessonNarrationPlayer.Source = null; } catch { }
+                lessonNarrationPlayer.Dispose();
+                lessonNarrationPlayer = null;
+            }
+            if (lessonNarrationStream != null)
+            {
+                lessonNarrationStream.Dispose();
+                lessonNarrationStream = null;
+            }
+            if (lessonNarrationSynth != null)
+            {
+                lessonNarrationSynth.Dispose();
+                lessonNarrationSynth = null;
+            }
+        }
+
+        // Present lesson instructions before interactive target practice.
         private void BeginLessonIntro()
         {
             LessonIntroOverlay.Visibility = Visibility.Visible;
+            TargetCountdown.Visibility = Visibility.Collapsed;
             LessonBackButton.Visibility = Visibility.Collapsed;
             TargetRing.Visibility = Visibility.Collapsed;
             TargetBullseye.Visibility = Visibility.Collapsed;
             HideTargetDwellVisual();
             // No dwell or click is required to dismiss instructions.
-            StartBonusTimer(TimeSpan.FromSeconds(5), () =>
+            _ = NarrateLessonAsync("Ready, set, look! Look directly at the center of each target and hold your gaze until it fills. Find all 35!",
+                AppScreen.Lesson, () =>
             {
-                if (currentScreen != AppScreen.Lesson || stopping || exitRequested) return;
                 lessonIntroActive = false;
                 LessonIntroOverlay.Visibility = Visibility.Collapsed;
                 LessonBackButton.Visibility = Visibility.Visible;
-                if (targetIndex >= 0)
-                    targetMeasurement.BeginTarget(DateTimeOffset.UtcNow);
-                RepositionTarget();
-            });
+                PresentNextTarget();
+            }, 5000);
         }
 
+        // Present bonus-round instructions before the first question.
         private void BeginTriviaIntro()
         {
             bonusIntroActive = true;
@@ -1598,15 +1990,16 @@ namespace EyeGazeApiViability
             BonusIntroOverlay.Visibility = Visibility.Visible;
             // Apply the same guided, automatic transition to every future
             // mini-game; no unlearned selection action is needed.
-            StartBonusTimer(TimeSpan.FromSeconds(5), () =>
+            _ = NarrateLessonAsync("Trivia time! Ten fun facts! Look at true or false to choose your answer. Try to look directly at the center of the button and keep your eyes steady until the button is selected.",
+                AppScreen.Bonus, () =>
             {
-                if (currentScreen != AppScreen.Bonus || stopping || exitRequested) return;
                 bonusIntroActive = false;
                 BonusIntroOverlay.Visibility = Visibility.Collapsed;
                 _ = StartBonusRoundAsync();
-            });
+            }, 5000);
         }
 
+        // Handle a lesson placeholder without pretending the lesson is implemented.
         private void OnPlaceholderLevel(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Levels) return;
@@ -1615,6 +2008,7 @@ namespace EyeGazeApiViability
                 " is coming soon.";
         }
 
+        // Refresh completion indicators from saved training progress.
         private void UpdateLevelBadges()
         {
             // Level 0 uses its own persisted completion flag because the
@@ -1629,12 +2023,15 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Respond to training canvas layout changes.
         private void OnCanvasSized(object sender, SizeChangedEventArgs e)
         {
             ApplyDisplaySizes();
             RepositionTarget();
         }
 
+        // Physical display scaling ===
+        // Refresh physical-size conversion after display DPI changes.
         private async void OnDisplayDpiChanged(DisplayInformation sender, object args)
         {
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
@@ -1647,6 +2044,7 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Apply the current physical-reference conversion to training visuals.
         private void ApplyDisplaySizes()
         {
             gazeButtonBounds.Clear();
@@ -1672,12 +2070,14 @@ namespace EyeGazeApiViability
             DiagnosticsMenuButton.MinHeight = Math.Max(76, buttonHeight);
         }
 
+        // Initialize the editable display-reference width.
         private void ResetReferencePreview()
         {
             pendingReferenceWidth = displayScale.ReferenceBarViewWidth;
             UpdateReferencePreview();
         }
 
+        // Refresh the displayed calibration reference and its unit conversions.
         private void UpdateReferencePreview()
         {
             double available = RootLayout.ActualWidth - 48;
@@ -1685,15 +2085,10 @@ namespace EyeGazeApiViability
             pendingReferenceWidth = Math.Max(30,
                 Math.Min(limit, pendingReferenceWidth));
             CalibrationReferenceBar.Width = pendingReferenceWidth;
-            double rawPixelsPerView = displayInformation != null
-                ? Math.Max(1.0, displayInformation.RawPixelsPerViewPixel) : 1.0;
-            CalibrationStatusText.Text = string.Format(
-                System.Globalization.CultureInfo.InvariantCulture,
-                "Bar width: {0:0.00} DIP  |  {1:0.00} screen pixels  |  {2:0.000} pixels/mm",
-                pendingReferenceWidth, pendingReferenceWidth * rawPixelsPerView,
-                DisplayScaleManager.GetViewUnitsPerMillimeter(pendingReferenceWidth) * rawPixelsPerView);
+            CalibrationStatusText.Text = "";
         }
 
+        // Open the display-reference settings panel.
         private void OnDisplaySettingsRequested(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Menu) return;
@@ -1701,48 +2096,88 @@ namespace EyeGazeApiViability
             ResetReferencePreview();
         }
 
+        // Decrease/increase the real reference by the existing six DIP step.
         private void OnReferenceShorter(object sender, RoutedEventArgs e)
         {
-            if (!displaySettingsVisible) return;
-            pendingReferenceWidth -= 6;
-            UpdateReferencePreview();
+            AdjustReferenceWidth(-6);
         }
 
         private void OnReferenceLonger(object sender, RoutedEventArgs e)
         {
-            if (!displaySettingsVisible) return;
-            pendingReferenceWidth += 6;
-            UpdateReferencePreview();
+            AdjustReferenceWidth(6);
         }
 
-        private void OnSaveDisplay(object sender, RoutedEventArgs e)
+        // Persist every adjustment immediately. On failure, restore the
+        // previous preview rather than indicating an unsaved value as saved.
+        private void AdjustReferenceWidth(double delta)
         {
-            if (!displaySettingsVisible) return;
+            if (!displaySettingsVisible || stopping || exitRequested) return;
+            double previous = pendingReferenceWidth;
             try
             {
+                pendingReferenceWidth += delta;
+                UpdateReferencePreview();
                 displayScale.SaveReferenceWidth(pendingReferenceWidth);
                 ApplyDisplaySizes();
                 RepositionTarget();
-                CloseDisplaySettings();
-                LiveStatusText.Text = "Display size saved.";
+                CalibrationStatusText.Text = "";
             }
             catch (Exception ex)
             {
-                CalibrationStatusText.Text = "Unable to save display size: " +
-                                              ex.GetType().Name;
+                pendingReferenceWidth = previous;
+                UpdateReferencePreview();
+                CalibrationStatusText.Text = "Unable to save display size. Please try again.";
+                Trace("Display size save failed: " + ex.GetType().Name);
             }
         }
 
+        // Animate the illustrative bar only while settings is visible.
+        // One cycle: wide pause, smooth narrowing, exact-width hold, repeat.
+        private void StartExampleBarAnimation()
+        {
+            StopExampleBarAnimation();
+            AnimatedExampleBarScale.ScaleX = 1.8;
+            exampleBarStarted = DateTimeOffset.UtcNow;
+            exampleBarTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
+            exampleBarTimer.Tick += OnExampleBarTick;
+            exampleBarTimer.Start();
+        }
+
+        private void OnExampleBarTick(object sender, object args)
+        {
+            if (!displaySettingsVisible || exitRequested || stopping)
+            {
+                StopExampleBarAnimation();
+                return;
+            }
+            double phase = Math.Max(0, (DateTimeOffset.UtcNow - exampleBarStarted).TotalSeconds) % 4.0;
+            double progress = Math.Max(0, Math.Min(1, (phase - .5) / 1.5));
+            double eased = 1 - Math.Pow(1 - progress, 3);
+            AnimatedExampleBarScale.ScaleX = 1.8 - .8 * eased;
+        }
+
+        private void StopExampleBarAnimation()
+        {
+            if (exampleBarTimer == null) return;
+            exampleBarTimer.Stop();
+            exampleBarTimer.Tick -= OnExampleBarTick;
+            exampleBarTimer = null;
+        }
+
+        // Back returns to the menu without undoing saved adjustments.
         private void OnCancelDisplay(object sender, RoutedEventArgs e)
         {
             if (displaySettingsVisible) CloseDisplaySettings();
         }
 
+        // Return from the display settings panel.
         private void CloseDisplaySettings()
         {
             ShowScreen(AppScreen.Menu);
         }
 
+        // Mouse and cursor presentation ===
+        // Handle the mouse-driven training interaction where allowed.
         private void OnTrainingCanvasPointerPressed(object sender, PointerRoutedEventArgs e)
         {
             if (!mouseOnlyFallback || stopping || lessonIntroActive ||
@@ -1753,6 +2188,7 @@ namespace EyeGazeApiViability
             e.Handled = true;
         }
 
+        // Handle mouse movement without treating it as measured raw gaze.
         private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
         {
             // Mouse preview remains available only when hardware is not engaged.
@@ -1770,6 +2206,7 @@ namespace EyeGazeApiViability
 
         // This overlay belongs to the page, not the training canvas. It cannot
         // intercept Exit Button clicks and is independent of TD Control's trace.
+        // Update the rendered training cursor from a view-relative coordinate.
         private void UpdateCursor(Point viewPoint)
         {
             if (CursorOverlay.ActualWidth <= DotDiameter ||
@@ -1822,7 +2259,7 @@ namespace EyeGazeApiViability
         private void ProcessPosition(Point p, Point rawPoint, bool mouseClick = false)
         {
             if (completed || exitRequested || stopping ||
-                currentScreen != AppScreen.Lesson || lessonIntroActive) return;
+                currentScreen != AppScreen.Lesson || lessonIntroActive || targetDelayTimer != null) return;
 
             if (TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
                 TrainingCanvas.ActualHeight < TargetDiameter + 24 ||
@@ -1837,17 +2274,43 @@ namespace EyeGazeApiViability
             }
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
-            if (targetIndex < 0)
+            if (targetIndex < 0 || targetCell < 0)
             {
-                targetIndex = 0;
-                PickRandomTarget();
-                targetMeasurement.BeginTarget(now);
+                PresentNextTarget();
                 return;
             }
 
             Point center = TargetCenter();
             bool inRing = AdaptiveHitTesting.ContainsCircle(
                 p, center, TargetDiameter, gazeProfile.HitBoxScale);
+            ObserveJitterAssistance(inRing ? targetMeasurement : null, rawPoint, p, now);
+            if (live && !mouseOnlyFallback)
+            {
+                // Do not treat a tracker/sample gap as a failed deliberate hold.
+                if ((now - targetLastSampleAt).TotalMilliseconds > 300)
+                {
+                    targetTrialInterrupted = true;
+                    rawHoldStarted = default(DateTimeOffset);
+                    targetMeasurement.CancelHold();
+                }
+                targetLastSampleAt = now;
+                // Acquisition time is measured against the visible native
+                // target boundary, without smoothing or hitbox assistance.
+                bool rawInRing = AdaptiveHitTesting.ContainsCircle(rawPoint, center, TargetDiameter, 1.0);
+                if (rawInRing)
+                {
+                    if (!targetArrivalSeconds.HasValue)
+                        targetArrivalSeconds = Math.Max(0, (now - targetShownAt).TotalSeconds);
+                    if (rawHoldStarted == default(DateTimeOffset)) rawHoldStarted = now;
+                    if (rawHoldMisses == 0 && (now - rawHoldStarted).TotalMilliseconds >= TrainingTargetMeasurement.TargetHoldMilliseconds)
+                        rawFirstHoldCompleted = true;
+                }
+                else if (rawHoldStarted != default(DateTimeOffset))
+                {
+                    if ((now - rawHoldStarted).TotalMilliseconds >= 150) rawHoldMisses++;
+                    rawHoldStarted = default(DateTimeOffset);
+                }
+            }
             if (!inRing)
             {
                 RecordInterruptedTargetDwell(now);
@@ -1866,6 +2329,15 @@ namespace EyeGazeApiViability
             {
                 TargetPerformance result = targetMeasurement.Measure(
                     center, TargetDiameter * 0.5, now);
+                if (!mouseOnlyFallback && (Application.Current as App)?.IsolationMode == null)
+                {
+                    double? jitterMm = result.JitterViewUnits.HasValue && displayScale != null
+                        ? (double?)displayScale.ToMillimeters(result.JitterViewUnits.Value) : null;
+                    levelOneDiagnostics.RecordTarget(targetCell, targetDirection,
+                        targetTrialInterrupted ? null : targetArrivalSeconds,
+                        !targetTrialInterrupted,
+                        rawFirstHoldCompleted, result, jitterMm);
+                }
                 gazeProfile.RecordTargetPerformance(result, 1);
                 dwellRecommendation.RecordCompletedHold();
                 trainingReport.RecordOverall(gazeProfile.AccuracyScore);
@@ -1884,6 +2356,7 @@ namespace EyeGazeApiViability
             }
 
             targetIndex++;
+            UpdateTargetCountdown();
             if (targetIndex >= TargetsPerLevel)
             {
                 completed = true;
@@ -1893,19 +2366,58 @@ namespace EyeGazeApiViability
                 {
                     trainingProgress.MarkCompleted(1);
                     trainingReport.RecordCompletedRun();
+                    if (!mouseOnlyFallback && (Application.Current as App)?.IsolationMode == null)
+                        levelOneDiagnostics.CompleteRound();
                 }
-                Trace("Level 1 completed: ten targets; source=" +
+                Trace("Level 1 completed: 35 targets; source=" +
                       (live ? "live gaze" : "mouse"));
                 UpdateLevelBadges();
                 BeginBonusTransition();
                 return;
             }
-            PickRandomTarget();
-            targetMeasurement.BeginTarget(now);
+            ScheduleNextTarget();
+            SpeakTargetMilestone(targetIndex);
+        }
+
+        // Short, audio-only encouragement at each ten-target milestone.
+        // Narration runs alongside practice; it does not delay the 500 ms
+        // target interval, change scoring, or display instructional text.
+        private void SpeakTargetMilestone(int selectedCount)
+        {
+            string encouragement;
+            switch (selectedCount)
+            {
+                case 10:
+                    encouragement = ChooseEncouragement("L1-10",
+                        "Great start! Keep going at your own pace.",
+                        "Ten targets done! Take your time and keep going.",
+                        "You're off to a strong start. Keep practicing at your own pace.",
+                        "Nice work reaching ten! Focus on one target at a time.");
+                    break;
+                case 20:
+                    encouragement = ChooseEncouragement("L1-20",
+                        "You're making great progress. Every target is another opportunity to build control.",
+                        "Twenty targets complete! Keep focusing on each new target.",
+                        "Nice progress! Each selection is another chance to practice.",
+                        "Well done reaching twenty. Stay steady and take your time.");
+                    break;
+                case 30:
+                    encouragement = ChooseEncouragement("L1-30",
+                        "Excellent effort! Just five targets to go. You've got this!",
+                        "Thirty targets complete! Only five more to go.",
+                        "You're nearly there! Take the last five at your own pace.",
+                        "Great work so far! Five more targets and you've finished the round.");
+                    break;
+                default:
+                    return;
+            }
+            _ = NarrateLessonAsync(encouragement, AppScreen.Lesson, null);
         }
 
         // Celebrate on the lesson's existing black background, then enter the
         // dedicated bonus screen without any gaze activation or menu selection.
+        // Bonus round and trivia ===
+        // Present the transition from completed targets to the trivia round.
         private void BeginBonusTransition()
         {
             CancelBonusTransition();
@@ -1914,15 +2426,13 @@ namespace EyeGazeApiViability
             HideTargetDwellVisual();
             buttonDwellWheel.Hide();
             CompletionOverlay.Visibility = Visibility.Visible;
+            TargetCountdown.Visibility = Visibility.Collapsed;
             LessonBackButton.Visibility = Visibility.Collapsed;
-            bonusTransitionTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(3)
-            };
-            bonusTransitionTimer.Tick += OnBonusTransitionTick;
-            bonusTransitionTimer.Start();
+            _ = NarrateLessonAsync("Great job! On to the bonus round!", AppScreen.Lesson,
+                () => OnBonusTransitionTick(null, null), 3000);
         }
 
+        // Advance after the transition timer expires.
         private void OnBonusTransitionTick(object sender, object e)
         {
             CancelBonusTransition();
@@ -1932,6 +2442,7 @@ namespace EyeGazeApiViability
             BeginTriviaIntro();
         }
 
+        // Stop and release the pending bonus transition.
         private void CancelBonusTransition()
         {
             if (bonusTransitionTimer != null)
@@ -1945,12 +2456,14 @@ namespace EyeGazeApiViability
                 ? Visibility.Collapsed : Visibility.Visible;
         }
 
+        // Identify whether a control represents a trivia answer.
         private bool IsBonusAnswer(Button button)
         {
             return currentScreen == AppScreen.Bonus && triviaAwaitingAnswer &&
                    (button == BonusTrueButton || button == BonusFalseButton);
         }
 
+        // Load the trivia bank and initialize the current round.
         private async Task StartBonusRoundAsync()
         {
             if (triviaLoading) return;
@@ -1985,6 +2498,7 @@ namespace EyeGazeApiViability
             finally { triviaLoading = false; }
         }
 
+        // Deal the next question and reset its interaction state.
         private void NextBonusQuestion()
         {
             if (currentScreen != AppScreen.Bonus || stopping || exitRequested) return;
@@ -2002,11 +2516,24 @@ namespace EyeGazeApiViability
                 FinishBonusRound();
                 return;
             }
-            triviaAwaitingAnswer = true;
+            triviaAwaitingAnswer = false;
             BonusProgressText.Text = "QUESTION " + (triviaAnswered + 1) + " OF 10";
             BonusFactText.Text = currentTriviaQuestion.Statement;
-            BonusChoicesPanel.Visibility = Visibility.Visible;
+            BonusChoicesPanel.Visibility = Visibility.Collapsed;
             BonusFinalPanel.Visibility = Visibility.Collapsed;
+            BonusTrueButton.IsEnabled = false;
+            BonusFalseButton.IsEnabled = false;
+            _ = NarrateLessonAsync("Question " + (triviaAnswered + 1) + " of 10. " +
+                currentTriviaQuestion.Statement, AppScreen.Bonus, EnableNarratedBonusChoices, 2000);
+        }
+
+        // Reveal choices only after the spoken question; retain the same
+        // full dwell and look-away requirement as the original bonus round.
+        private void EnableNarratedBonusChoices()
+        {
+            if (currentScreen != AppScreen.Bonus || stopping || exitRequested || triviaFinishing) return;
+            triviaAwaitingAnswer = true;
+            BonusChoicesPanel.Visibility = Visibility.Visible;
             BonusTrueButton.IsEnabled = true;
             BonusFalseButton.IsEnabled = true;
             // Enforce a new, complete gaze dwell for each question. Do not
@@ -2020,16 +2547,19 @@ namespace EyeGazeApiViability
             lastActivatedGazePosition = mostRecentRawGazePosition;
         }
 
+        // Submit the True button selection.
         private void OnBonusTrue(object sender, RoutedEventArgs e)
         {
             SubmitBonusAnswer(true, false);
         }
 
+        // Submit the False button selection.
         private void OnBonusFalse(object sender, RoutedEventArgs e)
         {
             SubmitBonusAnswer(false, false);
         }
 
+        // Record the selected answer and schedule feedback; knowledge correctness is separate from gaze performance.
         private void SubmitBonusAnswer(bool selectedTrue, bool gazeActivated)
         {
             if (currentScreen != AppScreen.Bonus || !triviaAwaitingAnswer ||
@@ -2041,7 +2571,7 @@ namespace EyeGazeApiViability
 
             // Accuracy measures successful gaze-button selection, not factual
             // knowledge. Incorrect trivia answers do NOT lower or raise it.
-            if (right && gazeActivated && live)
+            if (gazeActivated && live && !mouseOnlyFallback)
             {
                 try
                 {
@@ -2054,14 +2584,25 @@ namespace EyeGazeApiViability
                     TargetPerformance performance =
                         bonusButtonMeasurement.Measure(center, radius,
                                                        DateTimeOffset.UtcNow);
-                    gazeProfile.RecordTargetPerformance(performance, 1);
-                    trainingReport.RecordOverall(gazeProfile.AccuracyScore);
-                    trainingReport.RecordAccuracy(performance.Precision);
-                    spatialAccuracy.Record(center, RootLayout.ActualWidth,
-                                           RootLayout.ActualHeight, performance.Overall);
-                    RecordMeasuredJitter(center, performance);
-                    ApplyAdaptiveSmoothingAndRecord();
-                    UpdateAccuracyDisplay();
+                    // Transfer observations include both factual outcomes, but
+                    // remain separate from the comparable circular-target metrics.
+                    if ((Application.Current as App)?.IsolationMode == null)
+                        levelOneDiagnostics.RecordBonus(performance,
+                            performance.JitterViewUnits.HasValue && displayScale != null
+                            ? (double?)displayScale.ToMillimeters(performance.JitterViewUnits.Value) : null);
+                    // Preserve the original adaptive-scoring rule: wrong quiz
+                    // answers are neutral. The new transfer measurement is not.
+                    if (right)
+                    {
+                        gazeProfile.RecordTargetPerformance(performance, 1);
+                        trainingReport.RecordOverall(gazeProfile.AccuracyScore);
+                        trainingReport.RecordAccuracy(performance.Precision);
+                        spatialAccuracy.Record(center, RootLayout.ActualWidth,
+                                               RootLayout.ActualHeight, performance.Overall);
+                        RecordMeasuredJitter(center, performance);
+                        ApplyAdaptiveSmoothingAndRecord();
+                        UpdateAccuracyDisplay();
+                    }
                 }
                 catch (InvalidOperationException)
                 {
@@ -2075,13 +2616,15 @@ namespace EyeGazeApiViability
             BonusTrueButton.IsEnabled = false;
             BonusFalseButton.IsEnabled = false;
             BonusChoicesPanel.Visibility = Visibility.Collapsed;
-            BonusProgressText.Text = right ? "THAT'S RIGHT!" : "GOOD TRY!";
+            BonusProgressText.Text = right ? "CORRECT" : "INCORRECT";
             BonusFactText.Text = "Answer: " +
                 (currentTriviaQuestion.IsTrue ? "TRUE" : "FALSE") +
                 "\n\n" + currentTriviaQuestion.Explanation;
-            StartBonusTimer(TimeSpan.FromSeconds(5), NextBonusQuestion);
+            _ = NarrateLessonAsync("Answer: " + (currentTriviaQuestion.IsTrue ? "True. " : "False. ") +
+                currentTriviaQuestion.Explanation, AppScreen.Bonus, NextBonusQuestion, 5000);
         }
 
+        // Present the completed round result and arrange the return to lesson selection.
         private void FinishBonusRound()
         {
             if (currentScreen != AppScreen.Bonus || triviaFinishing) return;
@@ -2093,15 +2636,22 @@ namespace EyeGazeApiViability
             BonusProgressText.Text = "BONUS ROUND COMPLETE!";
             BonusFactText.Text = "";
             BonusFinalText.Text = triviaCorrect + " OUT OF " + triviaAnswered + " CORRECT!";
-            StartBonusTimer(TimeSpan.FromSeconds(3), () =>
+            string encouragement = ChooseEncouragement("L1-Final",
+                "Great work completing Level One! Try the next level when available, or replay Level One for more practice. Every practice session helps build your eye-gaze skills.",
+                "Well done finishing Level One! Replay this lesson to keep practicing, or try the next level when available.",
+                "You've completed Level One! Keep building your skills by practicing this lesson again or moving to the next level when available.",
+                "Excellent effort completing Level One! Continue at your own pace. Repeat this lesson for more practice, or explore the next level when available.");
+            BonusFinalEncouragementText.Text = encouragement;
+            _ = NarrateLessonAsync("Bonus round complete! " + triviaCorrect + " out of " +
+                triviaAnswered + " correct! " + encouragement, AppScreen.Bonus, () =>
             {
-                if (currentScreen != AppScreen.Bonus || exitRequested || stopping) return;
                 UpdateLevelBadges();
                 LevelsNoticeText.Text = "";
                 ShowScreen(AppScreen.Levels);
-            });
+            }, 3000);
         }
 
+        // Schedule a bonus-round action using the supplied delay.
         private void StartBonusTimer(TimeSpan delay, Action callback)
         {
             CancelBonusQuestionTimer();
@@ -2135,6 +2685,7 @@ namespace EyeGazeApiViability
             bonusQuestionTimer.Start();
         }
 
+        // Cancel the pending question or feedback timer.
         private void CancelBonusQuestionTimer()
         {
             if (bonusQuestionTimer != null)
@@ -2152,16 +2703,27 @@ namespace EyeGazeApiViability
         // clears the attempt so the same miss cannot be counted twice.
         // Hardware disconnects and intentional lesson navigation use the
         // regular CancelHold() path, which never adds a penalty.
+        // Target practice and scoring ===
+        // Record an eligible interrupted deliberate hold without repeated penalties.
         private void RecordInterruptedTargetDwell(DateTimeOffset now)
         {
             if (!live || completed || currentScreen != AppScreen.Lesson ||
-                targetIndex < 0)
+                targetIndex < 0 || targetCell < 0 || targetDelayTimer != null || lessonIntroActive)
             {
+                targetMeasurement.CancelHold();
+                return;
+            }
+            // Out-of-view samples also end a hold. Gaps are not scored as
+            // misses and invalidate the comparable acquisition observation.
+            if ((now - targetLastSampleAt).TotalMilliseconds > 300)
+            {
+                targetTrialInterrupted = true;
                 targetMeasurement.CancelHold();
                 return;
             }
             if (targetMeasurement.CancelIncompleteHold(now))
             {
+                targetMisses++;
                 gazeProfile.RecordIncompleteTargetDwell(1);
                 dwellRecommendation.RecordInterruptedHold();
                 if (gazeProfile.Acquisitions > 0)
@@ -2178,12 +2740,24 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Reset target practice state for a new run.
         private void ResetLesson()
         {
+            CancelTargetDelay();
             CancelBonusTransition();
             targetIndex = -1;
+            targetCell = -1;
             completed = false;
             hasPreviousTargetPosition = false;
+            remainingTargetCells.Clear();
+            remainingTargetCells.AddRange(Enumerable.Range(0, TargetsPerLevel));
+            Array.Clear(plannedDirections, 0, plannedDirections.Length);
+            levelOneDiagnostics.BeginRound();
+            SetLessonBackPosition(false);
+            TargetCountdown.HorizontalAlignment = HorizontalAlignment.Left;
+            TargetCountdown.Margin = new Thickness(20, 0, 0, 16);
+            TargetCountdown.Visibility = Visibility.Collapsed;
+            UpdateTargetCountdown();
             targetMeasurement.CancelHold();
             TargetRing.StrokeThickness = 8;
             HideTargetDwellVisual();
@@ -2191,15 +2765,10 @@ namespace EyeGazeApiViability
             TargetBullseye.Visibility = Visibility.Collapsed;
             cursorFilter.Reset();
             ApplyAdaptiveSmoothingAndRecord();
-            if (TrainingCanvas.ActualWidth >= TargetDiameter + 24 &&
-                TrainingCanvas.ActualHeight >= TargetDiameter + 24)
-            {
-                targetIndex = 0;
-                PickRandomTarget();
-                targetMeasurement.BeginTarget(DateTimeOffset.UtcNow);
-            }
+            // The first trial is started only after the intro is dismissed.
         }
 
+        // Refresh the displayed training performance values.
         private void UpdateAccuracyDisplay()
         {
             // Only the persisted composite score is shown to the learner.
@@ -2209,75 +2778,175 @@ namespace EyeGazeApiViability
                 : "ACCURACY " + Math.Round(gazeProfile.AccuracyScore) + "%";
         }
 
-        // Keep the whole 55 mm target and radial wheel well inside the
-        // screen edges. Scale the extra inset with screen size, allowing
-        // smaller tablet screens without forcing an impossible layout.
-        private double TargetCenterMargin()
-        {
-            double smaller = Math.Min(TrainingCanvas.ActualWidth,
-                                      TrainingCanvas.ActualHeight);
-            double clearSpace = Math.Max(36, Math.Min(72, smaller * 0.10));
-            return Math.Min(smaller / 2 - 2,
-                TargetDiameter * 0.5 + clearSpace);
-        }
-
+        // Grid placement and pacing ===
+        // Map each target center to the actual full-screen 7 x 5 grid.
+        // Edge cells retain a fully visible circle and radial wheel, even when
+        // the original wide edge inset must be reduced to reach their centers.
         private Point TargetCenter()
         {
-            double margin = TargetCenterMargin();
-            return new Point(
-                margin + Math.Max(0, TrainingCanvas.ActualWidth - margin * 2) * targetPosition.X,
-                margin + Math.Max(0, TrainingCanvas.ActualHeight - margin * 2) * targetPosition.Y);
+            double w = TrainingCanvas.ActualWidth, h = TrainingCanvas.ActualHeight;
+            int row = Math.Max(0, targetCell) / SpatialAccuracyMap.Columns;
+            int col = Math.Max(0, targetCell) % SpatialAccuracyMap.Columns;
+            double cw = w / SpatialAccuracyMap.Columns, ch = h / SpatialAccuracyMap.Rows;
+            double inset = Math.Max(TargetDiameter * 0.5 + 4, Math.Min(46, Math.Min(cw, ch) - 4));
+            double left = Math.Max(inset, col * cw + 1);
+            double right = Math.Min(w - inset, (col + 1) * cw - 1);
+            double top = Math.Max(inset, row * ch + 1);
+            double bottom = Math.Min(h - inset, (row + 1) * ch - 1);
+            return new Point(Clamp(targetPosition.X * w, left, Math.Max(left, right)),
+                Clamp(targetPosition.Y * h, top, Math.Max(top, bottom)));
         }
 
+        // Classify the intended center-to-center displacement in view units.
+        // Index order matches the persisted diagnostic: R, DR, D, DL, L, UL, U, UR.
+        private int DirectionTo(Point from, Point to)
+        {
+            double dx = (to.X - from.X) * TrainingCanvas.ActualWidth;
+            double dy = (to.Y - from.Y) * TrainingCanvas.ActualHeight;
+            if (Math.Abs(dx) + Math.Abs(dy) < .001) return -1;
+            return ((int)Math.Round(Math.Atan2(dy, dx) / (Math.PI / 4)) + 8) % 8;
+        }
+
+        // Sample only unvisited cells; favor underrepresented directions and
+        // meaningful travel distances, but randomize ties and within-cell points.
         private void PickRandomTarget()
         {
-            if (TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
-                TrainingCanvas.ActualHeight < TargetDiameter + 24) return;
-
-            double margin = TargetCenterMargin();
-            Point chosen = new Point(0.5, 0.5);
-            Point candidate = chosen;
-            double bestDistance = double.MinValue;
-
-            // Keep clear of the gaze-accessible BACK control, and favor
-            // visibly different placements for consecutive acquisitions.
-            Point backOrigin = LessonBackButton.TransformToVisual(TrainingCanvas)
-                                                .TransformPoint(new Point(0, 0));
-            double backRight = backOrigin.X + LessonBackButton.ActualWidth + 20;
-            double backBottom = backOrigin.Y + LessonBackButton.ActualHeight + 20;
-
-            for (int attempt = 0; attempt < 90; attempt++)
+            if (remainingTargetCells.Count == 0) return;
+            int chosen = remainingTargetCells[0], bestDirection = -1;
+            Point chosenPoint = new Point();
+            double best = double.NegativeInfinity;
+            foreach (int cell in remainingTargetCells)
             {
-                candidate = new Point(placementRandom.NextDouble(),
-                                      placementRandom.NextDouble());
-                Point center = new Point(
-                    margin + Math.Max(0, TrainingCanvas.ActualWidth - margin * 2) * candidate.X,
-                    margin + Math.Max(0, TrainingCanvas.ActualHeight - margin * 2) * candidate.Y);
-                double visualRadius = TargetDiameter * 0.5 + 46;
-                bool overlapsBack = center.X - visualRadius < backRight &&
-                                    center.Y - visualRadius < backBottom;
-                double distance = hasPreviousTargetPosition
-                    ? Math.Sqrt(Math.Pow(candidate.X - previousTargetPosition.X, 2) +
-                                Math.Pow(candidate.Y - previousTargetPosition.Y, 2))
-                    : 1;
-                if (!overlapsBack && distance > bestDistance)
+                int row = cell / SpatialAccuracyMap.Columns, col = cell % SpatialAccuracyMap.Columns;
+                Point candidate = new Point((col + .2 + .6 * placementRandom.NextDouble()) / SpatialAccuracyMap.Columns,
+                    (row + .2 + .6 * placementRandom.NextDouble()) / SpatialAccuracyMap.Rows);
+                int direction = hasPreviousTargetPosition ? DirectionTo(previousTargetPosition, candidate) : -1;
+                double dx = candidate.X - previousTargetPosition.X, dy = candidate.Y - previousTargetPosition.Y;
+                double score = placementRandom.NextDouble();
+                if (direction >= 0) score += -4 * plannedDirections[direction] + Math.Sqrt(dx * dx + dy * dy);
+                if (score > best)
                 {
-                    bestDistance = distance;
-                    chosen = candidate;
+                    best = score; chosen = cell; chosenPoint = candidate; bestDirection = direction;
                 }
-                if (!overlapsBack && distance >= 0.28) break;
             }
-
-            targetPosition = chosen;
-            previousTargetPosition = chosen;
+            targetCell = chosen;
+            remainingTargetCells.Remove(chosen);
+            targetPosition = chosenPoint;
+            // Use actual clamped target centers for directional diagnostics.
+            Point actual = TargetCenter();
+            Point normalized = new Point(actual.X / TrainingCanvas.ActualWidth, actual.Y / TrainingCanvas.ActualHeight);
+            targetDirection = hasPreviousTargetPosition ? DirectionTo(previousTargetPosition, normalized) : -1;
+            if (targetDirection >= 0) plannedDirections[targetDirection]++;
+            previousTargetPosition = normalized;
             hasPreviousTargetPosition = true;
+        }
+
+        // Keep Back accessible without covering an upper-left grid target.
+        // Move it to the opposite side only when the target overlaps its zone.
+        // Re-arm gaze after relocation to prevent an accidental navigation.
+        private void SetLessonBackPosition(bool right)
+        {
+            if (backOnRight == right) return;
+            backOnRight = right;
+            LessonBackButton.HorizontalAlignment = right ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+            LessonBackButton.Margin = right ? new Thickness(0, 16, 20, 0) : new Thickness(20, 16, 0, 0);
+            gazeButtonBounds.Clear();
+            gazeControlTarget = null;
+            gazeControlTriggered = false;
+            buttonDwellWheel.Hide();
+            requireLookAwayAfterNavigation = live;
+            lastActivatedGazePosition = mostRecentRawGazePosition;
+        }
+
+        // Start timing only when the actual target is revealed, never during
+        // the introduction, blank interval, or previous target's dwell.
+        private void PresentNextTarget()
+        {
+            if (stopping || exitRequested || completed || lessonIntroActive ||
+                currentScreen != AppScreen.Lesson || remainingTargetCells.Count == 0 ||
+                TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
+                TrainingCanvas.ActualHeight < TargetDiameter + 24) return;
+            if (targetIndex < 0) targetIndex = 0;
+            PickRandomTarget();
+            Point center = TargetCenter();
+            double radius = Math.Max(TargetDiameter * .5, 46);
+            double backWidth = Math.Max(LessonBackButton.ActualWidth, LessonBackButton.MinWidth);
+            double backHeight = Math.Max(LessonBackButton.ActualHeight, LessonBackButton.MinHeight);
+            bool topOverlap = center.Y - radius < backHeight + 20;
+            bool leftOverlap = center.X - radius < backWidth + 24;
+            SetLessonBackPosition(topOverlap && leftOverlap);
+            cursorFilter.EndHold();
+            targetShownAt = targetLastSampleAt = DateTimeOffset.UtcNow;
+            targetArrivalSeconds = null;
+            targetTrialInterrupted = false;
+            targetMisses = 0;
+            rawHoldStarted = default(DateTimeOffset);
+            rawHoldMisses = 0;
+            rawFirstHoldCompleted = false;
+            targetMeasurement.BeginTarget(targetShownAt);
             RepositionTarget();
         }
 
+        // Hide both visuals and clear the hold for exactly one independent
+        // 500 ms UI timer interval; gaze samples cannot select a hidden target.
+        private void ScheduleNextTarget()
+        {
+            CancelTargetDelay();
+            cursorFilter.EndHold();
+            targetCell = -1;
+            targetMeasurement.CancelHold();
+            TargetRing.Visibility = Visibility.Collapsed;
+            TargetBullseye.Visibility = Visibility.Collapsed;
+            HideTargetDwellVisual();
+            targetDelayTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(InterTargetDelayMilliseconds) };
+            targetDelayTimer.Tick += OnTargetDelayElapsed;
+            targetDelayTimer.Start();
+        }
+
+        private void OnTargetDelayElapsed(object sender, object args)
+        {
+            CancelTargetDelay();
+            PresentNextTarget();
+        }
+
+        // Cancel delayed presentation on navigation, replay or shutdown.
+        private void CancelTargetDelay()
+        {
+            if (targetDelayTimer == null) return;
+            targetDelayTimer.Stop();
+            targetDelayTimer.Tick -= OnTargetDelayElapsed;
+            targetDelayTimer = null;
+        }
+
+        // Remaining-target count decreases only after a successful selection.
+        // The visual stays visible through the 500 ms inter-target pause.
+        private void UpdateTargetCountdown()
+        {
+            int remaining = Math.Max(0, TargetsPerLevel - Math.Max(0, targetIndex));
+            TargetCountdownText.Text = remaining + " remaining";
+        }
+
+        // Keep the noninteractive countdown away from the target and radial
+        // wheel, using the opposite bottom corner whenever necessary.
+        private void PositionTargetCountdown(Point center)
+        {
+            const double marginX = 20, marginY = 16;
+            double clearance = Math.Max(TargetDiameter * .5, 46) + 8;
+            double width = TargetCountdown.Width, height = TargetCountdown.Height;
+            bool right = center.X - clearance < marginX + width &&
+                center.X + clearance > marginX &&
+                center.Y + clearance > TrainingCanvas.ActualHeight - marginY - height;
+            TargetCountdown.HorizontalAlignment = right ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+            TargetCountdown.Margin = right ? new Thickness(0, 0, marginX, marginY) : new Thickness(marginX, 0, 0, marginY);
+            UpdateTargetCountdown();
+            TargetCountdown.Visibility = Visibility.Visible;
+        }
+
+        // Apply the current target position to its visual controls.
         private void RepositionTarget()
         {
-            if (currentScreen != AppScreen.Lesson || targetIndex < 0 ||
-                lessonIntroActive || completed || TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
+            if (currentScreen != AppScreen.Lesson || targetIndex < 0 || targetCell < 0 ||
+                targetDelayTimer != null || lessonIntroActive || completed || TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
                 TrainingCanvas.ActualHeight < TargetDiameter + 24)
             {
                 TargetRing.Visibility = Visibility.Collapsed;
@@ -2287,6 +2956,8 @@ namespace EyeGazeApiViability
             }
 
             Point center = TargetCenter();
+            PositionTargetCountdown(center);
+            TargetRing.Width = TargetRing.Height = TargetDiameter;
             Canvas.SetLeft(TargetRing, center.X - TargetDiameter / 2);
             Canvas.SetTop(TargetRing, center.Y - TargetDiameter / 2);
             Canvas.SetLeft(TargetBullseye, center.X - bullseyeDiameter / 2);
@@ -2299,6 +2970,7 @@ namespace EyeGazeApiViability
         // Reuses SharedButtonDwellWheel rather than a separate custom arc
         // or numeric countdown. Target completion remains 1000ms; button
         // completion continues to use its own 1500ms dwell.
+        // Refresh the target's shared radial dwell indicator.
         private void UpdateTargetDwellVisual(bool inside)
         {
             if (!inside || currentScreen != AppScreen.Lesson ||
@@ -2316,16 +2988,20 @@ namespace EyeGazeApiViability
                 targetMeasurement.HoldProgress);
         }
 
+        // Clear the visible target dwell progress.
         private void HideTargetDwellVisual()
         {
             targetDwellWheel.Hide();
         }
 
+        // Restrict a numeric value to the supplied bounds.
         private static double Clamp(double value, double min, double max)
         {
             return Math.Max(min, Math.Min(max, value));
         }
 
+        // Shutdown and isolation lifecycle ===
+        // Cancel the diagnostic-only automatic-exit timer.
         private void StopIsolationTimer()
         {
             if (isolationTimer == null) return;
@@ -2334,6 +3010,7 @@ namespace EyeGazeApiViability
             isolationTimer = null;
         }
 
+        // Record isolation state and invoke the shared exit sequence.
         private void OnIsolationElapsed(object sender, object e)
         {
             StopIsolationTimer();
@@ -2341,10 +3018,13 @@ namespace EyeGazeApiViability
             OnExitRequested(null, null);
         }
 
+        // Stop training activity and begin orderly resource cleanup before navigating away.
         private void OnExitRequested(object sender, RoutedEventArgs e)
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            StopExampleBarAnimation();
+            StopLessonNarration();
             StopIsolationTimer();
             Trace("EXIT SELECTED; live=" + live + "; mouse=" + mouseOnlyFallback + "; subscribed=" + gazeSubscribed + "; watcherStarted=" + watcherStarted);
             Trace("BEGIN stop startup timer");
@@ -2355,6 +3035,7 @@ namespace EyeGazeApiViability
             DismissNoTrackerNotice();
             StopLevelZero();
             Trace("END stop Level 0; BEGIN stop practice and bonus timers");
+            CancelTargetDelay();
             HideTherapistExportConfirmation();
             if (practiceTimer != null)
             {
@@ -2380,6 +3061,7 @@ namespace EyeGazeApiViability
             else NavigateToCleanExit();
         }
 
+        // Start staged gaze resource release on the UI thread.
         private void BeginCleanup()
         {
             if (!live || stopping) return;
@@ -2399,11 +3081,13 @@ namespace EyeGazeApiViability
             cleanupTimer.Start();
         }
 
+        // Advance one stage of the asynchronous shutdown sequence.
         private void OnCleanupTick(object sender, object e)
         {
             CleanupNextStage();
         }
 
+        // Unsubscribe gaze events, release any legacy watcher, drop references and finish cleanup in order.
         private void CleanupNextStage()
         {
             var phase = cleanupStage;
@@ -2484,6 +3168,7 @@ namespace EyeGazeApiViability
 
         private bool cleanExitNavigationPending;
 
+        // Await the companion's restoration acknowledgement before entering the gaze-free closing view.
         private async void NavigateToCleanExit()
         {
             if (cleanExitNavigationPending) return;
@@ -2522,6 +3207,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Write trainer diagnostic messages through the application lifecycle trace.
         private void Trace(string message)
         {
             App.TraceLifecycle("TRAINER | " + message);
@@ -2537,9 +3223,13 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Detach view callbacks, restore the local pointer and release remaining page resources.
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            StopExampleBarAnimation();
+            StopLessonNarration();
             StopIsolationTimer();
+            CancelTargetDelay();
             Trace("BEGIN OnNavigatedFrom");
             // Navigation follows staged gaze release; make the Windows arrow
             // available again on the gaze-free closing page and desktop.

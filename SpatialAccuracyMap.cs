@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: SpatialAccuracyMap.cs
+// Purpose: Stores aggregate performance and attempt counts per screen region without retaining raw gaze coordinates.
+// ============================================================================
+
 using System;
 using System.Globalization;
 using Windows.Foundation;
@@ -21,6 +27,7 @@ namespace EyeGazeApiViability
         private readonly double[,] totals = new double[Rows, Columns];
         private readonly int[,] attempts = new int[Rows, Columns];
 
+        // Restore current grid data or migrate compatible legacy aggregates.
         public SpatialAccuracyMap()
         {
             try
@@ -43,6 +50,7 @@ namespace EyeGazeApiViability
             catch (Exception) { /* Missing settings must not interrupt training. */ }
         }
 
+        // Validate every serialized cell before replacing the current aggregate grid.
         private bool Load(string saved, int sourceRows)
         {
             if (string.IsNullOrEmpty(saved)) return false;
@@ -77,6 +85,7 @@ namespace EyeGazeApiViability
             return true;
         }
 
+        // Return the cell mean or null for an unmeasured location.
         public double? Score(int row, int column)
         {
             if (row < 0 || row >= Rows || column < 0 || column >= Columns ||
@@ -84,11 +93,13 @@ namespace EyeGazeApiViability
             return totals[row, column] / attempts[row, column];
         }
 
+        // Return the number of recorded attempts in the requested cell.
         public int Count(int row, int column)
         {
             return attempts[row, column];
         }
 
+        // Map a target center to its screen cell and accumulate bounded performance.
         public void Record(Point center, double screenWidth, double screenHeight,
                            double score)
         {
@@ -107,6 +118,7 @@ namespace EyeGazeApiViability
             Persist();
         }
 
+        // Serialize cell totals and counts in culture-independent form.
         private void Persist()
         {
             try

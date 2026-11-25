@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: TrainingProgress.cs
+// Purpose: Stores completed lesson flags in application-local settings.
+// ============================================================================
+
 using System;
 using Windows.Storage;
 
@@ -10,6 +16,7 @@ namespace EyeGazeApiViability
     internal sealed class TrainingProgress
     {
         private const string KeyPrefix = "EyeGazeTrainer.LevelCompleted.V1.";
+        // Read the persisted completion flag for a lesson.
         public bool IsCompleted(int level)
         {
             if (level < 1 || level > 6) return false;
@@ -22,6 +29,7 @@ namespace EyeGazeApiViability
             catch (Exception) { return false; }
         }
 
+        // Persist lesson completion without requiring external storage.
         public void MarkCompleted(int level)
         {
             if (level < 1 || level > 6) return;

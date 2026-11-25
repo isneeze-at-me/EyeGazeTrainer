@@ -1,3 +1,9 @@
+# ============================================================================
+# EyeGazeTrainer
+# File: tools/ShutdownMonitor.ps1
+# Purpose: Independent read-only shutdown, window, process and cursor confinement diagnostics.
+# ============================================================================
+
 # Read-only independent observer; run before opening the trainer.
 [CmdletBinding()]
 param([int]$PostExitSeconds = 60, [int]$WaitForLaunchSeconds = 0)
@@ -5,6 +11,8 @@ $ErrorActionPreference = 'Stop'
 $directory = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'EyeGazeTrainer\Diagnostics'
 [IO.Directory]::CreateDirectory($directory) | Out-Null
 $log = Join-Path $directory ('Shutdown-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '.txt')
+# Durable logging ===
+# Flush every trace record so a freeze does not hide the last observed operation.
 function Write-Trace([string]$message) {
     $line = [DateTimeOffset]::Now.ToString('o') + ' | MONITOR | ' + $message + [Environment]::NewLine
     $bytes = [Text.Encoding]::UTF8.GetBytes($line)
@@ -16,6 +24,8 @@ $script:logicalLaunch = ''
 $script:logicalClose = ''
 $started = [DateTime]::UtcNow
 $packageFolders = @(Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Packages') -Directory -Filter 'EyeGazeApiViability_*' -ErrorAction SilentlyContinue | ForEach-Object { Join-Path $_.FullName 'LocalState' })
+# Session trace correlation ===
+# Tail only complete lines from the per-session app and overlay files, tracking byte offsets.
 function Copy-NewTraceLines {
     $sources = @()
     foreach ($folder in $packageFolders) {
@@ -97,6 +107,8 @@ public static class TrainerWindowProbe {
     $windowProbeReady = $true
 } catch { Write-Trace ('Window probe unavailable: ' + $_.Exception.Message) }
 
+# Window observations ===
+# Read window owner, visibility, bounds and cloak state without changing the window.
 function Get-WindowSnapshot([IntPtr]$handle) {
     if ($handle -eq [IntPtr]::Zero) { return 'none' }
     [uint32]$ownerId = 0
@@ -114,6 +126,7 @@ function Get-WindowSnapshot([IntPtr]$handle) {
     $cloakState = if ([TrainerWindowProbe]::DwmGetWindowAttribute($handle,14,[ref]$cloaked,4) -eq 0) { [string]$cloaked } else { 'unknown' }
     'hwnd=0x{0:X} owner={1} pid={2} class={3} visible={4} minimized={5} maximized={6} cloaked={7} bounds={8}' -f $handle.ToInt64(),$name,$ownerId,$class.ToString(),[TrainerWindowProbe]::IsWindowVisible($handle),[TrainerWindowProbe]::IsIconic($handle),[TrainerWindowProbe]::IsZoomed($handle),$cloakState,$bounds
 }
+# Collect the foreground, shell and relevant top-level windows for change detection.
 function Get-WindowState($processes) {
     if (-not $windowProbeReady) { return 'Window probe unavailable' }
     $foreground = [TrainerWindowProbe]::GetForegroundWindow()
@@ -130,9 +143,11 @@ function Get-WindowState($processes) {
     }
     'FOREGROUND: ' + (Get-WindowSnapshot $foreground) + ' | SHELL: ' + (Get-WindowSnapshot $shell) + ' | OBSERVED WINDOWS: ' + (($windows | Sort-Object) -join '; ')
 }
+# Observe trainer and Tobii-related processes without controlling their lifecycle.
 function Get-ObservedProcesses {
     @(Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -match 'EyeGazeApiViability|EyeGazeTrainer|OverlayCompanion|Tobii|Dynavox|TDControl|TD.Control|GazeInteraction' })
 }
+# Format process observations; a missing main window is not evidence of a hang.
 function Get-State($processes) {
     $items = foreach ($p in $processes) {
         try {
@@ -146,6 +161,8 @@ function Get-State($processes) {
 }
 Write-Host "External shutdown log: $log"
 Write-Trace 'External monitor started; build=2026-11-24-direct-gaze-v4. Process/window responsiveness is not proof of functional gaze control.'
+# Session bookkeeping ===
+# Track both process disappearance and successful native close, which may leave UWP suspended.
 $sessionCount = 0
 $activeTrainerIds = ''
 $lastLogicalLaunch = ''
@@ -160,6 +177,7 @@ $lastWindowState = ''
 $lastCursorClip = ''
 $lastHeartbeat = [DateTime]::MinValue
 try {
+    # Poll read-only state until the final session observation window expires.
     while ($true) {
         Copy-NewTraceLines
         $now = [DateTime]::UtcNow
@@ -173,6 +191,7 @@ try {
         }
         if ($windowProbeReady) {
             try {
+                # Compare the Windows cursor clipping rectangle with the virtual desktop; internal TD Control restrictions may not be exposed.
                 $cursorClip = [TrainerWindowProbe]::CursorClip()
                 if ($cursorClip -ne $lastCursorClip) {
                     Write-Trace ('CURSOR CLIP | ' + $cursorClip)
@@ -185,6 +204,7 @@ try {
                 }
             } catch { Write-Trace ('Window snapshot error: ' + $_.Exception.Message) }
         }
+        # Use PID changes and logical launch traces to distinguish consecutive sessions.
         $currentTrainerIds = (($trainer | ForEach-Object { $_.Id } | Sort-Object) -join ',')
         $newLogicalLaunch = $script:logicalLaunch -ne '' -and $script:logicalLaunch -ne $lastLogicalLaunch
         if ($newLogicalLaunch) { $lastLogicalLaunch = $script:logicalLaunch }
@@ -207,6 +227,7 @@ try {
             $activeTrainerIds = ''
             $exitObserved = $now
         }
+        # End only after the configured post-exit observation interval.
         if ($null -ne $exitObserved -and ($now - $exitObserved).TotalSeconds -ge $PostExitSeconds) {
             Write-Trace ('Final session observation completed; sessions=' + $sessionCount)
             break

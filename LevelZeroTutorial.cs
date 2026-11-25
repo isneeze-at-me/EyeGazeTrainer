@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: LevelZeroTutorial.cs
+// Purpose: Implements guided introduction exercises, speech, feedback, pursuit animation and completion.
+// ============================================================================
+
 using System;
 using System.Threading.Tasks;
 using System.Globalization;
@@ -100,6 +106,7 @@ namespace EyeGazeApiViability
         // Closing it immediately after Play can result in silent output.
         private SpeechSynthesisStream levelZeroActiveSpeechStream;
 
+        // Check whether first-run introduction is still required.
         private bool ShouldStartLevelZero()
         {
             try
@@ -120,6 +127,8 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Introduction lifecycle ===
+        // Initialize a guided introduction session and its first activity.
         private void StartLevelZero()
         {
             if (exitRequested || stopping) return;
@@ -182,6 +191,7 @@ namespace EyeGazeApiViability
             SpeakLevelZero(welcome, true);
         }
 
+        // Stop introduction playback, rendering, timers and interaction state.
         private void StopLevelZero()
         {
             StopLevelZeroCompletionTimer();
@@ -237,6 +247,8 @@ namespace EyeGazeApiViability
             LevelZeroEyeCursor.Visibility = Visibility.Collapsed;
         }
 
+        // Narration lifecycle ===
+        // Handle a narration playback failure through the completion path.
         private void OnLevelZeroMediaPlayerFailed(MediaPlayer sender,
                                                   MediaPlayerFailedEventArgs args)
         {
@@ -244,12 +256,14 @@ namespace EyeGazeApiViability
             SignalLevelZeroPlaybackFinished(false);
         }
 
+        // Signal normal narration completion.
         private void OnLevelZeroMediaEnded(MediaPlayer sender, object args)
         {
             // Native player events are not guaranteed to run on the UI thread.
             SignalLevelZeroPlaybackFinished(true);
         }
 
+        // Resolve pending narration so the lesson can advance.
         private void SignalLevelZeroPlaybackFinished(bool playedToEnd)
         {
             var completion = levelZeroPlaybackCompletion;
@@ -261,6 +275,7 @@ namespace EyeGazeApiViability
                     () => completion.TrySetResult(playedToEnd));
         }
 
+        // Display the instruction text associated with narrated directions.
         private void ShowLevelZeroInstructionText(string words)
         {
             LevelZeroInstructionText.Text = words;
@@ -270,6 +285,7 @@ namespace EyeGazeApiViability
             LevelZeroMovementGuide.Visibility = Visibility.Collapsed;
         }
 
+        // Remove instruction text when the activity begins.
         private void HideLevelZeroInstructionText()
         {
             LevelZeroInstructionPanel.Visibility = Visibility.Collapsed;
@@ -346,6 +362,7 @@ namespace EyeGazeApiViability
             _ = PlayLevelZeroSpeechAsync(words);
         }
 
+        // Synthesize and play narration, awaiting playback completion.
         private async Task PlayLevelZeroSpeechAsync(string words)
         {
             if (levelZeroSpeechBusy || currentScreen != AppScreen.LevelZero) return;
@@ -490,6 +507,8 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Coaching and progress ===
+        // Clear coaching and encouragement state for the current activity.
         private void ResetLevelZeroFeedback()
         {
             var now = DateTimeOffset.UtcNow;
@@ -505,6 +524,7 @@ namespace EyeGazeApiViability
             levelZeroFeedbackQueue.Clear();
         }
 
+        // Accumulate qualifying movement time toward activity completion.
         private void RecordLevelZeroCorrectMovement(double seconds)
         {
             if (currentScreen != AppScreen.LevelZero || stopping ||
@@ -517,58 +537,72 @@ namespace EyeGazeApiViability
             // resumes the requested action. Do not let delayed audio
             // incorrectly announce failure during correct movement.
             if (levelZeroFeedbackQueue.Count > 0 &&
-                levelZeroFeedbackQueue.Peek() == LevelZeroShortCoaching())
+                IsLevelZeroShortCoaching(levelZeroFeedbackQueue.Peek()))
                 levelZeroFeedbackQueue.Clear();
             if (seconds > 0 && seconds <= .5)
                 levelZeroFeedbackCorrectSeconds += seconds;
         }
 
-        private string LevelZeroShortPraise()
+        // Four variants per activity (original plus three alternatives).
+        private static readonly string[][] LevelZeroPraiseVariants =
         {
-            if (levelZeroStage == LevelZeroStage.Pursue)
-                return "Good job! You're following the circle.";
-            if (levelZeroStage == LevelZeroStage.Continue)
-                return "Good job! Keep looking at the button.";
+            new[] { "Good job! You're following the circle.", "Nicely done! Stay with the moving circle.", "Excellent tracking! Keep following it.", "You're doing well keeping up with the circle." },
+            new[] { "Good job! Keep looking at the button.", "Nicely done! Keep your gaze on Home.", "Excellent focus! Stay with the Home button.", "That's it! Keep looking until the ring fills." },
+            new[] { "Good job! That's up and down.", "Nice work! Keep looking up and down.", "Excellent vertical movement! Keep going.", "You're doing well moving between top and bottom." },
+            new[] { "Good job! That's left and right.", "Nice work! Keep moving side to side.", "Excellent horizontal movement! Keep going.", "You're doing well looking left and right." },
+            new[] { "Good job! You're moving from top left to bottom right.", "Nice diagonal movement! Keep it going.", "Excellent work along that diagonal.", "You're doing well moving between those two corners." },
+            new[] { "Good job! You're moving from bottom left to top right.", "Nice work on that upward diagonal.", "Excellent diagonal movement! Keep going.", "You're doing well moving between bottom left and top right." },
+            new[] { "Good job! Keep those circles going.", "Nice work! Keep making large circles.", "Excellent circular movement! Keep going.", "Those large circles are going well." },
+            new[] { "Good job! You're moving your eyes.", "Nice work exploring the screen.", "Excellent effort! Keep moving your gaze.", "You're doing well moving your eyes around." }
+        };
+        private static readonly string[][] LevelZeroCoachingVariants =
+        {
+            new[] { "Try following the glowing circle. Keep your cursor inside it.", "Follow the moving circle with your eyes. Aim to stay inside it.", "Look toward the glowing circle as it moves.", "Try keeping your eye cursor with the moving circle." },
+            new[] { "Look at the Home button and hold your gaze until the ring fills.", "Find the Home button and keep looking at it.", "Look toward Home and stay there until the ring fills.", "Try holding your gaze on the Home button until it activates." },
+            new[] { "Try looking up, then down, and repeat.", "Look toward the top, then the bottom.", "Move your eyes vertically, up and down.", "Try alternating between looking upward and downward." },
+            new[] { "Try looking from left to right and back again.", "Look to one side, then the other.", "Move your eyes side to side.", "Try alternating your gaze between left and right." },
+            new[] { "Try looking diagonally between the top left and bottom right.", "Look from top left to bottom right, then back.", "Follow the downward diagonal with your eyes.", "Try moving between the upper-left and lower-right corners." },
+            new[] { "Try looking diagonally between the bottom left and top right.", "Look from bottom left to top right, then back.", "Follow the upward diagonal with your eyes.", "Try moving between the lower-left and upper-right corners." },
+            new[] { "Try making large circles with your eyes.", "Move your eyes in a large circular path.", "Try drawing a large circle with your gaze.", "Look around in large circles, at your own pace." },
+            new[] { "Try moving your eyes around the screen.", "Explore different parts of the screen with your gaze.", "Try looking toward another area of the screen.", "Move your eyes freely around the display." }
+        };
+
+        // The same activity index identifies both praise and corrective coaching.
+        private int LevelZeroFeedbackIndex()
+        {
+            if (levelZeroStage == LevelZeroStage.Pursue) return 0;
+            if (levelZeroStage == LevelZeroStage.Continue) return 1;
             switch (movementStep)
             {
-                case MovementStep.Vertical:
-                    return "Good job! That's up and down.";
-                case MovementStep.Horizontal:
-                    return "Good job! That's left and right.";
-                case MovementStep.DiagonalDown:
-                    return "Good job! You're moving from top left to bottom right.";
-                case MovementStep.DiagonalUp:
-                    return "Good job! You're moving from bottom left to top right.";
-                case MovementStep.Circles:
-                    return "Good job! Keep those circles going.";
-                default:
-                    return "Good job! You're moving your eyes.";
+                case MovementStep.Vertical: return 2;
+                case MovementStep.Horizontal: return 3;
+                case MovementStep.DiagonalDown: return 4;
+                case MovementStep.DiagonalUp: return 5;
+                case MovementStep.Circles: return 6;
+                default: return 7;
             }
+        }
+
+        private string LevelZeroShortPraise()
+        {
+            int i = LevelZeroFeedbackIndex();
+            return ChooseEncouragement("L0Praise" + i, LevelZeroPraiseVariants[i]);
         }
 
         private string LevelZeroShortCoaching()
         {
-            if (levelZeroStage == LevelZeroStage.Pursue)
-                return "Try following the glowing circle. Keep your cursor inside it.";
-            if (levelZeroStage == LevelZeroStage.Continue)
-                return "Look at the Home button and hold your gaze until the ring fills.";
-            switch (movementStep)
-            {
-                case MovementStep.Vertical:
-                    return "Try looking up, then down, and repeat.";
-                case MovementStep.Horizontal:
-                    return "Try looking from left to right and back again.";
-                case MovementStep.DiagonalDown:
-                    return "Try looking diagonally between the top left and bottom right.";
-                case MovementStep.DiagonalUp:
-                    return "Try looking diagonally between the bottom left and top right.";
-                case MovementStep.Circles:
-                    return "Try making comfortable circles with your eyes.";
-                default:
-                    return "Try moving your eyes around the screen.";
-            }
+            int i = LevelZeroFeedbackIndex();
+            return ChooseEncouragement("L0Coach" + i, LevelZeroCoachingVariants[i]);
         }
 
+        // Test membership without drawing a new random phrase. This keeps
+        // stale queued corrective prompts from playing after movement resumes.
+        private bool IsLevelZeroShortCoaching(string words)
+        {
+            return Array.IndexOf(LevelZeroCoachingVariants[LevelZeroFeedbackIndex()], words) >= 0;
+        }
+
+        // Evaluate progress and schedule coaching or encouragement when appropriate.
         private void OnLevelZeroCoachTick(object sender, object args)
         {
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested)
@@ -645,6 +679,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Advance when the movement activity reaches its permitted time limit.
         private void SkipLevelZeroMovementStep()
         {
             if (levelZeroStage != LevelZeroStage.Explore ||
@@ -670,7 +705,7 @@ namespace EyeGazeApiViability
                     break;
                 case MovementStep.DiagonalUp:
                     NextMovementStep(MovementStep.Circles,
-                        "Good effort! Next, practice making comfortable circles with your eyes for fifteen seconds.");
+                        "Good effort! Next, practice making large circles with your eyes for fifteen seconds.");
                     break;
                 case MovementStep.Circles:
                     GoToLevelZeroPursuit(true);
@@ -678,6 +713,8 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Movement activities and visual guides ===
+        // Return the spoken instruction for the active exercise.
         private string MovementInstruction()
         {
             switch (movementStep)
@@ -691,12 +728,13 @@ namespace EyeGazeApiViability
                 case MovementStep.DiagonalUp:
                     return "For this exercise, look between the bottom left and top right.";
                 case MovementStep.Circles:
-                    return "For this exercise, move your eyes in comfortable circles.";
+                    return "For this exercise, move your eyes in large circles.";
                 default:
                     return "look around the screen and move the eye cursor with you.";
             }
         }
 
+        // Reset movement windows and timing for the next direction.
         private void ResetMovementStep()
         {
             movementStepStarted = DateTimeOffset.UtcNow;
@@ -717,6 +755,7 @@ namespace EyeGazeApiViability
                 diagonalSamples = circleSamples = 0;
         }
 
+        // Show the visual direction or circle guide for the active exercise.
         private void UpdateLevelZeroMovementGuide()
         {
             // The guides illustrate the motion only: they are never read by
@@ -744,6 +783,7 @@ namespace EyeGazeApiViability
                     ? Visibility.Visible : Visibility.Collapsed;
         }
 
+        // Transition to the next activity and present its instructions.
         private void NextMovementStep(MovementStep next, string instruction)
         {
             if (levelZeroStage != LevelZeroStage.Explore) return;
@@ -756,6 +796,8 @@ namespace EyeGazeApiViability
             SpeakLevelZero(instruction, true);
         }
 
+        // Movement measurement ===
+        // Evaluate movement samples against the current exercise.
         private void ObserveLevelZeroMovement(Point gaze, double width,
                                               double height, DateTimeOffset now)
         {
@@ -867,6 +909,7 @@ namespace EyeGazeApiViability
         // A measured sweep is long enough to recognize gentle eye movement,
         // but short enough to follow a comfortable circle. The guide itself
         // has no scoring role; the user may draw a circle anywhere.
+        // Assess circular movement independently of exact guide tracing.
         private void ObserveCircleWindow(Point gaze, double width,
                                          double height, DateTimeOffset now)
         {
@@ -957,6 +1000,7 @@ namespace EyeGazeApiViability
         // Judge the direction over a 350 ms gaze sweep rather than the
         // instantaneous 100 ms tracker delta. This tolerates tiny sideways
         // fluctuations during a real up/down movement (and vice versa).
+        // Assess axis-aligned movement using the current gaze window.
         private void ObserveDirectionWindow(Point gaze, double width,
                                             double height, DateTimeOffset now)
         {
@@ -1047,6 +1091,7 @@ namespace EyeGazeApiViability
         // not where the eye cursor crosses the decorative arrow. Screen
         // proportions are normalized so the same diagonal is usable on wide
         // and narrow displays. Both outward and return sweeps count.
+        // Assess movement along the required diagonal direction.
         private void ObserveDiagonalWindow(Point gaze, double width,
                                             double height, DateTimeOffset now)
         {
@@ -1103,12 +1148,14 @@ namespace EyeGazeApiViability
                         "Great work! You've completed the first diagonal. Now look from the bottom left toward the top right, then back again. Practice for fifteen seconds.");
                 else
                     NextMovementStep(MovementStep.Circles,
-                        "Excellent! You've practiced both diagonal directions. Now make comfortable circles with your eyes for fifteen seconds.");
+                        "Excellent! You've practiced both diagonal directions. Now make large circles with your eyes for fifteen seconds.");
             }
         }
 
         // CompositionTarget.Rendering tracks display refresh instead of a
         // 50 ms dispatcher timer (which stepped the marker at only 20 Hz).
+        // Pursuit animation ===
+        // Register the rendering callback for the moving target.
         private void StartLevelZeroRendering()
         {
             if (levelZeroRenderingSubscribed) return;
@@ -1118,6 +1165,7 @@ namespace EyeGazeApiViability
             levelZeroRenderingSubscribed = true;
         }
 
+        // Unregister the rendering callback when the activity stops.
         private void StopLevelZeroRendering()
         {
             if (!levelZeroRenderingSubscribed) return;
@@ -1125,6 +1173,7 @@ namespace EyeGazeApiViability
             levelZeroRenderingSubscribed = false;
         }
 
+        // Update the moving target's screen position.
         private void PositionLevelZeroPursuitTarget(double x, double y)
         {
             // Keep the full moving target away from the display edges.
@@ -1145,6 +1194,7 @@ namespace EyeGazeApiViability
             Canvas.SetTop(LevelZeroPursuitCenter, y - 9);
         }
 
+        // Initialize the pursuit activity relative to the current cursor.
         private void BeginLevelZeroPursuitMotion()
         {
             if (levelZeroStage != LevelZeroStage.Pursue) return;
@@ -1189,6 +1239,7 @@ namespace EyeGazeApiViability
             StartLevelZeroRendering();
         }
 
+        // Advance the animated pursuit target using rendering time.
         private void OnLevelZeroRendering(object sender, object args)
         {
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested) return;
@@ -1221,6 +1272,8 @@ namespace EyeGazeApiViability
                 GoToLevelZeroSelection();
         }
 
+        // Introduction interaction and completion ===
+        // Route raw and stabilized gaze to the active introduction exercise.
         private void ProcessLevelZeroGaze(Point raw, Point stabilized)
         {
             if (currentScreen != AppScreen.LevelZero || stopping || exitRequested) return;
@@ -1260,9 +1313,9 @@ namespace EyeGazeApiViability
                     (now - levelZeroCornerEntered).TotalMilliseconds >= 250)
                     levelZeroCornerMask |= 1 << candidate;
 
-                // Track the same stabilized cursor position the learner sees.
-                // Raw gaze jitter alone must never generate praise.
-                ObserveLevelZeroMovement(stabilized, w, h, now);
+                // Movement scoring uses native gaze; the existing displacement
+                // and timing thresholds reject incidental small movements.
+                ObserveLevelZeroMovement(raw, w, h, now);
             }
             else if (levelZeroStage == LevelZeroStage.Pursue)
             {
@@ -1279,7 +1332,7 @@ namespace EyeGazeApiViability
                     LevelZeroPursuitRadius;
                 double cy = Canvas.GetTop(LevelZeroPursuitTarget) +
                     LevelZeroPursuitRadius;
-                double dx = stabilized.X - cx, dy = stabilized.Y - cy;
+                double dx = raw.X - cx, dy = raw.Y - cy;
                 bool inside = dx * dx + dy * dy <=
                     LevelZeroPursuitInsideRadius * LevelZeroPursuitInsideRadius;
                 if (inside)
@@ -1299,6 +1352,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Count marked entries in the supplied bit mask.
         private static int CountBits(int mask)
         {
             int count = 0;
@@ -1341,16 +1395,17 @@ namespace EyeGazeApiViability
             levelZeroCoachedButton = false;
             levelZeroFeedbackQueue.Clear();
             string explanation = skipped
-                ? "Good effort, let's move on. One final step. A large Home button will appear. Look toward it and keep looking until the circular ring fills to open your training levels."
-                : "Fantastic! You've learned how to follow a moving target. One final step. A large Home button will appear. It takes you to the Level Menu, where you can start Level One. Look at the button and keep looking until the circular ring fills. Give it a try!";
+                ? "Good effort, let's move on. One final step. A large Home button will appear. Look at the Home button and keep looking until the circular ring fills to open your training levels."
+                : "Fantastic! You've learned how to follow a moving target. One final step. A large Home button will appear. It takes you to the Level Menu, where you can start Level One. Look at the Home button and keep looking until the circular ring fills. Give it a try!";
             levelZeroStageInstructionSpeech = explanation;
             SpeakLevelZero(explanation, true);
         }
 
-        // Choose the furthest corner from the current gaze. The button is
-        // kept comfortably inside the view and is only positioned when the
+        // Choose the furthest of four inward positions from the current gaze.
+        // The button stays away from screen edges and is only positioned when the
         // complete spoken explanation has finished, so gaze cannot already
         // be dwelling on a previously visible button.
+        // Present the next interaction control after guided practice.
         private void RevealLevelZeroContinueButton()
         {
             if (levelZeroStage != LevelZeroStage.Continue) return;
@@ -1379,8 +1434,11 @@ namespace EyeGazeApiViability
                 gaze = new Point(w / 2, h / 2);
 
             double bestX = leftEdge, bestY = topEdge, best = -1;
-            double[] xs = { leftEdge, rightEdge };
-            double[] ys = { topEdge, bottomEdge };
+            // Move each candidate 45% of the way toward the central position.
+            double middleX = Math.Max(0, (w - buttonW) / 2);
+            double middleY = Math.Max(0, (h - buttonH) / 2);
+            double[] xs = { leftEdge * .55 + middleX * .45, rightEdge * .55 + middleX * .45 };
+            double[] ys = { topEdge * .55 + middleY * .45, bottomEdge * .55 + middleY * .45 };
             foreach (double x in xs)
                 foreach (double y in ys)
                 {
@@ -1409,15 +1467,19 @@ namespace EyeGazeApiViability
             gazeControlTarget = null;
             gazeControlTriggered = false;
             buttonDwellWheel.Hide();
+            requireLookAwayAfterNavigation = live && best < NavigationRearmDistance * NavigationRearmDistance;
+            lastActivatedGazePosition = gaze;
             LevelZeroContinueButton.Visibility = Visibility.Visible;
         }
 
+        // Restart the introduction through the replay action.
         private void OnLevelZeroReplay(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Levels) return;
             StartLevelZero();
         }
 
+        // Read a stored introduction metric for display or export.
         private static string LevelZeroMetricValue(int index)
         {
             string[] keys = { "FirstGaze", "Coverage", "Corners", "Range",
@@ -1433,6 +1495,7 @@ namespace EyeGazeApiViability
             catch (Exception) { return "NA"; }
         }
 
+        // Handle progression through the introduction completion control.
         private void OnLevelZeroContinue(object sender, RoutedEventArgs e)
         {
             if (currentScreen != AppScreen.LevelZero ||
@@ -1473,6 +1536,7 @@ namespace EyeGazeApiViability
             SpeakLevelZero(LevelZeroCompletionMessage, true);
         }
 
+        // Finish the timed completion presentation.
         private void OnLevelZeroCompletionTimeout(object sender, object args)
         {
             StopLevelZeroCompletionTimer();
@@ -1481,6 +1545,7 @@ namespace EyeGazeApiViability
                 FinishLevelZero();
         }
 
+        // Cancel the pending completion timer.
         private void StopLevelZeroCompletionTimer()
         {
             if (levelZeroCompletionSafetyTimer == null) return;
@@ -1490,6 +1555,7 @@ namespace EyeGazeApiViability
         }
 
         // Save only six aggregate skill observations; never raw positions.
+        // Persist the collected introduction measurement summaries.
         private void SaveLevelZeroMeasurements()
         {
             try
@@ -1520,12 +1586,14 @@ namespace EyeGazeApiViability
             catch (Exception) { /* Measurements never block learner navigation. */ }
         }
 
+        // Persist the introduction completion flag.
         private static void MarkLevelZeroCompleted()
         {
             try { ApplicationData.Current.LocalSettings.Values[LevelZeroDoneKey] = true; }
             catch (Exception) { /* A storage error never prevents access to Levels. */ }
         }
 
+        // Save the completed session and return to the lesson menu.
         private void FinishLevelZero()
         {
             MarkLevelZeroCompleted();

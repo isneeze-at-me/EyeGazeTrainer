@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: TrainingReport.cs
+// Purpose: Aggregates practice duration, completed runs and recent performance trends in local settings.
+// ============================================================================
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -22,6 +28,7 @@ namespace EyeGazeApiViability
         private double unsavedPracticeSeconds;
         private int completedRuns;
 
+        // Restore persisted summary counters and bounded measurement histories.
         public TrainingReport()
         {
             try
@@ -45,6 +52,7 @@ namespace EyeGazeApiViability
         public double? LatestAccuracy { get { return Last(accuracy); } }
         public double? LatestJitter { get { return Last(jitter); } }
 
+        // Accumulate valid practice time before periodic persistence.
         public void AddPracticeSeconds(double seconds)
         {
             if (seconds <= 0 || seconds > 2 || double.IsNaN(seconds)) return;
@@ -56,6 +64,7 @@ namespace EyeGazeApiViability
                 FlushPracticeTime();
         }
 
+        // Save accumulated practice time before leaving the training session.
         public void FlushPracticeTime()
         {
             if (unsavedPracticeSeconds <= 0) return;
@@ -63,6 +72,7 @@ namespace EyeGazeApiViability
             unsavedPracticeSeconds = 0;
         }
 
+        // Increment the persisted completed-session counter.
         public void RecordCompletedRun()
         {
             FlushPracticeTime();
@@ -70,9 +80,13 @@ namespace EyeGazeApiViability
             SaveScalar("Runs", completedRuns);
         }
 
+        // Append a bounded overall performance observation.
         public void RecordOverall(double value) { Add(overall, "Overall", value, 100); }
+        // Append a bounded accuracy observation.
         public void RecordAccuracy(double value) { Add(accuracy, "Accuracy", value, 100); }
+        // Append a jitter measurement expressed in millimeters.
         public void RecordJitter(double millimeters) { Add(jitter, "Jitter", millimeters, 1000); }
+        // Record the current assistance percentage.
         public void RecordSmoothing(int percent)
         {
             if (percent < 0 || percent > 99) return;
@@ -86,6 +100,7 @@ namespace EyeGazeApiViability
         // Direction is numeric: +1 means more filtering, -1 means less.
         public int SmoothingTrend { get { return Trend(smoothing, false, 0.5); } }
 
+        // Return the latest observation, or null when no evidence exists.
         private static double? Last(List<double> items)
         {
             return items.Count > 0 ? (double?)items[items.Count - 1] : null;
@@ -93,6 +108,7 @@ namespace EyeGazeApiViability
 
         // Compare the latest five observations to the preceding five.
         // At least ten observations are required to show a direction.
+        // Compare measurement history using the supplied direction and significance threshold.
         private static int Trend(List<double> items, bool lowerBetter, double threshold)
         {
             if (items.Count < 10) return 0;
@@ -104,6 +120,7 @@ namespace EyeGazeApiViability
             return difference >= threshold ? 1 : difference <= -threshold ? -1 : 0;
         }
 
+        // Validate, append and persist a bounded measurement history.
         private void Add(List<double> items, string key, double value, double limit)
         {
             if (double.IsNaN(value) || double.IsInfinity(value) ||
@@ -114,6 +131,7 @@ namespace EyeGazeApiViability
                 v.ToString("R", CultureInfo.InvariantCulture))));
         }
 
+        // Restore validated measurements from the named local-settings entry.
         private void Load(List<double> items, string key, double limit)
         {
             try
@@ -137,12 +155,14 @@ namespace EyeGazeApiViability
             catch (Exception) { items.Clear(); }
         }
 
+        // Reject invalid numeric values and use the supplied fallback.
         private static double ValidNonnegative(double x, double fallback, double maximum)
         {
             return double.IsNaN(x) || double.IsInfinity(x) || x < 0 || x > maximum
                 ? fallback : x;
         }
 
+        // Persist a summary value without disrupting training.
         private static void SaveScalar(string key, object value)
         {
             try { ApplicationData.Current.LocalSettings.Values[Prefix + key] = value; }

@@ -1,3 +1,8 @@
+<!-- ============================================================================
+     EyeGazeTrainer
+     File: MainPage.xaml
+     Purpose: Declares the gaze-free closing view used during orderly shutdown.
+     ============================================================================ -->
 <Page x:Class="EyeGazeApiViability.MainPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">

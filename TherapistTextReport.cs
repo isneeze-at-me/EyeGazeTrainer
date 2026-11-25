@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: TherapistTextReport.cs
+// Purpose: Formats a plain-text therapist report from existing training aggregates; does not collect new gaze data.
+// ============================================================================
+
 using System;
 using System.Globalization;
 using System.Text;
@@ -14,6 +20,8 @@ namespace EyeGazeApiViability
         private const int Width = 78;
         private static readonly CultureInfo Culture = CultureInfo.InvariantCulture;
 
+        // Report assembly ===
+        // Assemble the complete report from supplied measurements and session summaries.
         public static string Build(
             DateTimeOffset generatedAt,
             TrainingProgress progress,
@@ -30,7 +38,8 @@ namespace EyeGazeApiViability
             string[] categoryNames,
             string[] levelZeroValues,
             string[] levelZeroExtraValues,
-            string[] levelZeroHistory)
+            string[] levelZeroHistory,
+            LevelOneTargetDiagnostics levelOneTargets)
         {
             var b = new StringBuilder(12000);
             b.AppendLine(new string('=', Width));
@@ -122,8 +131,8 @@ namespace EyeGazeApiViability
             b.AppendLine();
 
             Section(b, "5. THERAPIST SKILL METRICS");
-            b.AppendLine("  Level 0 displays recorded results when completed; remaining");
-            b.AppendLine("  planned measures remain NA (not recorded).");
+            b.AppendLine("  Level 1 target measures are recorded after a completed gaze round.");
+            b.AppendLine("  Other skill categories remain NA until implemented.");
             b.AppendLine("  The app does not infer unavailable measurements from other scores.");
             if (skillCategories != null && categoryNames != null)
             {
@@ -135,22 +144,40 @@ namespace EyeGazeApiViability
                     foreach (string definition in skillCategories[category])
                     {
                         string[] parts = definition.Split(new[] { '|' }, 2);
-                        string observed = category == 0 && levelZeroValues != null &&
-                            Array.IndexOf(skillCategories[category], definition) <
-                            levelZeroValues.Length
-                            ? levelZeroValues[Array.IndexOf(skillCategories[category], definition)]
-                            : "NA";
+                        int metric = Array.IndexOf(skillCategories[category], definition);
+                        string observed = category == 0 && levelOneTargets != null
+                            ? levelOneTargets.Latest(metric) : "NA";
                         b.AppendLine("    - " + parts[0] + ": " +
                             (string.IsNullOrEmpty(observed) || observed == "NA"
                                 ? "NA (not recorded)" : observed));
                         if (parts.Length > 1)
                             Wrap(b, "      ", parts[1], Width - 8);
+                        if (category == 0 && levelOneTargets != null && observed != "NA")
+                            Wrap(b, "      ", levelOneTargets.Summary(metric), Width - 8);
+                        if (category == 0 && metric == 4 && levelOneTargets != null)
+                            Wrap(b, "      ", levelOneTargets.Directions(), Width - 8);
                     }
                 }
             }
             b.AppendLine();
 
+            if (levelOneTargets != null)
+            {
+                Wrap(b, "  ", levelOneTargets.BonusSummary(), Width - 4);
+                b.AppendLine("  Trivia targeting is recorded independently of factual correctness.");
+                b.AppendLine("  Historical mean uses up to 20 completed sessions; trend compares");
+                b.AppendLine("  the latest two recorded sessions, with provisional thresholds.");
+                b.AppendLine("  Directional control is the mean first-hold rate of sampled directions.");
+                b.AppendLine("  Target centers cover all 35 cells; outer edges themselves are not tested.");
+                b.AppendLine();
+            }
             Section(b, "6. LEVEL 0 EXTENDED OBSERVATIONS AND SESSIONS");
+            string[] introLabels = { "Introduction metric 1", "Introduction metric 2",
+                "Introduction metric 3", "Introduction metric 4", "Introduction metric 5", "Introduction metric 6" };
+            // Retain legacy introduction values separately from the TARGETS category.
+            if (levelZeroValues != null)
+                for (int i = 0; i < introLabels.Length && i < levelZeroValues.Length; i++)
+                    Field(b, introLabels[i], levelZeroValues[i]);
             string[] extraLabels = { "Gaze stability (Home hold)",
                 "Tracking gaps (>1 sec)", "Directional movement",
                 "Circular movement", "Interrupted Home dwells", "Tutorial duration" };
@@ -189,42 +216,51 @@ namespace EyeGazeApiViability
             return b.ToString();
         }
 
+        // Formatting helpers ===
+        // Format a numeric percentage using the report culture.
         private static string Pct(double x) { return x.ToString("0", Culture) + "%"; }
 
+        // Format a measurement count or its unavailable indicator.
         private static string CountOrNA(int count)
         {
             return count > 0 ? count.ToString(Culture) : "NA";
         }
 
+        // Convert a trend direction into a report label.
         private static string Trend(int direction)
         {
             return direction > 0 ? "[Improving]" :
                    direction < 0 ? "[Declining]" : "[Stable / insufficient history]";
         }
 
+        // Format a numeric trend direction for the report.
         private static string NumericTrend(int direction)
         {
             return direction > 0 ? "[Increasing]" :
                    direction < 0 ? "[Decreasing]" : "[Stable / insufficient history]";
         }
 
+        // Write a report section heading.
         private static void Section(StringBuilder b, string heading)
         {
             b.AppendLine(heading);
             b.AppendLine(new string('-', Width));
         }
 
+        // Center text within the report's fixed-width formatting.
         private static void Center(StringBuilder b, string text)
         {
             b.AppendLine(new string(' ', Math.Max(0, (Width - text.Length) / 2)) + text);
         }
 
+        // Write a labeled report field using the shared formatting rules.
         private static void Field(StringBuilder b, string name, string value,
                                   string suffix = "")
         {
             b.AppendLine("  " + name.PadRight(35) + ": " + value + suffix);
         }
 
+        // Wrap longer report text to the requested width and indent.
         private static void Wrap(StringBuilder b, string indent, string text, int width)
         {
             string line = indent;
@@ -240,6 +276,7 @@ namespace EyeGazeApiViability
             if (line.Trim().Length > 0) b.AppendLine(line.TrimEnd());
         }
 
+        // Render a regional diagnostics map using the supplied cell formatter.
         private static void WriteMap(StringBuilder b, Func<int, int, string> value)
         {
             b.AppendLine("        C1      C2      C3      C4      C5      C6      C7");
