@@ -164,28 +164,7 @@ try {
                     try {
                         if ([TrainerWindowProbe]::IsWindowVisible($candidate) -and
                             -not [TrainerWindowProbe]::IsIconic($candidate) -and
-                            $candidateProcess.ProcessName -notmatch 'Tobii|Dynavox|TDControl|EyeAssist|EyeGaze|^explorer$|^ApplicationFrameHost$|^StartMenuExperienceHost$|^ShellExperienceHost$|^SearchHost$|^WindowsTerminal$|^powershell$|^cmd
-            $seenTrainer = $true
-            Write-Trace 'Trainer process observed.'
-        }
-        if ($seenTrainer -and $trainer.Count -eq 0 -and $null -eq $exitObserved) {
-            $exitObserved = $now
-            Write-Trace 'Trainer process no longer observed; begin post-exit observation.'
-        }
-        if ($null -ne $exitObserved -and ($now - $exitObserved).TotalSeconds -ge $PostExitSeconds) { break }
-        if (-not $seenTrainer -and ($now - $started).TotalSeconds -ge $WaitForLaunchSeconds) {
-            Write-Trace 'Trainer not observed before launch timeout.'; break
-        }
-        foreach ($p in $processes) { $p.Dispose() }
-        Start-Sleep -Milliseconds 500
-    }
-} catch { Write-Trace ('Monitor exception: ' + $_.Exception.ToString()) }
-finally {
-    Copy-NewTraceLines
-    Write-Trace 'Monitoring ended.'
-    Write-Host "Saved: $log"
-}
-) {
+                            $candidateProcess.ProcessName -notmatch 'Tobii|Dynavox|TDControl|EyeAssist|EyeGaze|^explorer$|^ApplicationFrameHost$|^StartMenuExperienceHost$|^ShellExperienceHost$|^SearchHost$|^WindowsTerminal$|^powershell$|^cmd$') {
                             foreach ($folder in $packageFolders) {
                                 if (Test-Path $folder) {
                                     [IO.File]::WriteAllText((Join-Path $folder 'foreground-before-launch.txt'), ('{0}|{1}' -f $candidate.ToInt64(),$candidateId))
