@@ -38,7 +38,8 @@ namespace EyeGazeApiViability
             string[] categoryNames,
             string[] levelZeroValues,
             string[] levelZeroExtraValues,
-            string[] levelZeroHistory)
+            string[] levelZeroHistory,
+            LevelOneTargetDiagnostics levelOneTargets)
         {
             var b = new StringBuilder(12000);
             b.AppendLine(new string('=', Width));
@@ -130,8 +131,8 @@ namespace EyeGazeApiViability
             b.AppendLine();
 
             Section(b, "5. THERAPIST SKILL METRICS");
-            b.AppendLine("  Level 0 displays recorded results when completed; remaining");
-            b.AppendLine("  planned measures remain NA (not recorded).");
+            b.AppendLine("  Level 1 target measures are recorded after a completed gaze round.");
+            b.AppendLine("  Other skill categories remain NA until implemented.");
             b.AppendLine("  The app does not infer unavailable measurements from other scores.");
             if (skillCategories != null && categoryNames != null)
             {
@@ -143,22 +144,40 @@ namespace EyeGazeApiViability
                     foreach (string definition in skillCategories[category])
                     {
                         string[] parts = definition.Split(new[] { '|' }, 2);
-                        string observed = category == 0 && levelZeroValues != null &&
-                            Array.IndexOf(skillCategories[category], definition) <
-                            levelZeroValues.Length
-                            ? levelZeroValues[Array.IndexOf(skillCategories[category], definition)]
-                            : "NA";
+                        int metric = Array.IndexOf(skillCategories[category], definition);
+                        string observed = category == 0 && levelOneTargets != null
+                            ? levelOneTargets.Latest(metric) : "NA";
                         b.AppendLine("    - " + parts[0] + ": " +
                             (string.IsNullOrEmpty(observed) || observed == "NA"
                                 ? "NA (not recorded)" : observed));
                         if (parts.Length > 1)
                             Wrap(b, "      ", parts[1], Width - 8);
+                        if (category == 0 && levelOneTargets != null && observed != "NA")
+                            Wrap(b, "      ", levelOneTargets.Summary(metric), Width - 8);
+                        if (category == 0 && metric == 4 && levelOneTargets != null)
+                            Wrap(b, "      ", levelOneTargets.Directions(), Width - 8);
                     }
                 }
             }
             b.AppendLine();
 
+            if (levelOneTargets != null)
+            {
+                Wrap(b, "  ", levelOneTargets.BonusSummary(), Width - 4);
+                b.AppendLine("  Trivia targeting is recorded independently of factual correctness.");
+                b.AppendLine("  Historical mean uses up to 20 completed sessions; trend compares");
+                b.AppendLine("  the latest two recorded sessions, with provisional thresholds.");
+                b.AppendLine("  Directional control is the mean first-hold rate of sampled directions.");
+                b.AppendLine("  Target centers cover all 35 cells; outer edges themselves are not tested.");
+                b.AppendLine();
+            }
             Section(b, "6. LEVEL 0 EXTENDED OBSERVATIONS AND SESSIONS");
+            string[] introLabels = { "Introduction metric 1", "Introduction metric 2",
+                "Introduction metric 3", "Introduction metric 4", "Introduction metric 5", "Introduction metric 6" };
+            // Retain legacy introduction values separately from the TARGETS category.
+            if (levelZeroValues != null)
+                for (int i = 0; i < introLabels.Length && i < levelZeroValues.Length; i++)
+                    Field(b, introLabels[i], levelZeroValues[i]);
             string[] extraLabels = { "Gaze stability (Home hold)",
                 "Tracking gaps (>1 sec)", "Directional movement",
                 "Circular movement", "Interrupted Home dwells", "Tutorial duration" };
