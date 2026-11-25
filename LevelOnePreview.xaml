@@ -1,6 +1,12 @@
+<!-- ============================================================================
+     EyeGazeTrainer
+     File: LevelOnePreview.xaml
+     Purpose: Declares the single training page, shared button styles, screen panels and noninteractive overlays.
+     ============================================================================ -->
 <Page x:Class="EyeGazeApiViability.LevelOnePreview"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Shared accessible control styles === -->
   <Page.Resources>
     <!-- Accessible high-contrast button palette. Keep native UWP focus,
          pointer, and click semantics for eye-gaze hit testing. -->
@@ -198,6 +204,7 @@
       <!-- Speech plays through a nonvisual Windows MediaPlayer instance. -->
     </Grid>
 
+    <!-- Main menu === -->
     <Grid x:Name="HomePanel" Background="#101827" Padding="26">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
@@ -267,6 +274,7 @@
 
     <!-- One persistent gaze-owning Diagnostics page; tabs only toggle
          child panels and never create a second gaze input device. -->
+    <!-- Diagnostic tabs === -->
     <Grid x:Name="DiagnosticsPanel" Background="Black" Visibility="Collapsed" Padding="20">
       <Grid.RowDefinitions>
         <RowDefinition Height="104"/>
@@ -502,6 +510,7 @@
 
       </Grid>
 
+      <!-- Persisted session history and report export === -->
       <Grid x:Name="DiagnosticsSessionsPanel" Grid.Row="2"
             Visibility="Collapsed" RowSpacing="14">
         <Grid.RowDefinitions>
@@ -596,6 +605,7 @@
       </Border>
     </Grid>
 
+    <!-- Lesson selection and replay === -->
     <Grid x:Name="LevelsPanel" Background="#101827" Padding="24"
           Visibility="Collapsed">
       <Grid.RowDefinitions>
@@ -665,6 +675,7 @@
                  Foreground="#FBBF24" TextWrapping="Wrap"/>
     </Grid>
 
+    <!-- Target practice === -->
     <Grid x:Name="LessonPanel" Background="Black" Visibility="Collapsed">
       <!-- One visible target at a time, positioned on the black canvas. -->
       <Canvas x:Name="TrainingCanvas" Background="Black" SizeChanged="OnCanvasSized"
@@ -712,6 +723,7 @@
     </Grid>
 
     <!-- The question or its answer occupies the top half of the screen. -->
+    <!-- True/false bonus round === -->
     <Grid x:Name="BonusPanel" Background="#101827" Visibility="Collapsed" Padding="24">
       <Grid.RowDefinitions>
         <RowDefinition Height="*"/>
@@ -909,6 +921,7 @@
     </Grid>
 
     <!-- Acknowledged with a normal mouse click; shown only when no tracker is found. -->
+    <!-- Temporary mouse fallback notice === -->
     <Grid x:Name="NoTrackerNoticePanel" Visibility="Collapsed" Canvas.ZIndex="110"
           Background="#E6091525" IsHitTestVisible="True">
       <Border Background="#182B43" BorderBrush="#76B9F3" BorderThickness="3"
