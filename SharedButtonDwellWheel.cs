@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: SharedButtonDwellWheel.cs
+// Purpose: Renders the shared circular dwell indicator; callers own timing and activation.
+// ============================================================================
+
 using System;
 using Windows.Foundation;
 using Windows.UI;
@@ -31,6 +37,7 @@ namespace EyeGazeApiViability
         private double previousProgress = -1;
         private Point previousCenter = new Point(double.NaN, double.NaN);
 
+        // Construct and attach a reusable, non-interactive wheel to the overlay canvas.
         public SharedButtonDwellWheel(Canvas overlay)
         {
             this.overlay = overlay ?? throw new ArgumentNullException(nameof(overlay));
@@ -155,12 +162,14 @@ namespace EyeGazeApiViability
             wheel.Visibility = Visibility.Visible;
         }
 
+        // Convert a clockwise angle from twelve o'clock to a point on the progress ring.
         private static Point PolarPoint(double center, double clockwiseRadians)
         {
             return new Point(center + Radius * Math.Sin(clockwiseRadians),
                              center - Radius * Math.Cos(clockwiseRadians));
         }
 
+        // Hide the indicator and invalidate cached progress and position.
         public void Hide()
         {
             wheel.Visibility = Visibility.Collapsed;
@@ -168,6 +177,7 @@ namespace EyeGazeApiViability
             previousCenter = new Point(double.NaN, double.NaN);
         }
 
+        // Clear the visual state for a fresh dwell attempt.
         public void Reset()
         {
             Hide();
