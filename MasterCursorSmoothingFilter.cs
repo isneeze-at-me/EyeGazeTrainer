@@ -17,6 +17,7 @@ namespace EyeGazeApiViability
     internal sealed class MasterCursorSmoothingFilter
     {
         public const int InitialSmoothingLevel = 75;
+        public const double TargetCursorJitterMillimeters = 0.5;
         public const double MaximumHalfLifeSeconds = 0.12;
         public const double IntentionalMoveSnapDistance = 160;
         public const double LostSampleResetSeconds = 0.5;
@@ -119,14 +120,14 @@ namespace EyeGazeApiViability
                 double.IsNaN(cursorMm) || double.IsInfinity(cursorMm)) return false;
             int old = smoothingLevel;
             // Use feedback rather than assuming a percent reduces jitter by
-            // that same percent. Increase quickly if over 1 mm; decrease
+            // that same percent. Increase quickly above the 0.5 mm goal; decrease
             // slowly only after several quiet windows to avoid oscillation.
-            if (cursorMm > 1.0 && nativeMm > 1.0)
+            if (cursorMm > TargetCursorJitterMillimeters && nativeMm > TargetCursorJitterMillimeters)
             {
                 quietWindows = 0;
-                smoothingLevel = Math.Min(99, smoothingLevel + (cursorMm > 2 ? 8 : 4));
+                smoothingLevel = Math.Min(99, smoothingLevel + (cursorMm > 2 * TargetCursorJitterMillimeters ? 8 : 4));
             }
-            else if (cursorMm < .65 && nativeMm < 1.0)
+            else if (cursorMm < .65 * TargetCursorJitterMillimeters && nativeMm < TargetCursorJitterMillimeters)
             {
                 if (++quietWindows >= 3)
                 {
