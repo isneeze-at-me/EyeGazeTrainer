@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: MainPage.xaml.cs
+// Purpose: Provides the gaze-free closing view and Windows-managed native shutdown path.
+// ============================================================================
+
 using System;
 using System.IO;
 using Windows.Storage;
@@ -16,12 +22,14 @@ namespace EyeGazeApiViability
         private bool nativeCloseExperiment;
         private DispatcherTimer exitTimer;
 
+        // Initialize the closing view and its lifecycle events.
         public MainPage()
         {
             InitializeComponent();
             Unloaded += OnUnloaded;
         }
 
+        // Interpret the requested closing route, release navigation history and schedule the appropriate exit.
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -62,6 +70,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Leave full-screen mode before requesting native view consolidation.
         private void LeaveFullScreenForExit()
         {
             try
@@ -88,6 +97,7 @@ namespace EyeGazeApiViability
             exitTimer.Start();
         }
 
+        // Attempt Windows-managed native closure and use explicit application exit only on the applicable fallback path.
         private async void OnExitTimer(object sender, object e)
         {
             exitTimer.Stop();
@@ -134,6 +144,7 @@ namespace EyeGazeApiViability
             Application.Current.Exit();
         }
 
+        // Stop the pending closing timer if the page is unloaded.
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             if (exitTimer != null)
@@ -144,6 +155,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Forward closing-page trace messages to the shared lifecycle log.
         private void LogLifecycle(string message)
         {
             App.TraceLifecycle("CLOSING | " + message);
