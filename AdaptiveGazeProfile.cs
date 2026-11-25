@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: AdaptiveGazeProfile.cs
+// Purpose: Maintains persistent training performance and derives cursor assistance from accumulated evidence.
+// ============================================================================
+
 using System;
 using Windows.Storage;
 
@@ -74,6 +80,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Restore compatible local settings, retaining existing learned performance where possible.
         public AdaptiveGazeProfile()
         {
             try
@@ -118,26 +125,31 @@ namespace EyeGazeApiViability
         // Level 1 deliberately has the smallest potential improvement,
         // strongest decline, and lowest attainable ceiling. Advanced
         // levels make it possible to earn the highest accuracy scores.
+        // Return the level-dependent weight for positive performance changes.
         private static double SuccessGain(int level)
         {
             return 0.07 + (ClampLevel(level) - 1) * 0.022;
         }
 
+        // Return the level-dependent weight for weak completed attempts.
         private static double WeakPerformanceLoss(int level)
         {
             return 0.22 - (ClampLevel(level) - 1) * 0.024;
         }
 
+        // Return the penalty fraction for an interrupted target hold.
         private static double MissLoss(int level)
         {
             return 0.14 - (ClampLevel(level) - 1) * 0.018;
         }
 
+        // Limit gains at introductory levels without lowering previously earned scores.
         private static double LevelCeiling(int level)
         {
             return 65 + (ClampLevel(level) - 1) * 7;
         }
 
+        // Restrict scoring calculations to the supported lesson range.
         private static int ClampLevel(int level)
         {
             return Math.Max(1, Math.Min(6, level));
@@ -193,6 +205,7 @@ namespace EyeGazeApiViability
             Persist();
         }
 
+        // Save aggregate scores and acquisition count without blocking gaze on storage failure.
         private void Persist()
         {
             try
@@ -212,11 +225,13 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Keep performance within the displayable zero-to-one-hundred range.
         private static double ClampScore(double value)
         {
             return Math.Max(0, Math.Min(100, value));
         }
 
+        // Reject non-finite and out-of-range persisted scores.
         private static bool Valid(double score)
         {
             return !double.IsNaN(score) && !double.IsInfinity(score) &&
