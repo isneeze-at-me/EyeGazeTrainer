@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: LevelZeroDiagnostics.cs
+// Purpose: Collects introduction-specific aggregate movement, stability and dwell measurements and stores session summaries.
+// ============================================================================
+
 using System;
 using System.Globalization;
 using System.IO;
@@ -28,6 +34,8 @@ namespace EyeGazeApiViability
         private int diagnosticInterruptedDwells;
         private bool diagnosticDwellActive;
 
+        // Session measurement ===
+        // Clear session-local measurement accumulators before a new introduction run.
         private void ResetLevelZeroDiagnostics()
         {
             diagnosticLastGaze = DateTimeOffset.MinValue;
@@ -43,6 +51,7 @@ namespace EyeGazeApiViability
 
         // Only count a tracking gap after tracking has first become available.
         // It may also be caused by Windows scheduling or tracker conditions.
+        // Collect valid raw gaze observations for introduction diagnostics.
         private void ObserveLevelZeroDiagnosticGaze(Point raw, DateTimeOffset now)
         {
             if (diagnosticLastGaze != DateTimeOffset.MinValue)
@@ -79,6 +88,7 @@ namespace EyeGazeApiViability
             if (diagnosticWindowSamples >= 10) FinishStabilityWindow();
         }
 
+        // Finalize the current stability measurement window.
         private void FinishStabilityWindow()
         {
             if (diagnosticWindowSamples >= 5)
@@ -92,6 +102,7 @@ namespace EyeGazeApiViability
             diagnosticLastStabilitySample = DateTimeOffset.MinValue;
         }
 
+        // Track gaze interaction with the introduction's Home control.
         private void ObserveLevelZeroDwellTarget(bool lookingAtHome)
         {
             if (currentScreen != AppScreen.LevelZero ||
@@ -105,12 +116,14 @@ namespace EyeGazeApiViability
             else if (lookingAtHome) diagnosticDwellActive = true;
         }
 
+        // Finalize the current diagnostic dwell attempt.
         private void FinishLevelZeroDiagnosticDwell()
         {
             diagnosticDwellActive = false;
             FinishStabilityWindow();
         }
 
+        // Format the current additional diagnostic measurements.
         private string[] LevelZeroExtraCurrentValues()
         {
             return new[]
@@ -149,6 +162,7 @@ namespace EyeGazeApiViability
             "Elapsed tutorial time including instruction, practice and pauses"
         };
 
+        // Read an individual persisted additional diagnostic value.
         private static string LevelZeroExtraValue(int index)
         {
             if (index < 0 || index >= LevelZeroExtraLabels.Length) return "NA";
@@ -161,6 +175,8 @@ namespace EyeGazeApiViability
             catch { return "NA"; }
         }
 
+        // Persistence and history ===
+        // Persist introduction measurement summaries.
         private void SaveLevelZeroExtraDiagnostics()
         {
             FinishLevelZeroDiagnosticDwell();
@@ -191,6 +207,7 @@ namespace EyeGazeApiViability
             catch { /* Storage failure never interrupts gaze-only navigation. */ }
         }
 
+        // Load saved introduction session-history entries.
         private static string[] LevelZeroHistoryLines()
         {
             try
@@ -204,6 +221,7 @@ namespace EyeGazeApiViability
             catch { return new string[0]; }
         }
 
+        // Return the requested recent introduction sessions.
         private static string[] LastLevelZeroSessions(int count)
         {
             string[] lines = LevelZeroHistoryLines();
@@ -214,6 +232,7 @@ namespace EyeGazeApiViability
 
     internal static class LevelZeroHistoryEnumerableExtensions
     {
+        // Provide a compatible tail-selection helper for the target framework.
         internal static System.Collections.Generic.IEnumerable<T> TakeLastCompat<T>(
             this System.Collections.Generic.IEnumerable<T> source, int count)
         {
