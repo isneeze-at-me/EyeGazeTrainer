@@ -22,6 +22,7 @@ namespace EyeGazeTrainer.OverlayCompanion
         private static string focusAck;
         private static IntPtr priorWindow;
         private static uint priorPid;
+        private static string priorWindowReason = "candidate not read";
         [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hwnd);
         [DllImport("user32.dll")] private static extern bool IsIconic(IntPtr hwnd);
         [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
@@ -56,7 +57,9 @@ namespace EyeGazeTrainer.OverlayCompanion
             try
             {
                 string path = Path.Combine(folder, "foreground-before-launch.txt");
-                if (!File.Exists(path) || (DateTime.UtcNow - File.GetLastWriteTimeUtc(path)).TotalSeconds > 15) return;
+                if (!File.Exists(path)) { priorWindowReason = "candidate file missing"; Log("Prior foreground unavailable: " + priorWindowReason); return; }
+                double age = (DateTime.UtcNow - File.GetLastWriteTimeUtc(path)).TotalSeconds;
+                if (age > 15 || age < 0) { priorWindowReason = "candidate timestamp outside freshness window; ageSeconds=" + age; Log("Prior foreground unavailable: " + priorWindowReason); return; }
                 var parts = File.ReadAllText(path).Trim().Split('|');
                 long handle; uint pid;
                 if (parts.Length == 2 && long.TryParse(parts[0], out handle) &&
@@ -64,10 +67,14 @@ namespace EyeGazeTrainer.OverlayCompanion
                 {
                     priorWindow = new IntPtr(handle);
                     priorPid = pid;
+                    priorWindowReason = "captured";
                     Log("Prior foreground captured by monitor; hwnd=" + handle + "; pid=" + pid);
                 }
+                else { priorWindowReason = "candidate malformed or no longer eligible"; Log("Prior foreground unavailable: " + priorWindowReason); }
+                // Consume this candidate so it cannot be reused by a later launch.
+                try { File.Delete(path); } catch (Exception ex) { Log("Candidate removal failed: " + ex.Message); }
             }
-            catch (Exception ex) { Log("Prior foreground unavailable: " + ex.Message); }
+            catch (Exception ex) { priorWindowReason = ex.Message; Log("Prior foreground unavailable: " + priorWindowReason); }
         }
 
         private static void CompleteForegroundHandoff()
@@ -89,7 +96,9 @@ namespace EyeGazeTrainer.OverlayCompanion
                     result = verified ? "VERIFIED" : "NOT_VERIFIED";
                     Log("Foreground restore; accepted=" + accepted + "; verified=" + verified);
                 }
-                else Log("Foreground restore skipped: no eligible prior window or trainer no longer foreground");
+                else if (priorWindow == IntPtr.Zero) Log("Foreground restore skipped: " + priorWindowReason);
+                else if (!EligiblePriorWindow(priorWindow, priorPid)) Log("Foreground restore skipped: captured window no longer eligible");
+                else Log("Foreground restore skipped: trainer no longer foreground; hwnd=" + current.ToInt64());
             }
             catch (Exception ex) { result = "FAILED"; Log("Foreground restore error: " + ex.Message); }
             try { File.WriteAllText(focusAck, result); } catch (Exception ex) { Log("Foreground ack error: " + ex.Message); }
