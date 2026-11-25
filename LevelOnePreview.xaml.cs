@@ -66,6 +66,9 @@ namespace EyeGazeApiViability
         private double? targetArrivalSeconds;
         private bool targetTrialInterrupted;
         private int targetMisses;
+        private DateTimeOffset rawHoldStarted;
+        private int rawHoldMisses;
+        private bool rawFirstHoldCompleted;
         private bool backOnRight;
         private readonly Random placementRandom = new Random();
         private readonly TrainingProgress trainingProgress = new TrainingProgress();
@@ -114,9 +117,9 @@ namespace EyeGazeApiViability
                 "Target acquisition time|Median time to first native gaze hit; excludes dwell",
                 "Target precision|Mean raw settled center-accuracy score",
                 "Target stability|Median raw settled RMS gaze spread (estimated mm)",
-                "First-attempt success|Selected on first qualifying hold; tracking gaps excluded",
-                "Directional control|Mean first-hold success across measured directions",
-                "Spatial reach|Unique full-screen map cells selected out of 35"
+                "First-attempt success|Native first hold completed before assisted selection; gaps excluded",
+                "Directional control|Mean native first-hold success across measured directions",
+                "Spatial reach|Unique cells reached by native gaze out of 35"
             },
             new[]
             {
@@ -2144,14 +2147,26 @@ namespace EyeGazeApiViability
                 if ((now - targetLastSampleAt).TotalMilliseconds > 300)
                 {
                     targetTrialInterrupted = true;
+                    rawHoldStarted = default(DateTimeOffset);
                     targetMeasurement.CancelHold();
                 }
                 targetLastSampleAt = now;
                 // Acquisition time is measured against the visible native
                 // target boundary, without smoothing or hitbox assistance.
                 bool rawInRing = AdaptiveHitTesting.ContainsCircle(rawPoint, center, TargetDiameter, 1.0);
-                if (rawInRing && !targetArrivalSeconds.HasValue)
-                    targetArrivalSeconds = Math.Max(0, (now - targetShownAt).TotalSeconds);
+                if (rawInRing)
+                {
+                    if (!targetArrivalSeconds.HasValue)
+                        targetArrivalSeconds = Math.Max(0, (now - targetShownAt).TotalSeconds);
+                    if (rawHoldStarted == default(DateTimeOffset)) rawHoldStarted = now;
+                    if (rawHoldMisses == 0 && (now - rawHoldStarted).TotalMilliseconds >= TrainingTargetMeasurement.TargetHoldMilliseconds)
+                        rawFirstHoldCompleted = true;
+                }
+                else if (rawHoldStarted != default(DateTimeOffset))
+                {
+                    if ((now - rawHoldStarted).TotalMilliseconds >= 150) rawHoldMisses++;
+                    rawHoldStarted = default(DateTimeOffset);
+                }
             }
             if (!inRing)
             {
@@ -2177,8 +2192,8 @@ namespace EyeGazeApiViability
                         ? (double?)displayScale.ToMillimeters(result.JitterViewUnits.Value) : null;
                     levelOneDiagnostics.RecordTarget(targetCell, targetDirection,
                         targetTrialInterrupted ? null : targetArrivalSeconds,
-                        !targetTrialInterrupted && targetArrivalSeconds.HasValue,
-                        targetMisses == 0, result, jitterMm);
+                        !targetTrialInterrupted,
+                        rawFirstHoldCompleted, result, jitterMm);
                 }
                 gazeProfile.RecordTargetPerformance(result, 1);
                 dwellRecommendation.RecordCompletedHold();
@@ -2670,6 +2685,9 @@ namespace EyeGazeApiViability
             targetArrivalSeconds = null;
             targetTrialInterrupted = false;
             targetMisses = 0;
+            rawHoldStarted = default(DateTimeOffset);
+            rawHoldMisses = 0;
+            rawFirstHoldCompleted = false;
             targetMeasurement.BeginTarget(targetShownAt);
             RepositionTarget();
         }
