@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: AdaptiveHitTesting.cs
+// Purpose: Tests gaze against scaled circular and rectangular interaction regions without resizing visible controls.
+// ============================================================================
+
 using System;
 using Windows.Foundation;
 
@@ -10,6 +16,7 @@ namespace EyeGazeApiViability
     /// </summary>
     internal static class AdaptiveHitTesting
     {
+        // Compare squared gaze distance with the effective circular hit radius.
         public static bool ContainsCircle(Point gaze, Point center,
                                           double visibleDiameter,
                                           double hitBoxScale)
@@ -23,6 +30,7 @@ namespace EyeGazeApiViability
             return dx * dx + dy * dy <= radius * radius;
         }
 
+        // Test gaze against the rectangle expanded or contracted about its center.
         public static bool ContainsRectangle(Point gaze, Rect visibleBounds,
                                              double hitBoxScale)
         {
@@ -39,6 +47,7 @@ namespace EyeGazeApiViability
                    gaze.Y >= y && gaze.Y <= y + h;
         }
 
+        // Reject invalid dimensions and assistance scale factors.
         private static bool IsFinitePositive(double number)
         {
             return number > 0 && !double.IsNaN(number) &&
