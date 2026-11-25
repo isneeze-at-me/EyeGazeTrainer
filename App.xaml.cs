@@ -16,20 +16,38 @@ namespace EyeGazeApiViability
         private bool overlayHelperLaunchAccepted;
         private bool overlayHelperLaunchFinished;
         private const string OverlaySessionFile = "overlay-session.txt";
-        private static readonly string ShutdownSessionId = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 8);
+        private static string ShutdownSessionId = NewSessionId();
+
+        private static string NewSessionId()
+        {
+            return DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 8);
+        }
 
         public App()
         {
             InitializeComponent();
-            TraceLifecycle("App constructor; build=2026-11-24-native-close-v1");
+            TraceLifecycle("App constructor; build=2026-11-24-native-close-v2");
             Suspending += (s, e) => TraceLifecycle("Application.Suspending");
             Resuming += (s, e) => TraceLifecycle("Application.Resuming");
         }
 
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
-            TraceLifecycle("OnLaunched START, previousState=" + e.PreviousExecutionState);
             var frame = Window.Current.Content as Frame;
+            // Windows may retain the closed application in a suspended state.
+            // A new explicit launch must not reopen the gaze-free closing page
+            // or reuse the previous companion's restoration channel.
+            if (frame != null && frame.Content is MainPage)
+            {
+                ShutdownSessionId = NewSessionId();
+                overlayHelperLaunchAttempted = false;
+                overlayHelperLaunchAccepted = false;
+                overlayHelperLaunchFinished = false;
+                frame = new Frame();
+                Window.Current.Content = frame;
+                TraceLifecycle("Fresh session after previous native close");
+            }
+            TraceLifecycle("OnLaunched START, previousState=" + e.PreviousExecutionState);
             if (frame == null)
             {
                 frame = new Frame();
