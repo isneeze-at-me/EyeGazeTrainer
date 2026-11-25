@@ -735,18 +735,22 @@
 
     <!-- The question or its answer occupies the top half of the screen. -->
     <!-- True/false bonus round === -->
-    <Grid x:Name="BonusPanel" Background="#101827" Visibility="Collapsed" Padding="24">
+    <Grid x:Name="BonusPanel" Background="Black" Visibility="Collapsed" Padding="24">
       <Grid.RowDefinitions>
         <RowDefinition Height="*"/>
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
       <Grid Grid.Row="0" Padding="14" Margin="0,76,0,0" VerticalAlignment="Stretch">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Stretch" Spacing="18">
-          <TextBlock x:Name="BonusProgressText" Foreground="#69E6FF" FontSize="23"
-                     FontWeight="SemiBold" TextAlignment="Center"/>
-          <TextBlock x:Name="BonusFactText" Foreground="White" FontSize="40"
-                     FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
-        </StackPanel>
+        <Viewbox Stretch="Uniform" StretchDirection="DownOnly">
+          <StackPanel Width="1050" Spacing="22">
+            <TextBlock x:Name="BonusProgressText" Foreground="#FFD84D"
+                       FontFamily="Comic Sans MS" FontSize="48" FontWeight="Bold"
+                       TextAlignment="Center" TextWrapping="Wrap"/>
+            <TextBlock x:Name="BonusFactText" Foreground="#69E6FF"
+                       FontFamily="Comic Sans MS" FontSize="42" FontWeight="Bold"
+                       TextAlignment="Center" TextWrapping="Wrap"/>
+          </StackPanel>
+        </Viewbox>
       </Grid>
       <Grid x:Name="BonusChoicesPanel" Grid.Row="1" ColumnSpacing="22"
             Margin="10,8,10,12">
@@ -771,7 +775,7 @@
                        FontFamily="Comic Sans MS" FontSize="54" FontWeight="Bold"
                        TextWrapping="Wrap" TextAlignment="Center"/>
             <TextBlock x:Name="BonusFinalEncouragementText" Foreground="#69E6FF"
-                       FontFamily="Comic Sans MS" FontSize="38" FontWeight="Bold"
+                       FontFamily="Comic Sans MS" FontSize="42" FontWeight="Bold"
                        TextWrapping="Wrap" TextAlignment="Center"/>
           </StackPanel>
         </Viewbox>
