@@ -165,6 +165,7 @@ namespace EyeGazeApiViability
         private readonly TrainingTargetMeasurement targetMeasurement = new TrainingTargetMeasurement();
         private bool completed;
         private bool exitRequested;
+        private DispatcherTimer isolationTimer;
         private bool autoStartAttempted;
         private volatile bool trackerSeenDuringEnumeration;
         private bool trackerEnumerationFinished;
@@ -262,6 +263,14 @@ namespace EyeGazeApiViability
             // Preserve the pre-splash initialization sequence: connect the
             // gaze watcher as soon as the page is loaded. The branding
             // overlay stays visible for its full three seconds independently.
+            var mode = (Application.Current as App)?.IsolationMode;
+            if ((mode == "B" || mode == "C") && isolationTimer == null && !autoStartAttempted)
+            {
+                isolationTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+                isolationTimer.Tick += OnIsolationElapsed;
+                isolationTimer.Start();
+                Trace("ISOLATION " + mode + ": automatic exit scheduled");
+            }
             if (!autoStartAttempted)
             {
                 autoStartAttempted = true;
@@ -396,7 +405,9 @@ namespace EyeGazeApiViability
             HideWindowsPointerCursor();
             (Application.Current as App)?.TryStartOverlayCompanion();
             // Keep the existing single-owner gaze startup and tutorial route.
-            if (ShouldStartLevelZero())
+            if ((Application.Current as App)?.IsolationMode != null)
+                ShowScreen(AppScreen.Menu);
+            else if (ShouldStartLevelZero())
                 StartLevelZero();
             else
                 ShowScreen(AppScreen.Menu);
@@ -2161,10 +2172,26 @@ namespace EyeGazeApiViability
             return Math.Max(min, Math.Min(max, value));
         }
 
+        private void StopIsolationTimer()
+        {
+            if (isolationTimer == null) return;
+            isolationTimer.Stop();
+            isolationTimer.Tick -= OnIsolationElapsed;
+            isolationTimer = null;
+        }
+
+        private void OnIsolationElapsed(object sender, object e)
+        {
+            StopIsolationTimer();
+            Trace("ISOLATION automatic exit; live=" + live + "; mouse=" + mouseOnlyFallback);
+            OnExitRequested(null, null);
+        }
+
         private void OnExitRequested(object sender, RoutedEventArgs e)
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            StopIsolationTimer();
             Trace("EXIT SELECTED; live=" + live + "; mouse=" + mouseOnlyFallback + "; subscribed=" + gazeSubscribed + "; watcherStarted=" + watcherStarted);
             Trace("BEGIN stop startup timer");
             StopStartupDiscoveryTimer();
@@ -2359,6 +2386,7 @@ namespace EyeGazeApiViability
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            StopIsolationTimer();
             Trace("BEGIN OnNavigatedFrom");
             // Navigation follows staged gaze release; make the Windows arrow
             // available again on the gaze-free closing page and desktop.
