@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: LevelOnePreview.xaml.cs
+// Purpose: Coordinates training screens, direct gaze input, adaptive assistance, diagnostics, and native shutdown.
+// ============================================================================
+
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -203,6 +209,7 @@ namespace EyeGazeApiViability
         private const double NavigationRearmDistance = 65.0;
         private static readonly TimeSpan ControlDwell = TimeSpan.FromMilliseconds(1500);
 
+        // Initialize persistent training models, visual controls and lifecycle callbacks.
         public LevelOnePreview()
         {
             InitializeComponent();
@@ -260,6 +267,8 @@ namespace EyeGazeApiViability
             Loaded += OnPageLoaded;
         }
 
+        // Startup and input acquisition ===
+        // Select normal watcher-free startup or the explicitly requested isolation mode.
         private void OnPageLoaded(object sender, RoutedEventArgs e)
         {
             // Normal startup uses direct gaze events, never a device watcher.
@@ -307,6 +316,7 @@ namespace EyeGazeApiViability
         // Reapply the page-specific pointer policy whenever the UWP window
         // becomes active. A mouse click can activate the app for the first
         // time; that should not be required to establish its cursor state.
+        // Reapply the trainer-local pointer policy when the window regains activation.
         private void OnTrainerWindowActivated(object sender,
             WindowActivatedEventArgs args)
         {
@@ -327,6 +337,8 @@ namespace EyeGazeApiViability
         // Hide only the Windows arrow within this UWP window. The trainer
         // continues drawing its own eye-gaze cursor; the tracker, TD Control
         // companion, and pointer input event handling are unchanged.
+        // Local cursor policy ===
+        // Hide only this view's Windows arrow while retaining the original cursor for restoration.
         private void HideWindowsPointerCursor()
         {
             try
@@ -351,6 +363,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Restore the previous view cursor without modifying TD Control or system-wide settings.
         private void RestoreWindowsPointerCursor()
         {
             if (!pointerCursorHidden) return;
@@ -367,6 +380,8 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Startup routing and fallback ===
+        // Finish the splash interval and route startup when gaze evidence is available.
         private void OnStartupSplashElapsed(object sender, object e)
         {
             if (startupSplashTimer != null)
@@ -391,6 +406,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Stop waiting for startup evidence and select the appropriate input mode.
         private void OnStartupDiscoveryTimeout(object sender, object e)
         {
             StopStartupDiscoveryTimer();
@@ -402,6 +418,7 @@ namespace EyeGazeApiViability
             CompleteStartupAfterTrackerScan();
         }
 
+        // Detach the startup timeout handler and release its timer.
         private void StopStartupDiscoveryTimer()
         {
             if (startupDiscoveryTimer == null) return;
@@ -410,6 +427,7 @@ namespace EyeGazeApiViability
             startupDiscoveryTimer = null;
         }
 
+        // Route once after the splash and readiness checks; normal readiness comes from valid gaze samples, not a watcher.
         private void CompleteStartupAfterTrackerScan()
         {
             if (!startupSplashCompleted || startupRouted ||
@@ -443,6 +461,8 @@ namespace EyeGazeApiViability
                 ShowScreen(AppScreen.Menu);
         }
 
+        // Watcher-free normal gaze input ===
+        // Acquire the view's gaze source directly and subscribe once; never create a device watcher during ordinary use.
         private void TryStartDirectGaze()
         {
             if (exitRequested || stopping || mouseOnlyFallback || gazeSubscribed ||
@@ -461,6 +481,8 @@ namespace EyeGazeApiViability
             catch (Exception ex) { Trace("DIRECT GAZE: setup failed: " + ex); }
         }
 
+        // Diagnostic-only gaze isolation ===
+        // Exercise direct source acquisition with optional event delivery but no training actions or companion.
         private void StartDirectGazeIsolation(string mode)
         {
             // No watcher, no tracker enumeration, no cursor or overlay modifications.
@@ -489,6 +511,8 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Legacy watcher isolation path ===
+        // Route normal requests to direct acquisition; create the legacy watcher only for explicit isolation modes.
         private void OnEnableLive(object sender, RoutedEventArgs e)
         {
             var mode = (Application.Current as App)?.IsolationMode;
@@ -534,6 +558,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Finish legacy diagnostic discovery on the UI dispatcher.
         private void OnTrackerEnumerationCompleted(GazeDeviceWatcherPreview sender,
                                                     object args)
         {
@@ -545,6 +570,8 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Mouse fallback ===
+        // Release gaze resources where possible, preserve mouse access and display the temporary notice.
         private void EnterMouseOnlyFallback()
         {
             if (mouseOnlyFallback || exitRequested || stopping) return;
@@ -600,22 +627,26 @@ namespace EyeGazeApiViability
             noTrackerNoticeTimer.Start();
         }
 
+        // Dismiss the fallback notice automatically.
         private void OnNoTrackerNoticeTimeout(object sender, object e)
         {
             DismissNoTrackerNotice();
         }
 
+        // Allow the fallback notice to be dismissed by its button.
         private void OnDismissNoTrackerNotice(object sender, RoutedEventArgs e)
         {
             DismissNoTrackerNotice();
         }
 
+        // Hide the notice and cancel its pending timeout.
         private void DismissNoTrackerNotice()
         {
             StopNoTrackerNoticeTimer();
             NoTrackerNoticePanel.Visibility = Visibility.Collapsed;
         }
 
+        // Detach and release the fallback notice timer.
         private void StopNoTrackerNoticeTimer()
         {
             if (noTrackerNoticeTimer == null) return;
@@ -624,6 +655,8 @@ namespace EyeGazeApiViability
             noTrackerNoticeTimer = null;
         }
 
+        // Legacy watcher callbacks — diagnostic modes only ===
+        // Handle legacy isolation device discovery on the UI dispatcher.
         private void OnDeviceAdded(GazeDeviceWatcherPreview sender,
                                    GazeDeviceWatcherAddedPreviewEventArgs args)
         {
@@ -637,6 +670,7 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Handle readiness changes for the legacy watcher tests.
         private void OnDeviceUpdated(GazeDeviceWatcherPreview sender,
                                      GazeDeviceWatcherUpdatedPreviewEventArgs args)
         {
@@ -650,6 +684,7 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Release a stale legacy gaze subscription unless recent valid data indicates it is still working.
         private void OnDeviceRemoved(GazeDeviceWatcherPreview sender,
                                      GazeDeviceWatcherRemovedPreviewEventArgs args)
         {
@@ -691,6 +726,7 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Acquire or subscribe to the source for eligible legacy diagnostic modes only.
         private void UseReadyDevice(GazeDevicePreview device)
         {
             if (!live || stopping || exitRequested || mouseOnlyFallback ||
@@ -740,6 +776,8 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Gaze sample processing ===
+        // Validate raw gaze data, confirm startup readiness, update visual smoothing and drive screen-specific interaction.
         private void OnGazeMoved(GazeInputSourcePreview sender, GazeMovedPreviewEventArgs e)
         {
             if (!live || stopping || exitRequested || mouseOnlyFallback) return;
@@ -834,6 +872,8 @@ namespace EyeGazeApiViability
 
         // All controls use the shared stabilized stream and adaptive hitboxes.
         // Exit additionally accepts a raw-gaze hit to preserve accessibility.
+        // Shared dwell and navigation ===
+        // Resolve an eligible button, maintain uninterrupted dwell and require deliberate rearming after navigation.
         private void ProcessGazeControl(Point stabilizedPoint, Point rawPoint)
         {
             if (!live || stopping || exitRequested) return;
@@ -956,6 +996,7 @@ namespace EyeGazeApiViability
         // Central registration point for every gaze button on this page.
         // Future buttons are added to this collection, not given bespoke
         // filters, geometry, or dwell timers.
+        // Return the controls eligible for gaze selection on the current screen.
         private Button[] GetGazeButtons()
         {
             // Reuse registered arrays; no allocations on gaze-move events.
@@ -979,12 +1020,14 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Invalidate cached interaction bounds when layout geometry changes.
         private void OnGazeLayoutSizeChanged(object sender, SizeChangedEventArgs e)
         {
             gazeButtonBounds.Clear();
             lastDrawnGazeCursor = new Point(double.NaN, double.NaN);
         }
 
+        // Find the eligible control using the shared adaptive hit testing policy.
         private Button FindGazeButton(Point stabilizedPoint, Point rawPoint)
         {
             foreach (Button button in GetGazeButtons())
@@ -1002,6 +1045,7 @@ namespace EyeGazeApiViability
             return null;
         }
 
+        // Test the gaze coordinate against a button's current interaction geometry.
         private bool InsideButton(Button button, Point gaze)
         {
             if (button == null || !button.IsEnabled ||
@@ -1025,6 +1069,7 @@ namespace EyeGazeApiViability
                 gaze, bounds, gazeProfile.HitBoxScale);
         }
 
+        // Switch the visible training screen and reset navigation and dwell state.
         private void ShowScreen(AppScreen screen)
         {
             gazeButtonBounds.Clear();
@@ -1087,6 +1132,8 @@ namespace EyeGazeApiViability
 
         // Count only active gaze-guided practice, excluding menu time,
         // unavailable gaze tracking, long suspension gaps, and shutdown.
+        // Practice time and tracking recovery ===
+        // Check gaze readiness and gaps, reset interrupted holds, and accumulate eligible practice time.
         private void OnPracticeTimerTick(object sender, object e)
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -1120,6 +1167,7 @@ namespace EyeGazeApiViability
             trainingReport.AddPracticeSeconds(elapsed);
         }
 
+        // Display a directional performance trend with the corresponding visual treatment.
         private static void SetTrend(TextBlock label, int trend)
         {
             // Up means improved; for jitter an improvement is a reduction.
@@ -1130,18 +1178,22 @@ namespace EyeGazeApiViability
 
         // Arrows indicate actual filter percentage rising or falling.
         // A decrease in filtering is not by itself proof of better precision.
+        // Display the direction of assistance changes separately from performance scores.
         private static void SetSmoothingTrend(TextBlock label, int direction)
         {
             label.Text = direction > 0 ? "▲" : direction < 0 ? "▼" : "—";
             label.Foreground = WhiteTextBrush;
         }
 
+        // Apply the learned smoothing percentage and record it in the report.
         private void ApplyAdaptiveSmoothingAndRecord()
         {
             cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
             trainingReport.RecordSmoothing(cursorFilter.SmoothingLevel);
         }
 
+        // Diagnostics reporting ===
+        // Update the diagnostics overview from persisted training aggregates.
         private void RefreshTrainingReport()
         {
             int finished = 0;
@@ -1184,6 +1236,7 @@ namespace EyeGazeApiViability
         private static readonly SolidColorBrush WhiteTextBrush =
             new SolidColorBrush(Colors.White);
 
+        // Create the reusable regional accuracy and jitter cell controls.
         private void BuildDiagnosticGrids()
         {
             CreateDiagnosticGrid(AccuracyHeatmapGrid, accuracyCells, accuracyCellBorders);
@@ -1191,6 +1244,7 @@ namespace EyeGazeApiViability
             RefreshDiagnosticGrids();
         }
 
+        // Populate the supplied diagnostic grid and retain references to its labels and borders.
         private static void CreateDiagnosticGrid(Grid container, TextBlock[,] labels,
                                                  Border[,] backgrounds)
         {
@@ -1232,6 +1286,7 @@ namespace EyeGazeApiViability
                 }
         }
 
+        // Refresh regional cell values and visual treatment without rebuilding the grids.
         private void RefreshDiagnosticGrids()
         {
             for (int row = 0; row < SpatialAccuracyMap.Rows; row++)
@@ -1255,6 +1310,7 @@ namespace EyeGazeApiViability
 
         // Store only the physical RMS dispersion of a completed settled hold.
         // Conversion uses the existing DPI/reference-bar screen size setting.
+        // Convert measured spread to millimeters and record the corresponding regional measurement.
         private void RecordMeasuredJitter(Point screenCenter, TargetPerformance result)
         {
             if (!live || result == null || !result.JitterViewUnits.HasValue ||
@@ -1265,6 +1321,8 @@ namespace EyeGazeApiViability
             trainingReport.RecordJitter(jitterMillimeters);
         }
 
+        // Navigation and lesson controls ===
+        // Navigate to the lesson selection screen.
         private void OnOpenLevels(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested) return;
@@ -1273,12 +1331,15 @@ namespace EyeGazeApiViability
             ShowScreen(AppScreen.Levels);
         }
 
+        // Handle the TD Control trainer menu action.
         private void OnTdControlTrainer(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Menu) return;
             HomeNoticeText.Text = "TD Control Trainer is coming soon.";
         }
 
+        // Skills diagnostics ===
+        // Initialize the skills diagnostics display, retaining unavailable measurements as NA.
         private void BuildSkillsGrid()
         {
             for (int i = 0; i < 3; i++)
@@ -1353,6 +1414,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Select the requested skills diagnostic category.
         private void OnSkillsCategoryClicked(object sender, RoutedEventArgs e)
         {
             if (currentScreen != AppScreen.Diagnostics ||
@@ -1361,6 +1423,7 @@ namespace EyeGazeApiViability
             SelectSkillsCategory(Array.IndexOf(skillCategoryButtons, sender as Button));
         }
 
+        // Populate the six metric slots for the selected category.
         private void SelectSkillsCategory(int category)
         {
             if (category < 0 || category >= SkillMetrics.Length) return;
@@ -1380,6 +1443,7 @@ namespace EyeGazeApiViability
                     i == category ? "PrimaryGazeButton" : "SecondaryGazeButton"];
         }
 
+        // Route a diagnostics tab selection.
         private void OnDiagnosticsTabClicked(object sender, RoutedEventArgs e)
         {
             if (currentScreen != AppScreen.Diagnostics || stopping || exitRequested)
@@ -1387,6 +1451,7 @@ namespace EyeGazeApiViability
             SelectDiagnosticsTab(sender as Button);
         }
 
+        // Update the active diagnostic section and its selection state.
         private void SelectDiagnosticsTab(Button selected)
         {
             gazeButtonBounds.Clear();
@@ -1429,6 +1494,7 @@ namespace EyeGazeApiViability
                     ? "PrimaryGazeButton" : "SecondaryGazeButton"];
         }
 
+        // Display the saved introduction session summaries.
         private void RefreshLevelZeroSessionHistory()
         {
             // Read the bounded session file once per refresh rather than
@@ -1447,6 +1513,7 @@ namespace EyeGazeApiViability
                 recent[0] + "\n" + recent[1];
         }
 
+        // Display the export filename and schedule automatic dismissal.
         private void ShowTherapistExportConfirmation(string fileName)
         {
             HideTherapistExportConfirmation();
@@ -1460,11 +1527,13 @@ namespace EyeGazeApiViability
             therapistExportConfirmationTimer.Start();
         }
 
+        // Dismiss the temporary export confirmation after its interval.
         private void OnTherapistExportConfirmationTick(object sender, object e)
         {
             HideTherapistExportConfirmation();
         }
 
+        // Hide the confirmation and release its timer.
         private void HideTherapistExportConfirmation()
         {
             if (therapistExportConfirmationTimer != null)
@@ -1478,6 +1547,8 @@ namespace EyeGazeApiViability
 
         // Uses the existing gaze-button dwell and saves with no modal picker.
         // Export is strictly opt-in and does not send data anywhere.
+        // Report export ===
+        // Build and save the text report using the current diagnostic aggregates.
         private async void OnExportTherapistReport(object sender, RoutedEventArgs e)
         {
             if (therapistExportInProgress || stopping || exitRequested ||
@@ -1534,6 +1605,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Open diagnostics and refresh the displayed measurements.
         private void OnOpenDiagnostics(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Menu) return;
@@ -1541,6 +1613,7 @@ namespace EyeGazeApiViability
             ShowScreen(AppScreen.Diagnostics);
         }
 
+        // Return to the main menu.
         private void OnBackToMenu(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested) return;
@@ -1548,6 +1621,7 @@ namespace EyeGazeApiViability
             ShowScreen(AppScreen.Menu);
         }
 
+        // Return to the lesson selection screen.
         private void OnBackToLevels(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested) return;
@@ -1559,6 +1633,8 @@ namespace EyeGazeApiViability
             ShowScreen(AppScreen.Levels);
         }
 
+        // Target lesson startup ===
+        // Prepare the target lesson and start its introduction.
         private void OnLevelOne(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Levels) return;
@@ -1570,6 +1646,7 @@ namespace EyeGazeApiViability
             BeginLessonIntro();
         }
 
+        // Present lesson instructions before interactive target practice.
         private void BeginLessonIntro()
         {
             LessonIntroOverlay.Visibility = Visibility.Visible;
@@ -1590,6 +1667,7 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Present bonus-round instructions before the first question.
         private void BeginTriviaIntro()
         {
             bonusIntroActive = true;
@@ -1607,6 +1685,7 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Handle a lesson placeholder without pretending the lesson is implemented.
         private void OnPlaceholderLevel(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Levels) return;
@@ -1615,6 +1694,7 @@ namespace EyeGazeApiViability
                 " is coming soon.";
         }
 
+        // Refresh completion indicators from saved training progress.
         private void UpdateLevelBadges()
         {
             // Level 0 uses its own persisted completion flag because the
@@ -1629,12 +1709,15 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Respond to training canvas layout changes.
         private void OnCanvasSized(object sender, SizeChangedEventArgs e)
         {
             ApplyDisplaySizes();
             RepositionTarget();
         }
 
+        // Physical display scaling ===
+        // Refresh physical-size conversion after display DPI changes.
         private async void OnDisplayDpiChanged(DisplayInformation sender, object args)
         {
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
@@ -1647,6 +1730,7 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Apply the current physical-reference conversion to training visuals.
         private void ApplyDisplaySizes()
         {
             gazeButtonBounds.Clear();
@@ -1672,12 +1756,14 @@ namespace EyeGazeApiViability
             DiagnosticsMenuButton.MinHeight = Math.Max(76, buttonHeight);
         }
 
+        // Initialize the editable display-reference width.
         private void ResetReferencePreview()
         {
             pendingReferenceWidth = displayScale.ReferenceBarViewWidth;
             UpdateReferencePreview();
         }
 
+        // Refresh the displayed calibration reference and its unit conversions.
         private void UpdateReferencePreview()
         {
             double available = RootLayout.ActualWidth - 48;
@@ -1694,6 +1780,7 @@ namespace EyeGazeApiViability
                 DisplayScaleManager.GetViewUnitsPerMillimeter(pendingReferenceWidth) * rawPixelsPerView);
         }
 
+        // Open the display-reference settings panel.
         private void OnDisplaySettingsRequested(object sender, RoutedEventArgs e)
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Menu) return;
@@ -1701,6 +1788,7 @@ namespace EyeGazeApiViability
             ResetReferencePreview();
         }
 
+        // Decrease the editable reference width.
         private void OnReferenceShorter(object sender, RoutedEventArgs e)
         {
             if (!displaySettingsVisible) return;
@@ -1708,6 +1796,7 @@ namespace EyeGazeApiViability
             UpdateReferencePreview();
         }
 
+        // Increase the editable reference width.
         private void OnReferenceLonger(object sender, RoutedEventArgs e)
         {
             if (!displaySettingsVisible) return;
@@ -1715,6 +1804,7 @@ namespace EyeGazeApiViability
             UpdateReferencePreview();
         }
 
+        // Persist the reference and apply the updated display sizes.
         private void OnSaveDisplay(object sender, RoutedEventArgs e)
         {
             if (!displaySettingsVisible) return;
@@ -1733,16 +1823,20 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Discard the unsaved reference adjustment.
         private void OnCancelDisplay(object sender, RoutedEventArgs e)
         {
             if (displaySettingsVisible) CloseDisplaySettings();
         }
 
+        // Return from the display settings panel.
         private void CloseDisplaySettings()
         {
             ShowScreen(AppScreen.Menu);
         }
 
+        // Mouse and cursor presentation ===
+        // Handle the mouse-driven training interaction where allowed.
         private void OnTrainingCanvasPointerPressed(object sender, PointerRoutedEventArgs e)
         {
             if (!mouseOnlyFallback || stopping || lessonIntroActive ||
@@ -1753,6 +1847,7 @@ namespace EyeGazeApiViability
             e.Handled = true;
         }
 
+        // Handle mouse movement without treating it as measured raw gaze.
         private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
         {
             // Mouse preview remains available only when hardware is not engaged.
@@ -1770,6 +1865,7 @@ namespace EyeGazeApiViability
 
         // This overlay belongs to the page, not the training canvas. It cannot
         // intercept Exit Button clicks and is independent of TD Control's trace.
+        // Update the rendered training cursor from a view-relative coordinate.
         private void UpdateCursor(Point viewPoint)
         {
             if (CursorOverlay.ActualWidth <= DotDiameter ||
@@ -1906,6 +2002,8 @@ namespace EyeGazeApiViability
 
         // Celebrate on the lesson's existing black background, then enter the
         // dedicated bonus screen without any gaze activation or menu selection.
+        // Bonus round and trivia ===
+        // Present the transition from completed targets to the trivia round.
         private void BeginBonusTransition()
         {
             CancelBonusTransition();
@@ -1923,6 +2021,7 @@ namespace EyeGazeApiViability
             bonusTransitionTimer.Start();
         }
 
+        // Advance after the transition timer expires.
         private void OnBonusTransitionTick(object sender, object e)
         {
             CancelBonusTransition();
@@ -1932,6 +2031,7 @@ namespace EyeGazeApiViability
             BeginTriviaIntro();
         }
 
+        // Stop and release the pending bonus transition.
         private void CancelBonusTransition()
         {
             if (bonusTransitionTimer != null)
@@ -1945,12 +2045,14 @@ namespace EyeGazeApiViability
                 ? Visibility.Collapsed : Visibility.Visible;
         }
 
+        // Identify whether a control represents a trivia answer.
         private bool IsBonusAnswer(Button button)
         {
             return currentScreen == AppScreen.Bonus && triviaAwaitingAnswer &&
                    (button == BonusTrueButton || button == BonusFalseButton);
         }
 
+        // Load the trivia bank and initialize the current round.
         private async Task StartBonusRoundAsync()
         {
             if (triviaLoading) return;
@@ -1985,6 +2087,7 @@ namespace EyeGazeApiViability
             finally { triviaLoading = false; }
         }
 
+        // Deal the next question and reset its interaction state.
         private void NextBonusQuestion()
         {
             if (currentScreen != AppScreen.Bonus || stopping || exitRequested) return;
@@ -2020,16 +2123,19 @@ namespace EyeGazeApiViability
             lastActivatedGazePosition = mostRecentRawGazePosition;
         }
 
+        // Submit the True button selection.
         private void OnBonusTrue(object sender, RoutedEventArgs e)
         {
             SubmitBonusAnswer(true, false);
         }
 
+        // Submit the False button selection.
         private void OnBonusFalse(object sender, RoutedEventArgs e)
         {
             SubmitBonusAnswer(false, false);
         }
 
+        // Record the selected answer and schedule feedback; knowledge correctness is separate from gaze performance.
         private void SubmitBonusAnswer(bool selectedTrue, bool gazeActivated)
         {
             if (currentScreen != AppScreen.Bonus || !triviaAwaitingAnswer ||
@@ -2082,6 +2188,7 @@ namespace EyeGazeApiViability
             StartBonusTimer(TimeSpan.FromSeconds(5), NextBonusQuestion);
         }
 
+        // Present the completed round result and arrange the return to lesson selection.
         private void FinishBonusRound()
         {
             if (currentScreen != AppScreen.Bonus || triviaFinishing) return;
@@ -2102,6 +2209,7 @@ namespace EyeGazeApiViability
             });
         }
 
+        // Schedule a bonus-round action using the supplied delay.
         private void StartBonusTimer(TimeSpan delay, Action callback)
         {
             CancelBonusQuestionTimer();
@@ -2135,6 +2243,7 @@ namespace EyeGazeApiViability
             bonusQuestionTimer.Start();
         }
 
+        // Cancel the pending question or feedback timer.
         private void CancelBonusQuestionTimer()
         {
             if (bonusQuestionTimer != null)
@@ -2152,6 +2261,8 @@ namespace EyeGazeApiViability
         // clears the attempt so the same miss cannot be counted twice.
         // Hardware disconnects and intentional lesson navigation use the
         // regular CancelHold() path, which never adds a penalty.
+        // Target practice and scoring ===
+        // Record an eligible interrupted deliberate hold without repeated penalties.
         private void RecordInterruptedTargetDwell(DateTimeOffset now)
         {
             if (!live || completed || currentScreen != AppScreen.Lesson ||
@@ -2178,6 +2289,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Reset target practice state for a new run.
         private void ResetLesson()
         {
             CancelBonusTransition();
@@ -2200,6 +2312,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Refresh the displayed training performance values.
         private void UpdateAccuracyDisplay()
         {
             // Only the persisted composite score is shown to the learner.
@@ -2212,6 +2325,7 @@ namespace EyeGazeApiViability
         // Keep the whole 55 mm target and radial wheel well inside the
         // screen edges. Scale the extra inset with screen size, allowing
         // smaller tablet screens without forcing an impossible layout.
+        // Calculate the margin that keeps target centers within usable practice bounds.
         private double TargetCenterMargin()
         {
             double smaller = Math.Min(TrainingCanvas.ActualWidth,
@@ -2221,6 +2335,7 @@ namespace EyeGazeApiViability
                 TargetDiameter * 0.5 + clearSpace);
         }
 
+        // Return the current target's center in training coordinates.
         private Point TargetCenter()
         {
             double margin = TargetCenterMargin();
@@ -2229,6 +2344,7 @@ namespace EyeGazeApiViability
                 margin + Math.Max(0, TrainingCanvas.ActualHeight - margin * 2) * targetPosition.Y);
         }
 
+        // Choose the next target position within the supported practice area.
         private void PickRandomTarget()
         {
             if (TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
@@ -2274,6 +2390,7 @@ namespace EyeGazeApiViability
             RepositionTarget();
         }
 
+        // Apply the current target position to its visual controls.
         private void RepositionTarget()
         {
             if (currentScreen != AppScreen.Lesson || targetIndex < 0 ||
@@ -2299,6 +2416,7 @@ namespace EyeGazeApiViability
         // Reuses SharedButtonDwellWheel rather than a separate custom arc
         // or numeric countdown. Target completion remains 1000ms; button
         // completion continues to use its own 1500ms dwell.
+        // Refresh the target's shared radial dwell indicator.
         private void UpdateTargetDwellVisual(bool inside)
         {
             if (!inside || currentScreen != AppScreen.Lesson ||
@@ -2316,16 +2434,20 @@ namespace EyeGazeApiViability
                 targetMeasurement.HoldProgress);
         }
 
+        // Clear the visible target dwell progress.
         private void HideTargetDwellVisual()
         {
             targetDwellWheel.Hide();
         }
 
+        // Restrict a numeric value to the supplied bounds.
         private static double Clamp(double value, double min, double max)
         {
             return Math.Max(min, Math.Min(max, value));
         }
 
+        // Shutdown and isolation lifecycle ===
+        // Cancel the diagnostic-only automatic-exit timer.
         private void StopIsolationTimer()
         {
             if (isolationTimer == null) return;
@@ -2334,6 +2456,7 @@ namespace EyeGazeApiViability
             isolationTimer = null;
         }
 
+        // Record isolation state and invoke the shared exit sequence.
         private void OnIsolationElapsed(object sender, object e)
         {
             StopIsolationTimer();
@@ -2341,6 +2464,7 @@ namespace EyeGazeApiViability
             OnExitRequested(null, null);
         }
 
+        // Stop training activity and begin orderly resource cleanup before navigating away.
         private void OnExitRequested(object sender, RoutedEventArgs e)
         {
             if (exitRequested || stopping) return;
@@ -2380,6 +2504,7 @@ namespace EyeGazeApiViability
             else NavigateToCleanExit();
         }
 
+        // Start staged gaze resource release on the UI thread.
         private void BeginCleanup()
         {
             if (!live || stopping) return;
@@ -2399,11 +2524,13 @@ namespace EyeGazeApiViability
             cleanupTimer.Start();
         }
 
+        // Advance one stage of the asynchronous shutdown sequence.
         private void OnCleanupTick(object sender, object e)
         {
             CleanupNextStage();
         }
 
+        // Unsubscribe gaze events, release any legacy watcher, drop references and finish cleanup in order.
         private void CleanupNextStage()
         {
             var phase = cleanupStage;
@@ -2484,6 +2611,7 @@ namespace EyeGazeApiViability
 
         private bool cleanExitNavigationPending;
 
+        // Await the companion's restoration acknowledgement before entering the gaze-free closing view.
         private async void NavigateToCleanExit()
         {
             if (cleanExitNavigationPending) return;
@@ -2522,6 +2650,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Write trainer diagnostic messages through the application lifecycle trace.
         private void Trace(string message)
         {
             App.TraceLifecycle("TRAINER | " + message);
@@ -2537,6 +2666,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Detach view callbacks, restore the local pointer and release remaining page resources.
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             StopIsolationTimer();
