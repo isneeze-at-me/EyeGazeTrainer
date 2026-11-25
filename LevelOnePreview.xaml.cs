@@ -2558,12 +2558,11 @@ namespace EyeGazeApiViability
             BonusTrueButton.IsEnabled = false;
             BonusFalseButton.IsEnabled = false;
             BonusChoicesPanel.Visibility = Visibility.Collapsed;
-            BonusProgressText.Text = right ? "THAT'S RIGHT!" : "GOOD TRY!";
+            BonusProgressText.Text = right ? "CORRECT" : "INCORRECT";
             BonusFactText.Text = "Answer: " +
                 (currentTriviaQuestion.IsTrue ? "TRUE" : "FALSE") +
                 "\n\n" + currentTriviaQuestion.Explanation;
-            _ = NarrateLessonAsync((right ? "That's right! " : "Good try! ") +
-                "Answer: " + (currentTriviaQuestion.IsTrue ? "True. " : "False. ") +
+            _ = NarrateLessonAsync("Answer: " + (currentTriviaQuestion.IsTrue ? "True. " : "False. ") +
                 currentTriviaQuestion.Explanation, AppScreen.Bonus, NextBonusQuestion, 5000);
         }
 
