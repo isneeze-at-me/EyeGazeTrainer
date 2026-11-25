@@ -18,7 +18,6 @@ namespace EyeGazeTrainer.OverlayCompanion
         private const int SwMaximize = 3;
         private static string restoreRequest;
         private static string restoreAck;
-
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         private static extern int GetCurrentPackageFamilyName(ref int length, StringBuilder name);
 
@@ -36,6 +35,7 @@ namespace EyeGazeTrainer.OverlayCompanion
                 if (session.Length == 0 || session.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return;
                 restoreRequest = Path.Combine(folder, "overlay-restore-" + session + ".request");
                 restoreAck = Path.Combine(folder, "overlay-restore-" + session + ".ack");
+                // No previous application is activated in this experiment.
                 Log("Restore channel ready; session=" + session);
             }
             catch (Exception ex) { Log("Restore channel unavailable: " + ex); }
@@ -93,7 +93,7 @@ namespace EyeGazeTrainer.OverlayCompanion
         [STAThread]
         private static void Main()
         {
-            Log("Companion started");
+            Log("Companion started; build=2026-11-24-native-close-v2");
             InitializeRestoreChannel();
             IntPtr changed = IntPtr.Zero;
             IntPtr seen = IntPtr.Zero;
@@ -117,6 +117,7 @@ namespace EyeGazeTrainer.OverlayCompanion
                             changed = IntPtr.Zero;
                         }
                         AcknowledgeRestore(result);
+                        Log("Automatic foreground activation disabled; Windows handles focus");
                         break;
                     }
                     IntPtr foreground = GetForegroundWindow();

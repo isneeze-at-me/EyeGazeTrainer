@@ -12,6 +12,7 @@ namespace EyeGazeApiViability
     internal sealed class DisplayScaleManager
     {
         public const double ReferenceWidthMillimeters = 85.0;
+        public const double DefaultReferenceWidthScreenPixels = 480.0;
         public const double LevelOneDiameterMillimeters = 55.0;
         public const double BullseyeDiameterMillimeters = 3.5;
         private const string SettingPrefix = "DisplaySizeAdjustment.V1.";
@@ -30,10 +31,10 @@ namespace EyeGazeApiViability
             DisplayInformation display = DisplayInformation.GetForCurrentView();
             double pixelsPerView = Math.Max(1.0, display.RawPixelsPerViewPixel);
             double rawDpi = display.RawDpiX;
-            double dpiInViewUnits = rawDpi > 0 && !double.IsNaN(rawDpi) &&
-                                    !double.IsInfinity(rawDpi)
-                ? rawDpi / pixelsPerView : 96.0;
-            double automatic = dpiInViewUnits / 25.4;
+            // Default to 480 physical screen pixels, independent of Windows
+            // display scaling. A saved per-display adjustment still overrides it.
+            double automatic = GetViewUnitsPerMillimeter(
+                DefaultReferenceWidthScreenPixels / pixelsPerView);
             viewUnitsPerMillimeter = Clamp(automatic, MinimumViewUnitsPerMillimeter,
                                           MaximumViewUnitsPerMillimeter);
 
@@ -65,9 +66,20 @@ namespace EyeGazeApiViability
             return millimeters * viewUnitsPerMillimeter;
         }
 
+        // Inverse of ToViewUnits: convert measured on-screen distances to physical mm.
+        public double ToMillimeters(double viewUnits)
+        {
+            return viewUnits / viewUnitsPerMillimeter;
+        }
+
+        public static double GetViewUnitsPerMillimeter(double referenceViewWidth)
+        {
+            return referenceViewWidth / ReferenceWidthMillimeters;
+        }
+
         public void SaveReferenceWidth(double displayedWidth)
         {
-            double units = displayedWidth / ReferenceWidthMillimeters;
+            double units = GetViewUnitsPerMillimeter(displayedWidth);
             if (!IsValid(units)) throw new ArgumentOutOfRangeException(nameof(displayedWidth));
             ApplicationData.Current.LocalSettings.Values[displayKey] = units;
             viewUnitsPerMillimeter = units;

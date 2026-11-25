@@ -1,6 +1,6 @@
 # Read-only independent observer; run before opening the trainer.
 [CmdletBinding()]
-param([int]$PostExitSeconds = 60, [int]$WaitForLaunchSeconds = 300)
+param([int]$PostExitSeconds = 60, [int]$WaitForLaunchSeconds = 0)
 $ErrorActionPreference = 'Stop'
 $directory = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'EyeGazeTrainer\Diagnostics'
 [IO.Directory]::CreateDirectory($directory) | Out-Null
@@ -12,6 +12,8 @@ function Write-Trace([string]$message) {
     try { $file.Write($bytes,0,$bytes.Length); $file.Flush($true) } finally { $file.Dispose() }
 }
 $offsets = @{}
+$script:logicalLaunch = ''
+$script:logicalClose = ''
 $started = [DateTime]::UtcNow
 $packageFolders = @(Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Packages') -Directory -Filter 'EyeGazeApiViability_*' -ErrorAction SilentlyContinue | ForEach-Object { Join-Path $_.FullName 'LocalState' })
 function Copy-NewTraceLines {
@@ -37,7 +39,17 @@ function Copy-NewTraceLines {
                     if ($lastNewline -ge 0) {
                         $chunk = [Text.Encoding]::UTF8.GetString($bytes,0,$lastNewline+1)
                         foreach ($line in ($chunk -split '\r?\n')) {
-                            if ($line) { Write-Trace ('SOURCE ' + $source.Name + ' | ' + $line) }
+                            if ($line) {
+                                Write-Trace ('SOURCE ' + $source.Name + ' | ' + $line)
+                                if ($source.Name -like 'shutdown-*') {
+                                    if ($line -match 'OnLaunched START|HARDWARE-FREE exit-isolation protocol invoked') {
+                                        $script:logicalLaunch = $source.Name
+                                    }
+                                    if ($line -match 'NATIVE CLOSE ACCEPTED;') {
+                                        $script:logicalClose = $source.Name
+                                    }
+                                }
+                            }
                         }
                         $offsets[$source.FullName] = $position + $lastNewline + 1
                     }
@@ -45,6 +57,70 @@ function Copy-NewTraceLines {
             } finally { $f.Dispose() }
         } catch { Write-Trace ('Trace read error: ' + $_.Exception.Message) }
     }
+}
+# Read-only Win32 snapshots. No titles, input injection, or window changes.
+$windowProbeReady = $false
+try {
+    Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+public static class TrainerWindowProbe {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT { public int Left, Top, Right, Bottom; }
+    public delegate bool EnumProc(IntPtr hwnd, IntPtr data);
+    [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] public static extern IntPtr GetShellWindow();
+    [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hwnd);
+    [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr hwnd);
+    [DllImport("user32.dll")] public static extern bool IsZoomed(IntPtr hwnd);
+    [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hwnd, out RECT rect);
+    [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
+    [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetClassName(IntPtr hwnd, StringBuilder name, int max);
+    [DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc callback, IntPtr data);
+    [DllImport("dwmapi.dll")] public static extern int DwmGetWindowAttribute(IntPtr hwnd, int attribute, out int value, int size);
+    public static IntPtr[] TopLevelWindows() {
+        var windows = new System.Collections.Generic.List<IntPtr>();
+        EnumWindows((h,d) => { windows.Add(h); return true; }, IntPtr.Zero);
+        return windows.ToArray();
+    }
+}
+'@
+    $windowProbeReady = $true
+} catch { Write-Trace ('Window probe unavailable: ' + $_.Exception.Message) }
+
+function Get-WindowSnapshot([IntPtr]$handle) {
+    if ($handle -eq [IntPtr]::Zero) { return 'none' }
+    [uint32]$ownerId = 0
+    [void][TrainerWindowProbe]::GetWindowThreadProcessId($handle,[ref]$ownerId)
+    $owner = Get-Process -Id $ownerId -ErrorAction SilentlyContinue
+    $name = if ($owner) { $owner.ProcessName } else { 'unknown' }
+    if ($owner) { $owner.Dispose() }
+    $class = [Text.StringBuilder]::new(256)
+    [void][TrainerWindowProbe]::GetClassName($handle,$class,$class.Capacity)
+    $rect = New-Object TrainerWindowProbe+RECT
+    $bounds = if ([TrainerWindowProbe]::GetWindowRect($handle,[ref]$rect)) {
+        '{0},{1},{2},{3}' -f $rect.Left,$rect.Top,$rect.Right,$rect.Bottom
+    } else { 'unknown' }
+    [int]$cloaked = 0
+    $cloakState = if ([TrainerWindowProbe]::DwmGetWindowAttribute($handle,14,[ref]$cloaked,4) -eq 0) { [string]$cloaked } else { 'unknown' }
+    'hwnd=0x{0:X} owner={1} pid={2} class={3} visible={4} minimized={5} maximized={6} cloaked={7} bounds={8}' -f $handle.ToInt64(),$name,$ownerId,$class.ToString(),[TrainerWindowProbe]::IsWindowVisible($handle),[TrainerWindowProbe]::IsIconic($handle),[TrainerWindowProbe]::IsZoomed($handle),$cloakState,$bounds
+}
+function Get-WindowState($processes) {
+    if (-not $windowProbeReady) { return 'Window probe unavailable' }
+    $foreground = [TrainerWindowProbe]::GetForegroundWindow()
+    $shell = [TrainerWindowProbe]::GetShellWindow()
+    $knownIds = @($processes | ForEach-Object { [uint32]$_.Id })
+    $windows = foreach ($handle in [TrainerWindowProbe]::TopLevelWindows()) {
+        [uint32]$ownerId = 0
+        [void][TrainerWindowProbe]::GetWindowThreadProcessId($handle,[ref]$ownerId)
+        $class = [Text.StringBuilder]::new(256)
+        [void][TrainerWindowProbe]::GetClassName($handle,$class,$class.Capacity)
+        if ($knownIds -contains $ownerId -or ($class.ToString() -eq 'ApplicationFrameWindow' -and [TrainerWindowProbe]::IsWindowVisible($handle))) {
+            Get-WindowSnapshot $handle
+        }
+    }
+    'FOREGROUND: ' + (Get-WindowSnapshot $foreground) + ' | SHELL: ' + (Get-WindowSnapshot $shell) + ' | OBSERVED WINDOWS: ' + (($windows | Sort-Object) -join '; ')
 }
 function Get-ObservedProcesses {
     @(Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -match 'EyeGazeApiViability|EyeGazeTrainer|OverlayCompanion|Tobii|Dynavox|TDControl|TD.Control|GazeInteraction' })
@@ -61,10 +137,18 @@ function Get-State($processes) {
     return ($items -join '; ')
 }
 Write-Host "External shutdown log: $log"
-Write-Trace 'External monitor started. Process/window responsiveness is not proof of functional gaze control.'
-$seenTrainer = $false
+Write-Trace 'External monitor started; build=2026-11-24-native-close-v2. Process/window responsiveness is not proof of functional gaze control.'
+$sessionCount = 0
+$activeTrainerIds = ''
+$lastLogicalLaunch = ''
+$lastLogicalClose = ''
+# Invalidate stale candidates from previous monitor runs.
+foreach ($folder in $packageFolders) {
+    try { Remove-Item (Join-Path $folder 'foreground-before-launch.txt') -ErrorAction SilentlyContinue } catch {}
+}
 $exitObserved = $null
 $lastState = ''
+$lastWindowState = ''
 $lastHeartbeat = [DateTime]::MinValue
 try {
     while ($true) {
@@ -78,16 +162,42 @@ try {
             $lastState = $state
             $lastHeartbeat = $now
         }
-        if ($trainer.Count -gt 0 -and -not $seenTrainer) {
-            $seenTrainer = $true
-            Write-Trace 'Trainer process observed.'
+        if ($windowProbeReady) {
+            try {
+                $windowState = Get-WindowState $processes
+                if ($windowState -ne $lastWindowState) {
+                    Write-Trace $windowState
+                    $lastWindowState = $windowState
+                }
+            } catch { Write-Trace ('Window snapshot error: ' + $_.Exception.Message) }
         }
-        if ($seenTrainer -and $trainer.Count -eq 0 -and $null -eq $exitObserved) {
+        $currentTrainerIds = (($trainer | ForEach-Object { $_.Id } | Sort-Object) -join ',')
+        $newLogicalLaunch = $script:logicalLaunch -ne '' -and $script:logicalLaunch -ne $lastLogicalLaunch
+        if ($newLogicalLaunch) { $lastLogicalLaunch = $script:logicalLaunch }
+        if (($newLogicalLaunch -and ($activeTrainerIds -eq '' -or $null -ne $exitObserved)) -or
+            ($trainer.Count -gt 0 -and $currentTrainerIds -ne $activeTrainerIds)) {
+            $sessionCount++
+            $activeTrainerIds = $currentTrainerIds
+            $exitObserved = $null
+            Write-Trace ('SESSION ' + $sessionCount + ' START; trainer pid=' + $currentTrainerIds)
+        }
+        if ($script:logicalClose -ne '' -and $script:logicalClose -ne $lastLogicalClose) {
+            $lastLogicalClose = $script:logicalClose
+            if ($script:logicalClose -eq $lastLogicalLaunch) {
+                $exitObserved = $now
+                Write-Trace ('SESSION ' + $sessionCount + ' NATIVE CLOSE ACCEPTED; process may remain suspended')
+            }
+        }
+        if ($trainer.Count -eq 0 -and $activeTrainerIds -ne '') {
+            Write-Trace ('SESSION ' + $sessionCount + ' EXIT; trainer pid=' + $activeTrainerIds + '; begin post-exit observation')
+            $activeTrainerIds = ''
             $exitObserved = $now
-            Write-Trace 'Trainer process no longer observed; begin post-exit observation.'
         }
-        if ($null -ne $exitObserved -and ($now - $exitObserved).TotalSeconds -ge $PostExitSeconds) { break }
-        if (-not $seenTrainer -and ($now - $started).TotalSeconds -ge $WaitForLaunchSeconds) {
+        if ($null -ne $exitObserved -and ($now - $exitObserved).TotalSeconds -ge $PostExitSeconds) {
+            Write-Trace ('Final session observation completed; sessions=' + $sessionCount)
+            break
+        }
+        if ($sessionCount -eq 0 -and $WaitForLaunchSeconds -gt 0 -and ($now - $started).TotalSeconds -ge $WaitForLaunchSeconds) {
             Write-Trace 'Trainer not observed before launch timeout.'; break
         }
         foreach ($p in $processes) { $p.Dispose() }
