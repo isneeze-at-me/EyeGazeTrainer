@@ -13,6 +13,7 @@ namespace EyeGazeApiViability
     public sealed partial class MainPage : Page
     {
         private bool exitScheduled;
+        private bool foregroundHandoff;
         private DispatcherTimer exitTimer;
 
         public MainPage()
@@ -39,6 +40,7 @@ namespace EyeGazeApiViability
                 // The gaze-enabled page has already completed cleanup and
                 // companion restoration. Leave immersive mode separately from
                 // window destruction, retaining the existing two-second timer.
+                foregroundHandoff = afterGazeCleanup;
                 if (afterGazeCleanup) LeaveFullScreenForExit();
                 ScheduleExit(hardwareFreeExitTest
                     ? "HARDWARE FREE: no gaze APIs opened"
@@ -79,7 +81,7 @@ namespace EyeGazeApiViability
             exitTimer.Start();
         }
 
-        private void OnExitTimer(object sender, object e)
+        private async void OnExitTimer(object sender, object e)
         {
             exitTimer.Stop();
             exitTimer.Tick -= OnExitTimer;
@@ -90,6 +92,11 @@ namespace EyeGazeApiViability
                     ApplicationView.GetForCurrentView().IsFullScreenMode);
             }
             catch (Exception ex) { LogLifecycle("Full-screen status unavailable: " + ex.Message); }
+            if (foregroundHandoff)
+            {
+                var app = Application.Current as App;
+                if (app != null) await app.RequestForegroundHandoffAsync();
+            }
             LogLifecycle("CALL Application.Current.Exit() from gaze-free closing page");
             Application.Current.Exit();
         }
