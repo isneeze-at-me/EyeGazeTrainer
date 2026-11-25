@@ -2085,13 +2085,7 @@ namespace EyeGazeApiViability
             pendingReferenceWidth = Math.Max(30,
                 Math.Min(limit, pendingReferenceWidth));
             CalibrationReferenceBar.Width = pendingReferenceWidth;
-            double rawPixelsPerView = displayInformation != null
-                ? Math.Max(1.0, displayInformation.RawPixelsPerViewPixel) : 1.0;
-            CalibrationStatusText.Text = string.Format(
-                System.Globalization.CultureInfo.InvariantCulture,
-                "Bar width: {0:0.00} DIP  |  {1:0.00} screen pixels  |  {2:0.000} pixels/mm",
-                pendingReferenceWidth, pendingReferenceWidth * rawPixelsPerView,
-                DisplayScaleManager.GetViewUnitsPerMillimeter(pendingReferenceWidth) * rawPixelsPerView);
+            CalibrationStatusText.Text = "";
         }
 
         // Open the display-reference settings panel.
@@ -2126,13 +2120,14 @@ namespace EyeGazeApiViability
                 displayScale.SaveReferenceWidth(pendingReferenceWidth);
                 ApplyDisplaySizes();
                 RepositionTarget();
-                CalibrationStatusText.Text = "Saved automatically. " + CalibrationStatusText.Text;
+                CalibrationStatusText.Text = "";
             }
             catch (Exception ex)
             {
                 pendingReferenceWidth = previous;
                 UpdateReferencePreview();
-                CalibrationStatusText.Text = "Unable to save display size: " + ex.GetType().Name;
+                CalibrationStatusText.Text = "Unable to save display size. Please try again.";
+                Trace("Display size save failed: " + ex.GetType().Name);
             }
         }
 
