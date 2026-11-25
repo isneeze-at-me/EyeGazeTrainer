@@ -95,7 +95,7 @@ namespace EyeGazeApiViability
             if (nativeCloseExperiment)
             {
                 // Supported UWP equivalent of the user closing the view.
-                // Keep normal process termination as a fallback if still running.
+                // Only fall back to process termination if native close fails.
                 try
                 {
                     LogLifecycle("BEGIN native view close (TryConsolidateAsync)");
@@ -104,7 +104,16 @@ namespace EyeGazeApiViability
                     var finished = await System.Threading.Tasks.Task.WhenAny(closeTask,
                         System.Threading.Tasks.Task.Delay(1500));
                     if (finished == closeTask)
-                        LogLifecycle("END native view close; accepted=" + await closeTask);
+                    {
+                        bool accepted = await closeTask;
+                        LogLifecycle("END native view close; accepted=" + accepted);
+                        if (accepted)
+                        {
+                            LogLifecycle("NATIVE CLOSE ACCEPTED; leaving suspension and termination to Windows");
+                            return;
+                        }
+                        LogLifecycle("Native view close rejected; continuing termination");
+                    }
                     else
                         LogLifecycle("Native view close timed out; continuing termination");
                 }
