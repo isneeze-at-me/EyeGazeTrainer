@@ -284,9 +284,18 @@ namespace EyeGazeApiViability
                     ShowScreen(AppScreen.Menu);
                     return;
                 }
+                if (mode == "H" || mode == "I")
+                {
+                    startupSplashCompleted = true;
+                    startupRouted = true;
+                    StartupSplashPanel.Visibility = Visibility.Collapsed;
+                    ShowScreen(AppScreen.Menu);
+                    StartDirectGazeIsolation(mode);
+                    return;
+                }
                 OnEnableLive(null, null);
             }
-            if (mode == "D") return;
+            if (mode == "D" || mode == "H" || mode == "I") return;
             if (startupSplashCompleted || startupSplashTimer != null) return;
             startupSplashTimer = new DispatcherTimer
                 { Interval = TimeSpan.FromSeconds(StartupSplashDurationSeconds) };
@@ -304,7 +313,7 @@ namespace EyeGazeApiViability
             if (args.WindowActivationState == CoreWindowActivationState.Deactivated)
                 return;
             var mode = (Application.Current as App)?.IsolationMode;
-            if (mode == "D" || mode == "E" || mode == "F" || mode == "G") return;
+            if (mode == "D" || mode == "E" || mode == "F" || mode == "G" || mode == "H" || mode == "I") return;
             HideWindowsPointerCursor();
             try
             {
@@ -431,9 +440,38 @@ namespace EyeGazeApiViability
                 ShowScreen(AppScreen.Menu);
         }
 
+        private void StartDirectGazeIsolation(string mode)
+        {
+            // No watcher, no tracker enumeration, no cursor or overlay modifications.
+            Trace("ISOLATION " + mode + ": BEGIN direct GetForCurrentView; watcher not created");
+            try
+            {
+                gazeSource = GazeInputSourcePreview.GetForCurrentView();
+                Trace("ISOLATION " + mode + ": END direct GetForCurrentView; source=" + (gazeSource != null));
+                if (gazeSource == null)
+                {
+                    Trace("ISOLATION INVALID: direct gaze source unavailable");
+                    return;
+                }
+                live = true;
+                if (mode == "I")
+                {
+                    Trace("ISOLATION I: BEGIN GazeMoved subscription");
+                    gazeSource.GazeMoved += OnGazeMoved;
+                    gazeSubscribed = true;
+                    Trace("ISOLATION I: END GazeMoved subscription");
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace("ISOLATION INVALID: direct gaze setup failed: " + ex);
+            }
+        }
+
         private void OnEnableLive(object sender, RoutedEventArgs e)
         {
-            if (live || stopping || (Application.Current as App)?.IsolationMode == "D") return;
+            var mode = (Application.Current as App)?.IsolationMode;
+            if (live || stopping || mode == "D" || mode == "H" || mode == "I") return;
             try
             {
                 tracePath = Path.Combine(ApplicationData.Current.LocalFolder.Path,
@@ -666,12 +704,13 @@ namespace EyeGazeApiViability
         {
             if (!live || stopping || exitRequested) return;
             // G isolates delivery of gaze events from training/dwell actions.
-            if ((Application.Current as App)?.IsolationMode == "G")
+            var mode = (Application.Current as App)?.IsolationMode;
+            if (mode == "G" || mode == "I")
             {
                 if (!isolationSampleSeen)
                 {
                     isolationSampleSeen = true;
-                    Trace("ISOLATION G: first gaze event received");
+                    Trace("ISOLATION " + mode + ": first gaze event received");
                 }
                 return;
             }
