@@ -28,7 +28,7 @@ namespace EyeGazeApiViability
         public App()
         {
             InitializeComponent();
-            TraceLifecycle("App constructor; build=2026-11-24-gaze-isolation-v3");
+            TraceLifecycle("App constructor; build=2026-11-24-direct-gaze-v4");
             Suspending += (s, e) => TraceLifecycle("Application.Suspending");
             Resuming += (s, e) => TraceLifecycle("Application.Resuming");
         }
@@ -188,9 +188,9 @@ namespace EyeGazeApiViability
             }
 
             string mode = protocol.Uri.Host.ToUpperInvariant();
-            if (mode.Length != 1 || "ABCDEFG".IndexOf(mode, StringComparison.Ordinal) < 0)
+            if (mode.Length != 1 || "ABCDEFGHI".IndexOf(mode, StringComparison.Ordinal) < 0)
             {
-                TraceLifecycle("Isolation refused: specify A through G");
+                TraceLifecycle("Isolation refused: specify A through I");
                 return;
             }
             var frame = Window.Current.Content as Frame;
@@ -211,7 +211,7 @@ namespace EyeGazeApiViability
             overlayHelperLaunchAttempted = false;
             overlayHelperLaunchAccepted = false;
             overlayHelperLaunchFinished = false;
-            TraceLifecycle("OnLaunched START; ISOLATION " + mode + "; 30-second auto-close; build=2026-11-24-gaze-isolation-v3");
+            TraceLifecycle("OnLaunched START; ISOLATION " + mode + "; 30-second auto-close; build=2026-11-24-direct-gaze-v4");
             frame = new Frame();
             Window.Current.Content = frame;
             if (!windowEventsRegistered)
