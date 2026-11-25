@@ -12,6 +12,8 @@ namespace EyeGazeApiViability
     sealed partial class App : Application
     {
         private bool windowEventsRegistered;
+        internal string IsolationMode { get; private set; }
+        private bool isolationActive;
         private bool overlayHelperLaunchAttempted;
         private bool overlayHelperLaunchAccepted;
         private bool overlayHelperLaunchFinished;
@@ -47,6 +49,8 @@ namespace EyeGazeApiViability
                 Window.Current.Content = frame;
                 TraceLifecycle("Fresh session after previous native close");
             }
+            IsolationMode = null;
+            isolationActive = false;
             TraceLifecycle("OnLaunched START, previousState=" + e.PreviousExecutionState);
             if (frame == null)
             {
@@ -90,6 +94,7 @@ namespace EyeGazeApiViability
         // gaze APIs or TD Control. Never delay or fail gaze startup if absent.
         internal async void TryStartOverlayCompanion()
         {
+            if (IsolationMode == "B") { TraceLifecycle("ISOLATION B: companion intentionally skipped"); return; }
             if (overlayHelperLaunchAttempted) return;
             overlayHelperLaunchAttempted = true;
             try
@@ -176,34 +181,50 @@ namespace EyeGazeApiViability
                 return;
             }
 
-            TraceLifecycle("HARDWARE-FREE exit-isolation protocol invoked");
-            var frame = Window.Current.Content as Frame;
-
-            // Do not let this diagnostic interrupt or bypass cleanup for
-            // an existing active gaze session.
-            if (frame != null && frame.Content is LevelOnePreview)
+            string mode = protocol.Uri.Host.ToUpperInvariant();
+            if (mode != "A" && mode != "B" && mode != "C")
             {
-                TraceLifecycle("Exit-isolation refused: gaze page is active");
+                TraceLifecycle("Isolation refused: specify A, B or C");
                 return;
             }
-
-            if (frame == null)
+            var frame = Window.Current.Content as Frame;
+            if (frame != null && frame.Content is LevelOnePreview)
             {
-                frame = new Frame();
-                Window.Current.Content = frame;
-                TraceLifecycle("Hardware-free test root Frame created");
+                TraceLifecycle("Isolation refused: training page is active");
+                return;
             }
+            if (isolationActive && frame != null && frame.Content is MainPage &&
+                Window.Current.Visible)
+            {
+                TraceLifecycle("Isolation refused: diagnostic already active");
+                return;
+            }
+            IsolationMode = mode;
+            isolationActive = true;
+            ShutdownSessionId = NewSessionId();
+            overlayHelperLaunchAttempted = false;
+            overlayHelperLaunchAccepted = false;
+            overlayHelperLaunchFinished = false;
+            TraceLifecycle("OnLaunched START; ISOLATION " + mode + "; 30-second auto-close");
+            frame = new Frame();
+            Window.Current.Content = frame;
             if (!windowEventsRegistered)
             {
                 Window.Current.VisibilityChanged += OnVisibilityChanged;
                 Window.Current.Closed += OnWindowClosed;
                 windowEventsRegistered = true;
             }
-
-            // Never construct LevelOnePreview or call a gaze API in this path.
-            frame.Navigate(typeof(MainPage), "EXIT_NO_GAZE_DIAGNOSTIC");
+            frame.Navigate(mode == "A" ? typeof(MainPage) : typeof(LevelOnePreview),
+                mode == "A" ? "ISOLATION_A" : null);
+            try
+            {
+                ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.FullScreen;
+                var view = ApplicationView.GetForCurrentView();
+                TraceLifecycle("ISOLATION full-screen=" + (view.IsFullScreenMode || view.TryEnterFullScreenMode()));
+            }
+            catch (Exception ex) { TraceLifecycle("ISOLATION full-screen failed: " + ex); }
             Window.Current.Activate();
-            TraceLifecycle("Hardware-free exit test Window.Activate completed");
+            TraceLifecycle("ISOLATION " + mode + " activated");
         }
 
         private void OnVisibilityChanged(object sender,
