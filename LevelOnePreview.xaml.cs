@@ -111,7 +111,7 @@ namespace EyeGazeApiViability
         {
             new[]
             {
-                "Target acquisition time|Median time to first assisted hit; excludes the required dwell",
+                "Target acquisition time|Median time to first native gaze hit; excludes dwell",
                 "Target precision|Mean raw settled center-accuracy score",
                 "Target stability|Median raw settled RMS gaze spread (estimated mm)",
                 "First-attempt success|Selected on first qualifying hold; tracking gaps excluded",
@@ -281,7 +281,6 @@ namespace EyeGazeApiViability
             ApplyDisplaySizes();
             displayInformation = DisplayInformation.GetForCurrentView();
             displayInformation.DpiChanged += OnDisplayDpiChanged;
-            cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
             UpdateAccuracyDisplay();
             UpdateLevelBadges();
             // Do not show Level 0 or open the tracker before the full-screen
@@ -874,6 +873,7 @@ namespace EyeGazeApiViability
                         Clamp(p.Y, 0, height));
                     UpdateCursor(cursorFilter.Update(edge, DateTimeOffset.UtcNow));
                 }
+                cursorFilter.EndHold();
                 RecordInterruptedTargetDwell(DateTimeOffset.UtcNow);
                 HideTargetDwellVisual();
                 buttonDwellWheel.Hide();
@@ -882,7 +882,8 @@ namespace EyeGazeApiViability
                 return;
             }
 
-            Point stabilized = cursorFilter.Update(p, DateTimeOffset.UtcNow);
+            DateTimeOffset sampleTime = DateTimeOffset.UtcNow;
+            Point stabilized = cursorFilter.Update(p, sampleTime);
             UpdateCursor(stabilized);
              if (currentScreen == AppScreen.LevelZero)
                 ProcessLevelZeroGaze(p, stabilized);
@@ -896,6 +897,15 @@ namespace EyeGazeApiViability
                                           p.Y - canvasOrigin.Y));
             }
             ProcessGazeControl(stabilized, p);
+            // On training targets the hold is identified separately below.
+            // For Home and trivia, only an active untriggered dwell qualifies.
+            if (currentScreen != AppScreen.Lesson)
+            {
+                bool trainingHold = !gazeControlTriggered &&
+                    ((currentScreen == AppScreen.LevelZero && gazeControlTarget == LevelZeroContinueButton) ||
+                     (currentScreen == AppScreen.Bonus && IsBonusAnswer(gazeControlTarget)));
+                ObserveJitterAssistance(trainingHold ? gazeControlTarget : null, p, stabilized, sampleTime);
+            }
             e.Handled = true;
         }
 
@@ -1223,11 +1233,21 @@ namespace EyeGazeApiViability
             label.Foreground = WhiteTextBrush;
         }
 
-        // Apply the learned smoothing percentage and record it in the report.
+        // Report the actual jitter-controlled assistance, never overwrite it
+        // with the accuracy-based profile. Hitbox adaptation is unchanged.
         private void ApplyAdaptiveSmoothingAndRecord()
         {
-            cursorFilter.SmoothingLevel = gazeProfile.SmoothingLevel;
             trainingReport.RecordSmoothing(cursorFilter.SmoothingLevel);
+        }
+
+        // Calibrate only during an intentional stationary hold. Filtered data
+        // is used solely by the assistance controller, not skill diagnostics.
+        private void ObserveJitterAssistance(object hold, Point raw, Point filtered, DateTimeOffset now)
+        {
+            if (displayScale == null || mouseOnlyFallback || !live ||
+                (Application.Current as App)?.IsolationMode != null) return;
+            if (cursorFilter.ObserveHold(hold, raw, filtered, now, displayScale.ViewUnitsPerMillimeter))
+                ApplyAdaptiveSmoothingAndRecord();
         }
 
         // Diagnostics reporting ===
@@ -2117,6 +2137,7 @@ namespace EyeGazeApiViability
             Point center = TargetCenter();
             bool inRing = AdaptiveHitTesting.ContainsCircle(
                 p, center, TargetDiameter, gazeProfile.HitBoxScale);
+            ObserveJitterAssistance(inRing ? targetMeasurement : null, rawPoint, p, now);
             if (live && !mouseOnlyFallback)
             {
                 // Do not treat a tracker/sample gap as a failed deliberate hold.
@@ -2126,7 +2147,10 @@ namespace EyeGazeApiViability
                     targetMeasurement.CancelHold();
                 }
                 targetLastSampleAt = now;
-                if (inRing && !targetArrivalSeconds.HasValue)
+                // Acquisition time is measured against the visible native
+                // target boundary, without smoothing or hitbox assistance.
+                bool rawInRing = AdaptiveHitTesting.ContainsCircle(rawPoint, center, TargetDiameter, 1.0);
+                if (rawInRing && !targetArrivalSeconds.HasValue)
                     targetArrivalSeconds = Math.Max(0, (now - targetShownAt).TotalSeconds);
             }
             if (!inRing)
@@ -2641,6 +2665,7 @@ namespace EyeGazeApiViability
             bool topOverlap = center.Y - radius < backHeight + 20;
             bool leftOverlap = center.X - radius < backWidth + 24;
             SetLessonBackPosition(topOverlap && leftOverlap);
+            cursorFilter.EndHold();
             targetShownAt = targetLastSampleAt = DateTimeOffset.UtcNow;
             targetArrivalSeconds = null;
             targetTrialInterrupted = false;
@@ -2654,6 +2679,7 @@ namespace EyeGazeApiViability
         private void ScheduleNextTarget()
         {
             CancelTargetDelay();
+            cursorFilter.EndHold();
             targetCell = -1;
             targetMeasurement.CancelHold();
             TargetRing.Visibility = Visibility.Collapsed;
