@@ -696,7 +696,7 @@
           <TextBlock Text="Ready, Set, Look!" Foreground="#FFD84D"
                      FontFamily="Comic Sans MS" FontWeight="Bold" FontSize="72"
                      TextAlignment="Center" TextWrapping="Wrap"/>
-          <TextBlock Text="Look at each target and hold your gaze until it fills. Find all 10!"
+          <TextBlock Text="Look directly at the center of each target and hold your gaze until it fills. Find all 35!"
                      Foreground="#69E6FF" FontFamily="Comic Sans MS"
                      FontWeight="Bold" FontSize="42"
                      TextAlignment="Center" TextWrapping="Wrap"/>
