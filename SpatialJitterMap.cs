@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: SpatialJitterMap.cs
+// Purpose: Stores aggregate unsmoothed gaze spread in millimeters per screen region.
+// ============================================================================
+
 using System;
 using System.Globalization;
 using Windows.Foundation;
@@ -18,6 +24,7 @@ namespace EyeGazeApiViability
         private readonly double[,] totals = new double[Rows, Columns];
         private readonly int[,] samples = new int[Rows, Columns];
 
+        // Load validated totals and counts from local settings.
         public SpatialJitterMap()
         {
             try
@@ -55,6 +62,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Return the mean jitter in a measured cell or null when empty.
         public double? AverageMillimeters(int row, int col)
         {
             if (row < 0 || row >= Rows || col < 0 || col >= Columns ||
@@ -62,12 +70,14 @@ namespace EyeGazeApiViability
             return totals[row, col] / samples[row, col];
         }
 
+        // Return the measurement count for a valid grid location.
         public int Count(int row, int col)
         {
             return row >= 0 && row < Rows && col >= 0 && col < Columns
                 ? samples[row, col] : 0;
         }
 
+        // Map a measured target center to the grid and accumulate physical jitter.
         public void Record(Point center, double width, double height,
                            double jitterMillimeters)
         {
@@ -88,6 +98,7 @@ namespace EyeGazeApiViability
             Persist();
         }
 
+        // Save aggregate totals and counts without storing individual gaze samples.
         private void Persist()
         {
             try
