@@ -28,7 +28,7 @@ namespace EyeGazeApiViability
         public App()
         {
             InitializeComponent();
-            TraceLifecycle("App constructor; build=2026-11-24-native-close-v2");
+            TraceLifecycle("App constructor; build=2026-11-24-gaze-isolation-v3");
             Suspending += (s, e) => TraceLifecycle("Application.Suspending");
             Resuming += (s, e) => TraceLifecycle("Application.Resuming");
         }
@@ -48,6 +48,12 @@ namespace EyeGazeApiViability
                 frame = new Frame();
                 Window.Current.Content = frame;
                 TraceLifecycle("Fresh session after previous native close");
+            }
+            if (isolationActive && frame != null && frame.Content is LevelOnePreview)
+            {
+                TraceLifecycle("Normal launch ignored: isolation session active");
+                Window.Current.Activate();
+                return;
             }
             IsolationMode = null;
             isolationActive = false;
@@ -94,7 +100,7 @@ namespace EyeGazeApiViability
         // gaze APIs or TD Control. Never delay or fail gaze startup if absent.
         internal async void TryStartOverlayCompanion()
         {
-            if (IsolationMode == "B") { TraceLifecycle("ISOLATION B: companion intentionally skipped"); return; }
+            if (IsolationMode != null && IsolationMode != "C") { TraceLifecycle("ISOLATION " + IsolationMode + ": companion intentionally skipped"); return; }
             if (overlayHelperLaunchAttempted) return;
             overlayHelperLaunchAttempted = true;
             try
@@ -182,9 +188,9 @@ namespace EyeGazeApiViability
             }
 
             string mode = protocol.Uri.Host.ToUpperInvariant();
-            if (mode != "A" && mode != "B" && mode != "C")
+            if (mode.Length != 1 || "ABCDEFG".IndexOf(mode, StringComparison.Ordinal) < 0)
             {
-                TraceLifecycle("Isolation refused: specify A, B or C");
+                TraceLifecycle("Isolation refused: specify A through G");
                 return;
             }
             var frame = Window.Current.Content as Frame;
@@ -205,7 +211,7 @@ namespace EyeGazeApiViability
             overlayHelperLaunchAttempted = false;
             overlayHelperLaunchAccepted = false;
             overlayHelperLaunchFinished = false;
-            TraceLifecycle("OnLaunched START; ISOLATION " + mode + "; 30-second auto-close");
+            TraceLifecycle("OnLaunched START; ISOLATION " + mode + "; 30-second auto-close; build=2026-11-24-gaze-isolation-v3");
             frame = new Frame();
             Window.Current.Content = frame;
             if (!windowEventsRegistered)
