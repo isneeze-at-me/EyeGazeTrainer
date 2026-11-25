@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: OverlayCompanion/Program.cs
+// Purpose: Full-trust helper that manages the trainer window's gaze-aware style and explicitly acknowledges restoration; does not control Tobii processes.
+// ============================================================================
+
 using System;
 using System.IO;
 using System.Diagnostics;
@@ -21,6 +27,7 @@ namespace EyeGazeTrainer.OverlayCompanion
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         private static extern int GetCurrentPackageFamilyName(ref int length, StringBuilder name);
 
+        // Resolve the package-local session and restoration request/acknowledgement files.
         private static void InitializeRestoreChannel()
         {
             try
@@ -41,11 +48,13 @@ namespace EyeGazeTrainer.OverlayCompanion
             catch (Exception ex) { Log("Restore channel unavailable: " + ex); }
         }
 
+        // Check for the current session's explicit restore request.
         private static bool RestoreRequested()
         {
             return restoreRequest != null && File.Exists(restoreRequest);
         }
 
+        // Write the restoration outcome for the UWP application's bounded wait.
         private static void AcknowledgeRestore(string result)
         {
             try { File.WriteAllText(restoreAck, result); Log("RESTORE ACK written: " + result); }
@@ -53,6 +62,7 @@ namespace EyeGazeTrainer.OverlayCompanion
         }
         private static readonly string LogName = "overlay-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + "-" + Process.GetCurrentProcess().Id + ".txt";
 
+        // Append companion lifecycle observations to its diagnostic trace.
         private static void Log(string message)
         {
             try
@@ -91,6 +101,7 @@ namespace EyeGazeTrainer.OverlayCompanion
         private static extern int SetWindowLong(IntPtr hWnd, int index, int value);
 
         [STAThread]
+        // Monitor the trainer window, apply the gaze-aware style, and restore it before ending the session.
         private static void Main()
         {
             Log("Companion started; build=2026-11-24-native-close-v2");
@@ -216,6 +227,7 @@ namespace EyeGazeTrainer.OverlayCompanion
             }
         }
 
+        // Locate an eligible visible training window when needed.
         private static IntPtr FindVisibleTrainerWindow()
         {
             IntPtr found = IntPtr.Zero;
@@ -230,6 +242,7 @@ namespace EyeGazeTrainer.OverlayCompanion
             return found;
         }
 
+        // Validate the candidate window against the trainer's identity.
         private static bool IsTarget(IntPtr hWnd)
         {
             if (hWnd == IntPtr.Zero || !IsWindow(hWnd)) return false;
@@ -245,6 +258,7 @@ namespace EyeGazeTrainer.OverlayCompanion
                                  StringComparison.Ordinal);
         }
 
+        // Restore the original gaze-aware style bit and verify the result before reporting success.
         private static bool Restore(IntPtr hWnd)
         {
             if (!IsWindow(hWnd) || !IsTarget(hWnd)) { Log("Restore skipped: trainer window no longer exists or no longer matches"); return false; }
