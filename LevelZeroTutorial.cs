@@ -1302,9 +1302,9 @@ namespace EyeGazeApiViability
                     (now - levelZeroCornerEntered).TotalMilliseconds >= 250)
                     levelZeroCornerMask |= 1 << candidate;
 
-                // Track the same stabilized cursor position the learner sees.
-                // Raw gaze jitter alone must never generate praise.
-                ObserveLevelZeroMovement(stabilized, w, h, now);
+                // Movement scoring uses native gaze; the existing displacement
+                // and timing thresholds reject incidental small movements.
+                ObserveLevelZeroMovement(raw, w, h, now);
             }
             else if (levelZeroStage == LevelZeroStage.Pursue)
             {
@@ -1321,7 +1321,7 @@ namespace EyeGazeApiViability
                     LevelZeroPursuitRadius;
                 double cy = Canvas.GetTop(LevelZeroPursuitTarget) +
                     LevelZeroPursuitRadius;
-                double dx = stabilized.X - cx, dy = stabilized.Y - cy;
+                double dx = raw.X - cx, dy = raw.Y - cy;
                 bool inside = dx * dx + dy * dy <=
                     LevelZeroPursuitInsideRadius * LevelZeroPursuitInsideRadius;
                 if (inside)
@@ -1390,8 +1390,8 @@ namespace EyeGazeApiViability
             SpeakLevelZero(explanation, true);
         }
 
-        // Choose the furthest corner from the current gaze. The button is
-        // kept comfortably inside the view and is only positioned when the
+        // Choose the furthest of four inward positions from the current gaze.
+        // The button stays away from screen edges and is only positioned when the
         // complete spoken explanation has finished, so gaze cannot already
         // be dwelling on a previously visible button.
         // Present the next interaction control after guided practice.
@@ -1423,8 +1423,11 @@ namespace EyeGazeApiViability
                 gaze = new Point(w / 2, h / 2);
 
             double bestX = leftEdge, bestY = topEdge, best = -1;
-            double[] xs = { leftEdge, rightEdge };
-            double[] ys = { topEdge, bottomEdge };
+            // Move each candidate 45% of the way toward the central position.
+            double middleX = Math.Max(0, (w - buttonW) / 2);
+            double middleY = Math.Max(0, (h - buttonH) / 2);
+            double[] xs = { leftEdge * .55 + middleX * .45, rightEdge * .55 + middleX * .45 };
+            double[] ys = { topEdge * .55 + middleY * .45, bottomEdge * .55 + middleY * .45 };
             foreach (double x in xs)
                 foreach (double y in ys)
                 {
@@ -1453,6 +1456,8 @@ namespace EyeGazeApiViability
             gazeControlTarget = null;
             gazeControlTriggered = false;
             buttonDwellWheel.Hide();
+            requireLookAwayAfterNavigation = live && best < NavigationRearmDistance * NavigationRearmDistance;
+            lastActivatedGazePosition = gaze;
             LevelZeroContinueButton.Visibility = Visibility.Visible;
         }
 
