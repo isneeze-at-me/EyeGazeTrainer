@@ -763,11 +763,18 @@
                 FontSize="48" FontWeight="Bold" HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
       </Grid>
+      <!-- Final score and encouragement remain visible until narration ends. -->
       <Grid x:Name="BonusFinalPanel" Grid.Row="1" Visibility="Collapsed">
-        <TextBlock x:Name="BonusFinalText" Foreground="#FFD84D"
-                   FontSize="54" FontWeight="Bold" TextWrapping="Wrap"
-                   TextAlignment="Center" HorizontalAlignment="Center"
-                   VerticalAlignment="Center"/>
+        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="20,8">
+          <StackPanel Width="1050" Spacing="18" VerticalAlignment="Center">
+            <TextBlock x:Name="BonusFinalText" Foreground="#FFD84D"
+                       FontFamily="Comic Sans MS" FontSize="54" FontWeight="Bold"
+                       TextWrapping="Wrap" TextAlignment="Center"/>
+            <TextBlock x:Name="BonusFinalEncouragementText" Foreground="#69E6FF"
+                       FontFamily="Comic Sans MS" FontSize="38" FontWeight="Bold"
+                       TextWrapping="Wrap" TextAlignment="Center"/>
+          </StackPanel>
+        </Viewbox>
       </Grid>
       <Button Style="{StaticResource DangerGazeButton}" x:Name="BonusBackButton"
               Content="BACK" Click="OnBackToLevels" MinHeight="86" MinWidth="155"
