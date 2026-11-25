@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: TherapistTextReport.cs
+// Purpose: Formats a plain-text therapist report from existing training aggregates; does not collect new gaze data.
+// ============================================================================
+
 using System;
 using System.Globalization;
 using System.Text;
@@ -14,6 +20,8 @@ namespace EyeGazeApiViability
         private const int Width = 78;
         private static readonly CultureInfo Culture = CultureInfo.InvariantCulture;
 
+        // Report assembly ===
+        // Assemble the complete report from supplied measurements and session summaries.
         public static string Build(
             DateTimeOffset generatedAt,
             TrainingProgress progress,
@@ -189,42 +197,51 @@ namespace EyeGazeApiViability
             return b.ToString();
         }
 
+        // Formatting helpers ===
+        // Format a numeric percentage using the report culture.
         private static string Pct(double x) { return x.ToString("0", Culture) + "%"; }
 
+        // Format a measurement count or its unavailable indicator.
         private static string CountOrNA(int count)
         {
             return count > 0 ? count.ToString(Culture) : "NA";
         }
 
+        // Convert a trend direction into a report label.
         private static string Trend(int direction)
         {
             return direction > 0 ? "[Improving]" :
                    direction < 0 ? "[Declining]" : "[Stable / insufficient history]";
         }
 
+        // Format a numeric trend direction for the report.
         private static string NumericTrend(int direction)
         {
             return direction > 0 ? "[Increasing]" :
                    direction < 0 ? "[Decreasing]" : "[Stable / insufficient history]";
         }
 
+        // Write a report section heading.
         private static void Section(StringBuilder b, string heading)
         {
             b.AppendLine(heading);
             b.AppendLine(new string('-', Width));
         }
 
+        // Center text within the report's fixed-width formatting.
         private static void Center(StringBuilder b, string text)
         {
             b.AppendLine(new string(' ', Math.Max(0, (Width - text.Length) / 2)) + text);
         }
 
+        // Write a labeled report field using the shared formatting rules.
         private static void Field(StringBuilder b, string name, string value,
                                   string suffix = "")
         {
             b.AppendLine("  " + name.PadRight(35) + ": " + value + suffix);
         }
 
+        // Wrap longer report text to the requested width and indent.
         private static void Wrap(StringBuilder b, string indent, string text, int width)
         {
             string line = indent;
@@ -240,6 +257,7 @@ namespace EyeGazeApiViability
             if (line.Trim().Length > 0) b.AppendLine(line.TrimEnd());
         }
 
+        // Render a regional diagnostics map using the supplied cell formatter.
         private static void WriteMap(StringBuilder b, Func<int, int, string> value)
         {
             b.AppendLine("        C1      C2      C3      C4      C5      C6      C7");
