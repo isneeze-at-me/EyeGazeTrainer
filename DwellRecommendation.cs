@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: DwellRecommendation.cs
+// Purpose: Estimates a provisional dwell duration from completed and interrupted deliberate holds; does not change active dwell timing.
+// ============================================================================
+
 using System;
 using Windows.Storage;
 
@@ -27,6 +33,7 @@ namespace EyeGazeApiViability
         public int InterruptedAttempts { get { return totalInterruptions; } }
         public bool HasEvidence { get { return totalSuccesses + totalInterruptions >= WindowSize; } }
 
+        // Restore the recommendation and both lifetime and current-window counters.
         public DwellRecommendation()
         {
             try
@@ -43,9 +50,12 @@ namespace EyeGazeApiViability
             catch (Exception) { /* Invalid settings never prevent gaze use. */ }
         }
 
+        // Record a successful deliberate hold.
         public void RecordCompletedHold() { Record(true); }
+        // Record an interrupted deliberate hold.
         public void RecordInterruptedHold() { Record(false); }
 
+        // Update evidence counters and adjust the recommendation only when the evidence window warrants it.
         private void Record(bool completed)
         {
             if (completed)
@@ -75,6 +85,7 @@ namespace EyeGazeApiViability
             Save();
         }
 
+        // Read a validated integer from the versioned settings namespace.
         private int Read(string key, int fallback, int minimum, int maximum)
         {
             object value;
@@ -84,6 +95,7 @@ namespace EyeGazeApiViability
             return number >= minimum && number <= maximum ? number : fallback;
         }
 
+        // Persist the recommendation and evidence counters.
         private void Save()
         {
             try
