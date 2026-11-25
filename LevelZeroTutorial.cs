@@ -537,58 +537,69 @@ namespace EyeGazeApiViability
             // resumes the requested action. Do not let delayed audio
             // incorrectly announce failure during correct movement.
             if (levelZeroFeedbackQueue.Count > 0 &&
-                levelZeroFeedbackQueue.Peek() == LevelZeroShortCoaching())
+                IsLevelZeroShortCoaching(levelZeroFeedbackQueue.Peek()))
                 levelZeroFeedbackQueue.Clear();
             if (seconds > 0 && seconds <= .5)
                 levelZeroFeedbackCorrectSeconds += seconds;
         }
 
-        // Choose a short encouragement message.
-        private string LevelZeroShortPraise()
+        // Four variants per activity (original plus three alternatives).
+        private static readonly string[][] LevelZeroPraiseVariants =
         {
-            if (levelZeroStage == LevelZeroStage.Pursue)
-                return "Good job! You're following the circle.";
-            if (levelZeroStage == LevelZeroStage.Continue)
-                return "Good job! Keep looking at the button.";
+            new[] { "Good job! You're following the circle.", "Nicely done! Stay with the moving circle.", "Excellent tracking! Keep following it.", "You're doing well keeping up with the circle." },
+            new[] { "Good job! Keep looking at the button.", "Nicely done! Keep your gaze on Home.", "Excellent focus! Stay with the Home button.", "That's it! Keep looking until the ring fills." },
+            new[] { "Good job! That's up and down.", "Nice work! Keep looking up and down.", "Excellent vertical movement! Keep going.", "You're doing well moving between top and bottom." },
+            new[] { "Good job! That's left and right.", "Nice work! Keep moving side to side.", "Excellent horizontal movement! Keep going.", "You're doing well looking left and right." },
+            new[] { "Good job! You're moving from top left to bottom right.", "Nice diagonal movement! Keep it going.", "Excellent work along that diagonal.", "You're doing well moving between those two corners." },
+            new[] { "Good job! You're moving from bottom left to top right.", "Nice work on that upward diagonal.", "Excellent diagonal movement! Keep going.", "You're doing well moving between bottom left and top right." },
+            new[] { "Good job! Keep those circles going.", "Nice work! Keep making large circles.", "Excellent circular movement! Keep going.", "Those large circles are going well." },
+            new[] { "Good job! You're moving your eyes.", "Nice work exploring the screen.", "Excellent effort! Keep moving your gaze.", "You're doing well moving your eyes around." }
+        };
+        private static readonly string[][] LevelZeroCoachingVariants =
+        {
+            new[] { "Try following the glowing circle. Keep your cursor inside it.", "Follow the moving circle with your eyes. Aim to stay inside it.", "Look toward the glowing circle as it moves.", "Try keeping your eye cursor with the moving circle." },
+            new[] { "Look at the Home button and hold your gaze until the ring fills.", "Find the Home button and keep looking at it.", "Look toward Home and stay there until the ring fills.", "Try holding your gaze on the Home button until it activates." },
+            new[] { "Try looking up, then down, and repeat.", "Look toward the top, then the bottom.", "Move your eyes vertically, up and down.", "Try alternating between looking upward and downward." },
+            new[] { "Try looking from left to right and back again.", "Look to one side, then the other.", "Move your eyes side to side.", "Try alternating your gaze between left and right." },
+            new[] { "Try looking diagonally between the top left and bottom right.", "Look from top left to bottom right, then back.", "Follow the downward diagonal with your eyes.", "Try moving between the upper-left and lower-right corners." },
+            new[] { "Try looking diagonally between the bottom left and top right.", "Look from bottom left to top right, then back.", "Follow the upward diagonal with your eyes.", "Try moving between the lower-left and upper-right corners." },
+            new[] { "Try making large circles with your eyes.", "Move your eyes in a large circular path.", "Try drawing a large circle with your gaze.", "Look around in large circles, at your own pace." },
+            new[] { "Try moving your eyes around the screen.", "Explore different parts of the screen with your gaze.", "Try looking toward another area of the screen.", "Move your eyes freely around the display." }
+        };
+
+        // The same activity index identifies both praise and corrective coaching.
+        private int LevelZeroFeedbackIndex()
+        {
+            if (levelZeroStage == LevelZeroStage.Pursue) return 0;
+            if (levelZeroStage == LevelZeroStage.Continue) return 1;
             switch (movementStep)
             {
-                case MovementStep.Vertical:
-                    return "Good job! That's up and down.";
-                case MovementStep.Horizontal:
-                    return "Good job! That's left and right.";
-                case MovementStep.DiagonalDown:
-                    return "Good job! You're moving from top left to bottom right.";
-                case MovementStep.DiagonalUp:
-                    return "Good job! You're moving from bottom left to top right.";
-                case MovementStep.Circles:
-                    return "Good job! Keep those circles going.";
-                default:
-                    return "Good job! You're moving your eyes.";
+                case MovementStep.Vertical: return 2;
+                case MovementStep.Horizontal: return 3;
+                case MovementStep.DiagonalDown: return 4;
+                case MovementStep.DiagonalUp: return 5;
+                case MovementStep.Circles: return 6;
+                default: return 7;
             }
         }
 
-        // Choose an activity-appropriate coaching message.
+        private string LevelZeroShortPraise()
+        {
+            int i = LevelZeroFeedbackIndex();
+            return ChooseEncouragement("L0Praise" + i, LevelZeroPraiseVariants[i]);
+        }
+
         private string LevelZeroShortCoaching()
         {
-            if (levelZeroStage == LevelZeroStage.Pursue)
-                return "Try following the glowing circle. Keep your cursor inside it.";
-            if (levelZeroStage == LevelZeroStage.Continue)
-                return "Look at the Home button and hold your gaze until the ring fills.";
-            switch (movementStep)
-            {
-                case MovementStep.Vertical:
-                    return "Try looking up, then down, and repeat.";
-                case MovementStep.Horizontal:
-                    return "Try looking from left to right and back again.";
-                case MovementStep.DiagonalDown:
-                    return "Try looking diagonally between the top left and bottom right.";
-                case MovementStep.DiagonalUp:
-                    return "Try looking diagonally between the bottom left and top right.";
-                case MovementStep.Circles:
-                    return "Try making large circles with your eyes.";
-                default:
-                    return "Try moving your eyes around the screen.";
-            }
+            int i = LevelZeroFeedbackIndex();
+            return ChooseEncouragement("L0Coach" + i, LevelZeroCoachingVariants[i]);
+        }
+
+        // Test membership without drawing a new random phrase. This keeps
+        // stale queued corrective prompts from playing after movement resumes.
+        private bool IsLevelZeroShortCoaching(string words)
+        {
+            return Array.IndexOf(LevelZeroCoachingVariants[LevelZeroFeedbackIndex()], words) >= 0;
         }
 
         // Evaluate progress and schedule coaching or encouragement when appropriate.

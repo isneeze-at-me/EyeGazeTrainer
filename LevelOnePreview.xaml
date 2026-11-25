@@ -801,82 +801,77 @@
                    TextAlignment="Center" TextWrapping="Wrap"/>
       </StackPanel>
     </Grid>
-    <Grid x:Name="DisplaySettingsPanel"  Background="#101827"
-           Visibility="Collapsed">
+    <Grid x:Name="DisplaySettingsPanel" Background="#101827" Visibility="Collapsed">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
         <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
-      <StackPanel Grid.Row="0" Spacing="8" Margin="24,16,24,8">
-        <TextBlock Text="Display Size Adjustment" FontSize="30" FontWeight="Bold"
-                   HorizontalAlignment="Center" Foreground="White"/>
-        <TextBlock Text="Match the blue line to the width of the middle camera glass on your PCEye 5."
-                   TextWrapping="Wrap" TextAlignment="Center" FontSize="21" Foreground="#E2E8F0"/>
-        <!-- Crisp self-contained instructional illustration; no remote image. -->
-        <Border Background="#1C3049" CornerRadius="12" Padding="8" MaxHeight="165">
-          <Viewbox Stretch="Uniform" HorizontalAlignment="Center" MaxWidth="620">
-            <Canvas Width="580" Height="150">
-              <Rectangle Canvas.Left="125" Canvas.Top="8" Width="330" Height="96"
-                         RadiusX="9" RadiusY="9" Fill="#0D1626" Stroke="#9EB1C6" StrokeThickness="4"/>
-              <Rectangle Canvas.Left="135" Canvas.Top="18" Width="310" Height="77"
-                         Fill="#20354F"/>
-              <Rectangle Canvas.Left="248" Canvas.Top="82" Width="84" Height="7"
-                         RadiusX="3" RadiusY="3" Fill="#60BDFB"/>
-              <Rectangle Canvas.Left="207" Canvas.Top="113" Width="166" Height="25"
-                         RadiusX="8" RadiusY="8" Fill="#141B26" Stroke="#8D9CAA" StrokeThickness="2"/>
-              <Rectangle Canvas.Left="248" Canvas.Top="120" Width="84" Height="11"
-                         RadiusX="4" RadiusY="4" Fill="#5C7386"/>
-              <Ellipse Canvas.Left="282" Canvas.Top="122" Width="16" Height="7" Fill="#2B3D52"/>
-              <TextBlock Canvas.Left="10" Canvas.Top="52" Text="On-screen line"
-                         FontSize="17" Foreground="#D4E7FA"/>
-              <Line X1="130" Y1="67" X2="248" Y2="86" Stroke="#60BDFB" StrokeThickness="2"/>
-              <TextBlock Canvas.Left="395" Canvas.Top="117" Text="Center glass"
-                         FontSize="17" Foreground="#D4E7FA"/>
-              <Line X1="375" Y1="126" X2="395" Y2="126" Stroke="#E4F1FF" StrokeThickness="2"/>
+      <Grid Grid.Row="0" Margin="20,16,20,8">
+        <Button x:Name="SettingsExitButton" Style="{StaticResource DangerGazeButton}"
+                Content="BACK" Click="OnCancelDisplay" MinHeight="76" MinWidth="130"
+                HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <StackPanel Margin="145,0,145,0" Spacing="8">
+          <TextBlock Text="Display Size Adjustment" FontSize="30" FontWeight="Bold"
+                     TextAlignment="Center" Foreground="White"/>
+          <TextBlock Text="Adjust the blue bar until its width matches the center camera of your PCEye 5."
+                     TextWrapping="Wrap" TextAlignment="Center" FontSize="21" Foreground="#E2E8F0"/>
+          <TextBlock Text="Changes are saved automatically."
+                     FontSize="17" TextAlignment="Center" Foreground="#CAD5E5"/>
+        </StackPanel>
+      </Grid>
+      <Grid Grid.Row="1" Margin="20,8" ColumnSpacing="12">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="1.1*"/>
+          <ColumnDefinition Width="4*"/>
+          <ColumnDefinition Width="1.1*"/>
+        </Grid.ColumnDefinitions>
+        <Button x:Name="ShorterButton" Grid.Column="0" Content="− SHORTER"
+                Style="{StaticResource SecondaryGazeButton}" Click="OnReferenceShorter"
+                MinHeight="100" FontSize="20" FontWeight="Bold"
+                HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                HorizontalContentAlignment="Center"/>
+        <Border Grid.Column="1" Background="#1C3049" CornerRadius="12" Padding="8" VerticalAlignment="Center">
+          <Viewbox Stretch="Uniform" HorizontalAlignment="Center">
+            <Canvas Width="800" Height="430" IsHitTestVisible="False">
+              <!-- The image retains its original aspect ratio. Its camera width
+                   and demonstration bar share a common design-space scale. -->
+              <Rectangle Canvas.Left="40" Canvas.Top="12" Width="720" Height="240"
+                         RadiusX="12" RadiusY="12" Fill="#111C2A" Stroke="#9EB1C6" StrokeThickness="4"/>
+              <Rectangle Canvas.Left="53" Canvas.Top="25" Width="694" Height="214" Fill="#20354F"/>
+              <!-- Animated example on bottom edge of illustrated display. -->
+              <Rectangle Canvas.Left="322" Canvas.Top="225" Width="156" Height="12"
+                         Fill="#60BDFB" RadiusX="6" RadiusY="6" RenderTransformOrigin="0.5,0.5">
+                <Rectangle.RenderTransform>
+                  <ScaleTransform x:Name="AnimatedExampleBarScale" ScaleX="1.8"/>
+                </Rectangle.RenderTransform>
+              </Rectangle>
+              <Image Source="ms-appx:///Assets/PCEye5.png" Canvas.Left="20" Canvas.Top="200"
+                     Width="760" Height="228" Stretch="Uniform"/>
+              <!-- Pointer terminates at the central camera. -->
+              <Line X1="400" Y1="366" X2="400" Y2="319" Stroke="#E4F1FF" StrokeThickness="3"/>
+              <Polygon Points="392,331 400,317 408,331" Fill="#E4F1FF"/>
+              <TextBlock Canvas.Left="240" Canvas.Top="370" Width="320"
+                         Text="Center camera" FontSize="24" FontWeight="Bold"
+                         TextAlignment="Center" Foreground="#E4F1FF"/>
             </Canvas>
           </Viewbox>
         </Border>
-        <TextBlock Text="Match the bar to the center glass, then save. Training object sizes use this scale (provisional 85 mm reference)."
-                   FontSize="16" TextWrapping="Wrap" TextAlignment="Center" Foreground="#CAD5E5"/>
-      </StackPanel>
-      <Grid Grid.Row="2" MinHeight="36" IsHitTestVisible="False">
-        <Rectangle x:Name="CalibrationReferenceBar" Height="32" Width="230"
-                   HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                   RadiusX="16" RadiusY="16" Fill="#60BDFB"
-                   Stroke="#D5F2FF" StrokeThickness="2"/>
+        <Button x:Name="LongerButton" Grid.Column="2" Content="+ LONGER"
+                Style="{StaticResource PrimaryGazeButton}" Click="OnReferenceLonger"
+                MinHeight="100" FontSize="20" FontWeight="Bold"
+                HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                HorizontalContentAlignment="Center"/>
       </Grid>
-      <StackPanel Grid.Row="1" VerticalAlignment="Center"
-                  HorizontalAlignment="Stretch" Margin="32,8,32,8" Spacing="12">
-        <TextBlock x:Name="CalibrationStatusText"
-                   Text="Adjust the length, then save."
-                   TextAlignment="Center" FontSize="18" Foreground="#E2E8F0"/>
-        <Grid ColumnSpacing="12">
-          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-          <Button Style="{StaticResource SecondaryGazeButton}" x:Name="ShorterButton" Grid.Column="0" Content="−  SHORTER"
-                  Click="OnReferenceShorter" MinHeight="82" FontWeight="Bold"
-                  FontSize="22" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button Style="{StaticResource PrimaryGazeButton}" x:Name="LongerButton" Grid.Column="1" Content="+  LONGER"
-                  Click="OnReferenceLonger" MinHeight="82" FontWeight="Bold"
-                  FontSize="22" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-        </Grid>
-        <Grid ColumnSpacing="10">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/>
-          </Grid.ColumnDefinitions>
-          <Button Style="{StaticResource PrimaryGazeButton}" x:Name="SaveDisplayButton" Grid.Column="0" Content="SAVE"
-                  Click="OnSaveDisplay" MinHeight="76" FontSize="21" FontWeight="Bold"
-                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button Style="{StaticResource SecondaryGazeButton}" x:Name="CancelDisplayButton" Grid.Column="1" Content="CANCEL"
-                  Click="OnCancelDisplay" MinHeight="76" FontSize="21" FontWeight="Bold"
-                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-          <Button Style="{StaticResource DangerGazeButton}" x:Name="SettingsExitButton" Grid.Column="2" Content="BACK"
-                  Click="OnCancelDisplay" MinHeight="76" FontSize="21" FontWeight="Bold"
-                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
-        </Grid>
+      <StackPanel Grid.Row="2" Spacing="8" IsHitTestVisible="False">
+        <TextBlock x:Name="CalibrationStatusText" Text="Adjust the width."
+                   TextAlignment="Center" TextWrapping="Wrap" FontSize="18" Foreground="#E2E8F0"/>
+        <!-- This is the real reference bar; the illustration never changes it. -->
+        <Rectangle x:Name="CalibrationReferenceBar" Height="32" Width="230"
+                   HorizontalAlignment="Center" RadiusX="16" RadiusY="16"
+                   Fill="#60BDFB" Stroke="#D5F2FF" StrokeThickness="2"/>
       </StackPanel>
     </Grid>
-
 
     <!-- Immersive startup branding. The scalable paths and type echo the
          approved Eye Gaze Trainer logo without relying on a bitmap asset. -->
