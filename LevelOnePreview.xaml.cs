@@ -1896,8 +1896,10 @@ namespace EyeGazeApiViability
                 player.Play();
                 // Bound an unexpected missing playback event so speech failure
                 // cannot strand an eye-gaze-only learner.
-                double durationMs = Math.Max(15000, stream.Duration.TotalMilliseconds + 10000);
-                var finished = await Task.WhenAny(completion.Task, Task.Delay((int)Math.Min(120000, durationMs)));
+                // SpeechSynthesisStream has no Duration property in UWP.
+                // Normal playback advances on MediaEnded; this generous
+                // watchdog is only a fallback for missing media events.
+                var finished = await Task.WhenAny(completion.Task, Task.Delay(TimeSpan.FromMinutes(2)));
                 if (finished != completion.Task || !await completion.Task)
                     Trace("Level 1 narration failed or timed out; continuing with text.");
             }
