@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: MasterCursorSmoothingFilter.cs
+// Purpose: Stabilizes raw gaze coordinates using time-based adaptive smoothing.
+// ============================================================================
+
 using System;
 using Windows.Foundation;
 
@@ -32,12 +38,14 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Discard previous timing and position so the next valid sample starts a fresh stream.
         public void Reset()
         {
             initialized = false;
             lastTime = default(DateTimeOffset);
         }
 
+        // Filter a raw sample using elapsed time; reset after gaps and snap deliberate large movements.
         public Point Update(Point raw, DateTimeOffset timestamp)
         {
             if (double.IsNaN(raw.X) || double.IsNaN(raw.Y) ||
