@@ -62,7 +62,8 @@ namespace EyeGazeApiViability
             // Completion is only established by a valid inside-target gaze
             // sample. A long gap followed by leaving cannot count as success.
             bool missed = dwelling && !acquired &&
-                (now - enteredAt).TotalMilliseconds >= MinimumAttemptMilliseconds;
+                (now - enteredAt).TotalMilliseconds >= MinimumAttemptMilliseconds &&
+                (now - lastSampleAt).TotalMilliseconds <= LostGazeMilliseconds;
             CancelHold();
             return missed;
         }
