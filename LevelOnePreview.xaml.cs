@@ -37,6 +37,8 @@ namespace EyeGazeApiViability
         private double bullseyeDiameter;
         private double pendingReferenceWidth;
         private bool displaySettingsVisible;
+        private DispatcherTimer exampleBarTimer;
+        private DateTimeOffset exampleBarStarted;
         private DisplayInformation displayInformation;
         private CoreCursor previousPointerCursor;
         private bool pointerCursorHidden;
@@ -304,8 +306,7 @@ namespace EyeGazeApiViability
             levelZeroContinueButtons = new[] { LevelZeroContinueButton };
             bonusButtons = new[] { BonusBackButton, BonusTrueButton, BonusFalseButton };
             bonusBackOnlyButtons = new[] { BonusBackButton };
-            displayButtons = new[] { ShorterButton, LongerButton, SaveDisplayButton,
-                                     CancelDisplayButton, SettingsExitButton };
+            displayButtons = new[] { ShorterButton, LongerButton, SettingsExitButton };
             displayScale = new DisplayScaleManager();
             ApplyDisplaySizes();
             displayInformation = DisplayInformation.GetForCurrentView();
@@ -1058,9 +1059,7 @@ namespace EyeGazeApiViability
                 OnReferenceShorter(null, null);
             else if (target == LongerButton)
                 OnReferenceLonger(null, null);
-            else if (target == SaveDisplayButton)
-                OnSaveDisplay(null, null);
-            else if (target == CancelDisplayButton || target == SettingsExitButton)
+            else if (target == SettingsExitButton)
                 OnCancelDisplay(null, null);
         }
 
@@ -1179,6 +1178,8 @@ namespace EyeGazeApiViability
             // Gaze device lifetime and controlled Exit are untouched.
             cursorFilter.Reset();
             displaySettingsVisible = screen == AppScreen.Settings;
+            if (displaySettingsVisible) StartExampleBarAnimation();
+            else StopExampleBarAnimation();
             LevelZeroPanel.Visibility = screen == AppScreen.LevelZero
                 ? Visibility.Visible : Visibility.Collapsed;
             LevelZeroEyeCursor.Visibility = screen == AppScreen.LevelZero
@@ -2101,42 +2102,74 @@ namespace EyeGazeApiViability
             ResetReferencePreview();
         }
 
-        // Decrease the editable reference width.
+        // Decrease/increase the real reference by the existing six DIP step.
         private void OnReferenceShorter(object sender, RoutedEventArgs e)
         {
-            if (!displaySettingsVisible) return;
-            pendingReferenceWidth -= 6;
-            UpdateReferencePreview();
+            AdjustReferenceWidth(-6);
         }
 
-        // Increase the editable reference width.
         private void OnReferenceLonger(object sender, RoutedEventArgs e)
         {
-            if (!displaySettingsVisible) return;
-            pendingReferenceWidth += 6;
-            UpdateReferencePreview();
+            AdjustReferenceWidth(6);
         }
 
-        // Persist the reference and apply the updated display sizes.
-        private void OnSaveDisplay(object sender, RoutedEventArgs e)
+        // Persist every adjustment immediately. On failure, restore the
+        // previous preview rather than indicating an unsaved value as saved.
+        private void AdjustReferenceWidth(double delta)
         {
-            if (!displaySettingsVisible) return;
+            if (!displaySettingsVisible || stopping || exitRequested) return;
+            double previous = pendingReferenceWidth;
             try
             {
+                pendingReferenceWidth += delta;
+                UpdateReferencePreview();
                 displayScale.SaveReferenceWidth(pendingReferenceWidth);
                 ApplyDisplaySizes();
                 RepositionTarget();
-                CloseDisplaySettings();
-                LiveStatusText.Text = "Display size saved.";
+                CalibrationStatusText.Text = "Saved automatically. " + CalibrationStatusText.Text;
             }
             catch (Exception ex)
             {
-                CalibrationStatusText.Text = "Unable to save display size: " +
-                                              ex.GetType().Name;
+                pendingReferenceWidth = previous;
+                UpdateReferencePreview();
+                CalibrationStatusText.Text = "Unable to save display size: " + ex.GetType().Name;
             }
         }
 
-        // Discard the unsaved reference adjustment.
+        // Animate the illustrative bar only while settings is visible.
+        // One cycle: wide pause, smooth narrowing, exact-width hold, repeat.
+        private void StartExampleBarAnimation()
+        {
+            StopExampleBarAnimation();
+            AnimatedExampleBarScale.ScaleX = 1.8;
+            exampleBarStarted = DateTimeOffset.UtcNow;
+            exampleBarTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(40) };
+            exampleBarTimer.Tick += OnExampleBarTick;
+            exampleBarTimer.Start();
+        }
+
+        private void OnExampleBarTick(object sender, object args)
+        {
+            if (!displaySettingsVisible || exitRequested || stopping)
+            {
+                StopExampleBarAnimation();
+                return;
+            }
+            double phase = Math.Max(0, (DateTimeOffset.UtcNow - exampleBarStarted).TotalSeconds) % 4.0;
+            double progress = Math.Max(0, Math.Min(1, (phase - .5) / 1.5));
+            double eased = 1 - Math.Pow(1 - progress, 3);
+            AnimatedExampleBarScale.ScaleX = 1.8 - .8 * eased;
+        }
+
+        private void StopExampleBarAnimation()
+        {
+            if (exampleBarTimer == null) return;
+            exampleBarTimer.Stop();
+            exampleBarTimer.Tick -= OnExampleBarTick;
+            exampleBarTimer = null;
+        }
+
+        // Back returns to the menu without undoing saved adjustments.
         private void OnCancelDisplay(object sender, RoutedEventArgs e)
         {
             if (displaySettingsVisible) CloseDisplaySettings();
@@ -2995,6 +3028,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            StopExampleBarAnimation();
             StopLessonNarration();
             StopIsolationTimer();
             Trace("EXIT SELECTED; live=" + live + "; mouse=" + mouseOnlyFallback + "; subscribed=" + gazeSubscribed + "; watcherStarted=" + watcherStarted);
@@ -3197,6 +3231,7 @@ namespace EyeGazeApiViability
         // Detach view callbacks, restore the local pointer and release remaining page resources.
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            StopExampleBarAnimation();
             StopLessonNarration();
             StopIsolationTimer();
             CancelTargetDelay();
