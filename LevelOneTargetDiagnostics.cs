@@ -190,6 +190,17 @@ namespace EyeGazeApiViability
 
         // Per-direction first-hold success, with denominators so a small
         // sample cannot be mistaken for a well-established ability.
+        // Latest-round counts for the compass graphic. No observations
+        // are represented by zero trials, not by a zero-percent score.
+        public void GetDirectionCounts(int direction, out int successes, out int trials)
+        {
+            successes = trials = 0;
+            if (history.Count == 0 || direction < 0 || direction >= 8) return;
+            Session session = history.Last();
+            successes = session.DirectionSuccesses[direction];
+            trials = session.DirectionTrials[direction];
+        }
+
         public string Directions()
         {
             if (history.Count == 0) return "Directions: NA";
