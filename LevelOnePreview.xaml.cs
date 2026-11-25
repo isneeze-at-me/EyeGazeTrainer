@@ -20,6 +20,9 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 using Windows.UI.Xaml.Media;
 using Windows.UI;
+using Windows.Media.Playback;
+using Windows.Media.Core;
+using Windows.Media.SpeechSynthesis;
 
 namespace EyeGazeApiViability
 {
@@ -197,6 +200,11 @@ namespace EyeGazeApiViability
         private bool triviaFinishing;
         private bool triviaLoading;
         private bool lessonIntroActive;
+        private MediaPlayer lessonNarrationPlayer;
+        private SpeechSynthesizer lessonNarrationSynth;
+        private SpeechSynthesisStream lessonNarrationStream;
+        private TaskCompletionSource<bool> lessonNarrationCompletion;
+        private int lessonNarrationVersion;
         private bool bonusIntroActive;
         private string tracePath;
         private int targetIndex = -1;
@@ -1123,6 +1131,8 @@ namespace EyeGazeApiViability
                 HideTherapistExportConfirmation();
             if (currentScreen == AppScreen.LevelZero && screen != AppScreen.LevelZero)
                 StopLevelZero();
+            if (currentScreen != screen && (currentScreen == AppScreen.Lesson || currentScreen == AppScreen.Bonus))
+                StopLessonNarration();
             // Navigating away from the celebration must not fire a stale transition.
             if (screen != AppScreen.Lesson)
             {
@@ -1845,6 +1855,91 @@ namespace EyeGazeApiViability
             BeginLessonIntro();
         }
 
+        // Level 1 narration uses the same Windows speech and media APIs as
+        // Level 0, with independent cancellation and screen-specific callbacks.
+        // Version checks prevent old audio from advancing a replayed lesson.
+        private async Task NarrateLessonAsync(string words, AppScreen screen, Action next,
+            int minimumDisplayMilliseconds = 0)
+        {
+            StopLessonNarration();
+            int version = lessonNarrationVersion;
+            var started = DateTimeOffset.UtcNow;
+            try
+            {
+                lessonNarrationSynth = new SpeechSynthesizer();
+                SpeechSynthesisStream stream;
+                try
+                {
+                    string safe = System.Security.SecurityElement.Escape(words);
+                    stream = await lessonNarrationSynth.SynthesizeSsmlToStreamAsync(
+                        "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'>" +
+                        safe + "<break time='650ms'/></speak>");
+                }
+                catch
+                {
+                    if (version != lessonNarrationVersion) return;
+                    stream = await lessonNarrationSynth.SynthesizeTextToStreamAsync(words);
+                }
+                if (version != lessonNarrationVersion || currentScreen != screen || stopping || exitRequested)
+                {
+                    stream.Dispose();
+                    return;
+                }
+                lessonNarrationStream = stream;
+                var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                lessonNarrationCompletion = completion;
+                var player = new MediaPlayer { Volume = 1, IsMuted = false };
+                lessonNarrationPlayer = player;
+                player.MediaEnded += (sender, args) => completion.TrySetResult(true);
+                player.MediaFailed += (sender, args) => completion.TrySetResult(false);
+                player.Source = MediaSource.CreateFromStream(stream, stream.ContentType);
+                player.Play();
+                // Bound an unexpected missing playback event so speech failure
+                // cannot strand an eye-gaze-only learner.
+                double durationMs = Math.Max(15000, stream.Duration.TotalMilliseconds + 10000);
+                var finished = await Task.WhenAny(completion.Task, Task.Delay((int)Math.Min(120000, durationMs)));
+                if (finished != completion.Task || !await completion.Task)
+                    Trace("Level 1 narration failed or timed out; continuing with text.");
+            }
+            catch (Exception ex)
+            {
+                if (version == lessonNarrationVersion)
+                    Trace("Level 1 narration unavailable: " + ex.GetType().Name);
+            }
+            if (version != lessonNarrationVersion || currentScreen != screen || stopping || exitRequested) return;
+            // Keep the original minimum reading time, including on audio failure.
+            int delay = Math.Max(350, minimumDisplayMilliseconds - (int)(DateTimeOffset.UtcNow - started).TotalMilliseconds);
+            await Task.Delay(delay);
+            if (version != lessonNarrationVersion || currentScreen != screen || stopping || exitRequested) return;
+            StopLessonNarration();
+            next?.Invoke();
+        }
+
+        // Stop audio immediately on Back, screen changes, or shutdown, and
+        // release all stream/player resources without touching gaze lifetime.
+        private void StopLessonNarration()
+        {
+            lessonNarrationVersion++;
+            lessonNarrationCompletion?.TrySetResult(false);
+            lessonNarrationCompletion = null;
+            if (lessonNarrationPlayer != null)
+            {
+                try { lessonNarrationPlayer.Pause(); lessonNarrationPlayer.Source = null; } catch { }
+                lessonNarrationPlayer.Dispose();
+                lessonNarrationPlayer = null;
+            }
+            if (lessonNarrationStream != null)
+            {
+                lessonNarrationStream.Dispose();
+                lessonNarrationStream = null;
+            }
+            if (lessonNarrationSynth != null)
+            {
+                lessonNarrationSynth.Dispose();
+                lessonNarrationSynth = null;
+            }
+        }
+
         // Present lesson instructions before interactive target practice.
         private void BeginLessonIntro()
         {
@@ -1855,14 +1950,14 @@ namespace EyeGazeApiViability
             TargetBullseye.Visibility = Visibility.Collapsed;
             HideTargetDwellVisual();
             // No dwell or click is required to dismiss instructions.
-            StartBonusTimer(TimeSpan.FromSeconds(5), () =>
+            _ = NarrateLessonAsync("Ready, set, look! Look directly at the center of each target and hold your gaze until it fills. Find all 35!",
+                AppScreen.Lesson, () =>
             {
-                if (currentScreen != AppScreen.Lesson || stopping || exitRequested) return;
                 lessonIntroActive = false;
                 LessonIntroOverlay.Visibility = Visibility.Collapsed;
                 LessonBackButton.Visibility = Visibility.Visible;
                 PresentNextTarget();
-            });
+            }, 5000);
         }
 
         // Present bonus-round instructions before the first question.
@@ -1874,13 +1969,13 @@ namespace EyeGazeApiViability
             BonusIntroOverlay.Visibility = Visibility.Visible;
             // Apply the same guided, automatic transition to every future
             // mini-game; no unlearned selection action is needed.
-            StartBonusTimer(TimeSpan.FromSeconds(5), () =>
+            _ = NarrateLessonAsync("Trivia time! Ten fun facts! Look at true or false to choose your answer. Try to look directly at the center of the button and keep your eyes steady until the button is selected.",
+                AppScreen.Bonus, () =>
             {
-                if (currentScreen != AppScreen.Bonus || stopping || exitRequested) return;
                 bonusIntroActive = false;
                 BonusIntroOverlay.Visibility = Visibility.Collapsed;
                 _ = StartBonusRoundAsync();
-            });
+            }, 5000);
         }
 
         // Handle a lesson placeholder without pretending the lesson is implemented.
@@ -2249,12 +2344,8 @@ namespace EyeGazeApiViability
             CompletionOverlay.Visibility = Visibility.Visible;
             TargetCountdown.Visibility = Visibility.Collapsed;
             LessonBackButton.Visibility = Visibility.Collapsed;
-            bonusTransitionTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(3)
-            };
-            bonusTransitionTimer.Tick += OnBonusTransitionTick;
-            bonusTransitionTimer.Start();
+            _ = NarrateLessonAsync("Great job! On to the bonus round!", AppScreen.Lesson,
+                () => OnBonusTransitionTick(null, null), 3000);
         }
 
         // Advance after the transition timer expires.
@@ -2341,11 +2432,24 @@ namespace EyeGazeApiViability
                 FinishBonusRound();
                 return;
             }
-            triviaAwaitingAnswer = true;
+            triviaAwaitingAnswer = false;
             BonusProgressText.Text = "QUESTION " + (triviaAnswered + 1) + " OF 10";
             BonusFactText.Text = currentTriviaQuestion.Statement;
-            BonusChoicesPanel.Visibility = Visibility.Visible;
+            BonusChoicesPanel.Visibility = Visibility.Collapsed;
             BonusFinalPanel.Visibility = Visibility.Collapsed;
+            BonusTrueButton.IsEnabled = false;
+            BonusFalseButton.IsEnabled = false;
+            _ = NarrateLessonAsync("Question " + (triviaAnswered + 1) + " of 10. " +
+                currentTriviaQuestion.Statement, AppScreen.Bonus, EnableNarratedBonusChoices, 2000);
+        }
+
+        // Reveal choices only after the spoken question; retain the same
+        // full dwell and look-away requirement as the original bonus round.
+        private void EnableNarratedBonusChoices()
+        {
+            if (currentScreen != AppScreen.Bonus || stopping || exitRequested || triviaFinishing) return;
+            triviaAwaitingAnswer = true;
+            BonusChoicesPanel.Visibility = Visibility.Visible;
             BonusTrueButton.IsEnabled = true;
             BonusFalseButton.IsEnabled = true;
             // Enforce a new, complete gaze dwell for each question. Do not
@@ -2432,7 +2536,9 @@ namespace EyeGazeApiViability
             BonusFactText.Text = "Answer: " +
                 (currentTriviaQuestion.IsTrue ? "TRUE" : "FALSE") +
                 "\n\n" + currentTriviaQuestion.Explanation;
-            StartBonusTimer(TimeSpan.FromSeconds(5), NextBonusQuestion);
+            _ = NarrateLessonAsync((right ? "That's right! " : "Good try! ") +
+                "Answer: " + (currentTriviaQuestion.IsTrue ? "True. " : "False. ") +
+                currentTriviaQuestion.Explanation, AppScreen.Bonus, NextBonusQuestion, 5000);
         }
 
         // Present the completed round result and arrange the return to lesson selection.
@@ -2447,13 +2553,13 @@ namespace EyeGazeApiViability
             BonusProgressText.Text = "BONUS ROUND COMPLETE!";
             BonusFactText.Text = "";
             BonusFinalText.Text = triviaCorrect + " OUT OF " + triviaAnswered + " CORRECT!";
-            StartBonusTimer(TimeSpan.FromSeconds(3), () =>
+            _ = NarrateLessonAsync("Bonus round complete! " + triviaCorrect + " out of " +
+                triviaAnswered + " correct!", AppScreen.Bonus, () =>
             {
-                if (currentScreen != AppScreen.Bonus || exitRequested || stopping) return;
                 UpdateLevelBadges();
                 LevelsNoticeText.Text = "";
                 ShowScreen(AppScreen.Levels);
-            });
+            }, 3000);
         }
 
         // Schedule a bonus-round action using the supplied delay.
@@ -2828,6 +2934,7 @@ namespace EyeGazeApiViability
         {
             if (exitRequested || stopping) return;
             exitRequested = true;
+            StopLessonNarration();
             StopIsolationTimer();
             Trace("EXIT SELECTED; live=" + live + "; mouse=" + mouseOnlyFallback + "; subscribed=" + gazeSubscribed + "; watcherStarted=" + watcherStarted);
             Trace("BEGIN stop startup timer");
@@ -3029,6 +3136,7 @@ namespace EyeGazeApiViability
         // Detach view callbacks, restore the local pointer and release remaining page resources.
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            StopLessonNarration();
             StopIsolationTimer();
             CancelTargetDelay();
             Trace("BEGIN OnNavigatedFrom");
