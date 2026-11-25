@@ -39,10 +39,34 @@ namespace EyeGazeApiViability
         private bool pointerCursorHidden;
         private Point lastDrawnGazeCursor = new Point(double.NaN, double.NaN);
         private bool lastDrawnGazeCursorWasLevelZero;
-        private double TargetDiameter { get { return targetDiameter; } }
+        private double TargetDiameter
+        {
+            get
+            {
+                // Keep the nominal 55 mm size unless a small view makes an
+                // outer grid cell physically unreachable with that diameter.
+                double w = TrainingCanvas.ActualWidth, h = TrainingCanvas.ActualHeight;
+                if (w <= 0 || h <= 0) return targetDiameter;
+                return Math.Min(targetDiameter, Math.Max(1, 2 *
+                    (Math.Min(w / SpatialAccuracyMap.Columns, h / SpatialAccuracyMap.Rows) - 8)));
+            }
+        }
         private readonly MasterCursorSmoothingFilter cursorFilter = new MasterCursorSmoothingFilter();
         private readonly AdaptiveGazeProfile gazeProfile = new AdaptiveGazeProfile();
-        private const int TargetsPerLevel = 10;
+        // A completed round visits every cell of the existing full-screen map.
+        private const int TargetsPerLevel = SpatialAccuracyMap.Rows * SpatialAccuracyMap.Columns;
+        private const int InterTargetDelayMilliseconds = 500;
+        private readonly LevelOneTargetDiagnostics levelOneDiagnostics = new LevelOneTargetDiagnostics();
+        private readonly List<int> remainingTargetCells = new List<int>();
+        private readonly int[] plannedDirections = new int[8];
+        private DispatcherTimer targetDelayTimer;
+        private int targetCell = -1;
+        private int targetDirection = -1;
+        private DateTimeOffset targetShownAt, targetLastSampleAt;
+        private double? targetArrivalSeconds;
+        private bool targetTrialInterrupted;
+        private int targetMisses;
+        private bool backOnRight;
         private readonly Random placementRandom = new Random();
         private readonly TrainingProgress trainingProgress = new TrainingProgress();
         private readonly TrainingReport trainingReport = new TrainingReport();
@@ -82,12 +106,12 @@ namespace EyeGazeApiViability
         {
             new[]
             {
-                "Target acquisition time|Average time from target appearance to first valid arrival",
-                "Target selection time|Average time from target appearance to completed selection",
-                "Acquisition success rate|Successful arrivals divided by comparable target attempts",
-                "Directional access|Left, right, up, down and diagonal success and latency",
-                "Spatial reach and edges|Screen coverage, corners, edges and difficult regions",
-                "Target precision|Gaze offset from intended target center and trial count"
+                "Target acquisition time|Median time to first assisted hit; excludes the required dwell",
+                "Target precision|Mean raw settled center-accuracy score",
+                "Target stability|Median raw settled RMS gaze spread (estimated mm)",
+                "First-attempt success|Selected on first qualifying hold; tracking gaps excluded",
+                "Directional control|Mean first-hold success across measured directions",
+                "Spatial reach|Unique full-screen map cells selected out of 35"
             },
             new[]
             {
@@ -1079,7 +1103,11 @@ namespace EyeGazeApiViability
             if (currentScreen == AppScreen.LevelZero && screen != AppScreen.LevelZero)
                 StopLevelZero();
             // Navigating away from the celebration must not fire a stale transition.
-            if (screen != AppScreen.Lesson) CancelBonusTransition();
+            if (screen != AppScreen.Lesson)
+            {
+                CancelTargetDelay();
+                CancelBonusTransition();
+            }
             if (screen != AppScreen.Bonus) CancelBonusQuestionTimer();
             lessonIntroActive = screen == AppScreen.Lesson && lessonIntroActive;
             bonusIntroActive = screen == AppScreen.Bonus && bonusIntroActive;
@@ -1147,6 +1175,7 @@ namespace EyeGazeApiViability
                     !directTrackingInterrupted && (now - lastValidGazeSampleAt).TotalSeconds > 2)
                 {
                     directTrackingInterrupted = true;
+                    if (currentScreen == AppScreen.Lesson && targetCell >= 0) targetTrialInterrupted = true;
                     cursorFilter.Reset();
                     targetMeasurement.CancelHold();
                     bonusButtonMeasurement.CancelHold();
@@ -1393,6 +1422,7 @@ namespace EyeGazeApiViability
                 var status = new TextBlock
                 {
                     Text = "NOT YET RECORDED",
+                    TextWrapping = TextWrapping.Wrap,
                     Foreground = new SolidColorBrush(
                         Color.FromArgb(255, 174, 200, 230)),
                     FontSize = 13,
@@ -1437,6 +1467,12 @@ namespace EyeGazeApiViability
                 skillMetricValues[i].Text = "NA";
                 skillMetricValues[i].FontSize = 30;
                 skillMetricStatuses[i].Text = "NOT YET RECORDED";
+                if (category == 0)
+                {
+                    skillMetricValues[i].Text = levelOneDiagnostics.Latest(i);
+                    skillMetricStatuses[i].Text = levelOneDiagnostics.Summary(i);
+                    if (i == 4) skillMetricDetails[i].Text += "\n" + levelOneDiagnostics.Directions();
+                }
             }
             for (int i = 0; i < skillCategoryButtons.Length; i++)
                 skillCategoryButtons[i].Style = (Style)Resources[
@@ -1572,7 +1608,7 @@ namespace EyeGazeApiViability
                             LevelZeroMetricValue(2), LevelZeroMetricValue(3),
                             LevelZeroMetricValue(4), LevelZeroMetricValue(5) },
                     Enumerable.Range(0, 6).Select(LevelZeroExtraValue).ToArray(),
-                    LastLevelZeroSessions(100));
+                    LastLevelZeroSessions(100), levelOneDiagnostics);
 
                 string name = "EyeGazeTrainer_TherapistReport_" +
                     now.ToString("yyyyMMdd_HHmmss") + ".txt";
@@ -1639,7 +1675,7 @@ namespace EyeGazeApiViability
         {
             if (stopping || exitRequested || currentScreen != AppScreen.Levels) return;
             // A completed level stays selectable. Replay resets only the
-            // current ten-target session, never the persisted completion flag.
+            // current 35-target session, never the persisted completion flag.
             ShowScreen(AppScreen.Lesson);
             lessonIntroActive = true;
             ResetLesson();
@@ -1661,9 +1697,7 @@ namespace EyeGazeApiViability
                 lessonIntroActive = false;
                 LessonIntroOverlay.Visibility = Visibility.Collapsed;
                 LessonBackButton.Visibility = Visibility.Visible;
-                if (targetIndex >= 0)
-                    targetMeasurement.BeginTarget(DateTimeOffset.UtcNow);
-                RepositionTarget();
+                PresentNextTarget();
             });
         }
 
@@ -1918,7 +1952,7 @@ namespace EyeGazeApiViability
         private void ProcessPosition(Point p, Point rawPoint, bool mouseClick = false)
         {
             if (completed || exitRequested || stopping ||
-                currentScreen != AppScreen.Lesson || lessonIntroActive) return;
+                currentScreen != AppScreen.Lesson || lessonIntroActive || targetDelayTimer != null) return;
 
             if (TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
                 TrainingCanvas.ActualHeight < TargetDiameter + 24 ||
@@ -1933,17 +1967,27 @@ namespace EyeGazeApiViability
             }
 
             DateTimeOffset now = DateTimeOffset.UtcNow;
-            if (targetIndex < 0)
+            if (targetIndex < 0 || targetCell < 0)
             {
-                targetIndex = 0;
-                PickRandomTarget();
-                targetMeasurement.BeginTarget(now);
+                PresentNextTarget();
                 return;
             }
 
             Point center = TargetCenter();
             bool inRing = AdaptiveHitTesting.ContainsCircle(
                 p, center, TargetDiameter, gazeProfile.HitBoxScale);
+            if (live && !mouseOnlyFallback)
+            {
+                // Do not treat a tracker/sample gap as a failed deliberate hold.
+                if ((now - targetLastSampleAt).TotalMilliseconds > 300)
+                {
+                    targetTrialInterrupted = true;
+                    targetMeasurement.CancelHold();
+                }
+                targetLastSampleAt = now;
+                if (inRing && !targetArrivalSeconds.HasValue)
+                    targetArrivalSeconds = Math.Max(0, (now - targetShownAt).TotalSeconds);
+            }
             if (!inRing)
             {
                 RecordInterruptedTargetDwell(now);
@@ -1962,6 +2006,15 @@ namespace EyeGazeApiViability
             {
                 TargetPerformance result = targetMeasurement.Measure(
                     center, TargetDiameter * 0.5, now);
+                if (!mouseOnlyFallback && (Application.Current as App)?.IsolationMode == null)
+                {
+                    double? jitterMm = result.JitterViewUnits.HasValue && displayScale != null
+                        ? (double?)displayScale.ToMillimeters(result.JitterViewUnits.Value) : null;
+                    levelOneDiagnostics.RecordTarget(targetCell, targetDirection,
+                        targetTrialInterrupted ? null : targetArrivalSeconds,
+                        !targetTrialInterrupted && targetArrivalSeconds.HasValue,
+                        targetMisses == 0, result, jitterMm);
+                }
                 gazeProfile.RecordTargetPerformance(result, 1);
                 dwellRecommendation.RecordCompletedHold();
                 trainingReport.RecordOverall(gazeProfile.AccuracyScore);
@@ -1989,15 +2042,16 @@ namespace EyeGazeApiViability
                 {
                     trainingProgress.MarkCompleted(1);
                     trainingReport.RecordCompletedRun();
+                    if (!mouseOnlyFallback && (Application.Current as App)?.IsolationMode == null)
+                        levelOneDiagnostics.CompleteRound();
                 }
-                Trace("Level 1 completed: ten targets; source=" +
+                Trace("Level 1 completed: 35 targets; source=" +
                       (live ? "live gaze" : "mouse"));
                 UpdateLevelBadges();
                 BeginBonusTransition();
                 return;
             }
-            PickRandomTarget();
-            targetMeasurement.BeginTarget(now);
+            ScheduleNextTarget();
         }
 
         // Celebrate on the lesson's existing black background, then enter the
@@ -2147,7 +2201,7 @@ namespace EyeGazeApiViability
 
             // Accuracy measures successful gaze-button selection, not factual
             // knowledge. Incorrect trivia answers do NOT lower or raise it.
-            if (right && gazeActivated && live)
+            if (gazeActivated && live && !mouseOnlyFallback)
             {
                 try
                 {
@@ -2160,14 +2214,25 @@ namespace EyeGazeApiViability
                     TargetPerformance performance =
                         bonusButtonMeasurement.Measure(center, radius,
                                                        DateTimeOffset.UtcNow);
-                    gazeProfile.RecordTargetPerformance(performance, 1);
-                    trainingReport.RecordOverall(gazeProfile.AccuracyScore);
-                    trainingReport.RecordAccuracy(performance.Precision);
-                    spatialAccuracy.Record(center, RootLayout.ActualWidth,
-                                           RootLayout.ActualHeight, performance.Overall);
-                    RecordMeasuredJitter(center, performance);
-                    ApplyAdaptiveSmoothingAndRecord();
-                    UpdateAccuracyDisplay();
+                    // Transfer observations include both factual outcomes, but
+                    // remain separate from the comparable circular-target metrics.
+                    if ((Application.Current as App)?.IsolationMode == null)
+                        levelOneDiagnostics.RecordBonus(performance,
+                            performance.JitterViewUnits.HasValue && displayScale != null
+                            ? (double?)displayScale.ToMillimeters(performance.JitterViewUnits.Value) : null);
+                    // Preserve the original adaptive-scoring rule: wrong quiz
+                    // answers are neutral. The new transfer measurement is not.
+                    if (right)
+                    {
+                        gazeProfile.RecordTargetPerformance(performance, 1);
+                        trainingReport.RecordOverall(gazeProfile.AccuracyScore);
+                        trainingReport.RecordAccuracy(performance.Precision);
+                        spatialAccuracy.Record(center, RootLayout.ActualWidth,
+                                               RootLayout.ActualHeight, performance.Overall);
+                        RecordMeasuredJitter(center, performance);
+                        ApplyAdaptiveSmoothingAndRecord();
+                        UpdateAccuracyDisplay();
+                    }
                 }
                 catch (InvalidOperationException)
                 {
@@ -2266,13 +2331,22 @@ namespace EyeGazeApiViability
         private void RecordInterruptedTargetDwell(DateTimeOffset now)
         {
             if (!live || completed || currentScreen != AppScreen.Lesson ||
-                targetIndex < 0)
+                targetIndex < 0 || targetCell < 0 || targetDelayTimer != null || lessonIntroActive)
             {
+                targetMeasurement.CancelHold();
+                return;
+            }
+            // Out-of-view samples also end a hold. Gaps are not scored as
+            // misses and invalidate the comparable acquisition observation.
+            if ((now - targetLastSampleAt).TotalMilliseconds > 300)
+            {
+                targetTrialInterrupted = true;
                 targetMeasurement.CancelHold();
                 return;
             }
             if (targetMeasurement.CancelIncompleteHold(now))
             {
+                targetMisses++;
                 gazeProfile.RecordIncompleteTargetDwell(1);
                 dwellRecommendation.RecordInterruptedHold();
                 if (gazeProfile.Acquisitions > 0)
@@ -2292,10 +2366,17 @@ namespace EyeGazeApiViability
         // Reset target practice state for a new run.
         private void ResetLesson()
         {
+            CancelTargetDelay();
             CancelBonusTransition();
             targetIndex = -1;
+            targetCell = -1;
             completed = false;
             hasPreviousTargetPosition = false;
+            remainingTargetCells.Clear();
+            remainingTargetCells.AddRange(Enumerable.Range(0, TargetsPerLevel));
+            Array.Clear(plannedDirections, 0, plannedDirections.Length);
+            levelOneDiagnostics.BeginRound();
+            SetLessonBackPosition(false);
             targetMeasurement.CancelHold();
             TargetRing.StrokeThickness = 8;
             HideTargetDwellVisual();
@@ -2303,13 +2384,7 @@ namespace EyeGazeApiViability
             TargetBullseye.Visibility = Visibility.Collapsed;
             cursorFilter.Reset();
             ApplyAdaptiveSmoothingAndRecord();
-            if (TrainingCanvas.ActualWidth >= TargetDiameter + 24 &&
-                TrainingCanvas.ActualHeight >= TargetDiameter + 24)
-            {
-                targetIndex = 0;
-                PickRandomTarget();
-                targetMeasurement.BeginTarget(DateTimeOffset.UtcNow);
-            }
+            // The first trial is started only after the intro is dismissed.
         }
 
         // Refresh the displayed training performance values.
@@ -2322,79 +2397,146 @@ namespace EyeGazeApiViability
                 : "ACCURACY " + Math.Round(gazeProfile.AccuracyScore) + "%";
         }
 
-        // Keep the whole 55 mm target and radial wheel well inside the
-        // screen edges. Scale the extra inset with screen size, allowing
-        // smaller tablet screens without forcing an impossible layout.
-        // Calculate the margin that keeps target centers within usable practice bounds.
-        private double TargetCenterMargin()
-        {
-            double smaller = Math.Min(TrainingCanvas.ActualWidth,
-                                      TrainingCanvas.ActualHeight);
-            double clearSpace = Math.Max(36, Math.Min(72, smaller * 0.10));
-            return Math.Min(smaller / 2 - 2,
-                TargetDiameter * 0.5 + clearSpace);
-        }
-
-        // Return the current target's center in training coordinates.
+        // Grid placement and pacing ===
+        // Map each target center to the actual full-screen 7 x 5 grid.
+        // Edge cells retain a fully visible circle and radial wheel, even when
+        // the original wide edge inset must be reduced to reach their centers.
         private Point TargetCenter()
         {
-            double margin = TargetCenterMargin();
-            return new Point(
-                margin + Math.Max(0, TrainingCanvas.ActualWidth - margin * 2) * targetPosition.X,
-                margin + Math.Max(0, TrainingCanvas.ActualHeight - margin * 2) * targetPosition.Y);
+            double w = TrainingCanvas.ActualWidth, h = TrainingCanvas.ActualHeight;
+            int row = Math.Max(0, targetCell) / SpatialAccuracyMap.Columns;
+            int col = Math.Max(0, targetCell) % SpatialAccuracyMap.Columns;
+            double cw = w / SpatialAccuracyMap.Columns, ch = h / SpatialAccuracyMap.Rows;
+            double inset = Math.Max(TargetDiameter * 0.5 + 4, Math.Min(46, Math.Min(cw, ch) - 4));
+            double left = Math.Max(inset, col * cw + 1);
+            double right = Math.Min(w - inset, (col + 1) * cw - 1);
+            double top = Math.Max(inset, row * ch + 1);
+            double bottom = Math.Min(h - inset, (row + 1) * ch - 1);
+            return new Point(Clamp(targetPosition.X * w, left, Math.Max(left, right)),
+                Clamp(targetPosition.Y * h, top, Math.Max(top, bottom)));
         }
 
-        // Choose the next target position within the supported practice area.
+        // Classify the intended center-to-center displacement in view units.
+        // Index order matches the persisted diagnostic: R, DR, D, DL, L, UL, U, UR.
+        private int DirectionTo(Point from, Point to)
+        {
+            double dx = (to.X - from.X) * TrainingCanvas.ActualWidth;
+            double dy = (to.Y - from.Y) * TrainingCanvas.ActualHeight;
+            if (Math.Abs(dx) + Math.Abs(dy) < .001) return -1;
+            return ((int)Math.Round(Math.Atan2(dy, dx) / (Math.PI / 4)) + 8) % 8;
+        }
+
+        // Sample only unvisited cells; favor underrepresented directions and
+        // meaningful travel distances, but randomize ties and within-cell points.
         private void PickRandomTarget()
         {
-            if (TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
-                TrainingCanvas.ActualHeight < TargetDiameter + 24) return;
-
-            double margin = TargetCenterMargin();
-            Point chosen = new Point(0.5, 0.5);
-            Point candidate = chosen;
-            double bestDistance = double.MinValue;
-
-            // Keep clear of the gaze-accessible BACK control, and favor
-            // visibly different placements for consecutive acquisitions.
-            Point backOrigin = LessonBackButton.TransformToVisual(TrainingCanvas)
-                                                .TransformPoint(new Point(0, 0));
-            double backRight = backOrigin.X + LessonBackButton.ActualWidth + 20;
-            double backBottom = backOrigin.Y + LessonBackButton.ActualHeight + 20;
-
-            for (int attempt = 0; attempt < 90; attempt++)
+            if (remainingTargetCells.Count == 0) return;
+            int chosen = remainingTargetCells[0], bestDirection = -1;
+            Point chosenPoint = new Point();
+            double best = double.NegativeInfinity;
+            foreach (int cell in remainingTargetCells)
             {
-                candidate = new Point(placementRandom.NextDouble(),
-                                      placementRandom.NextDouble());
-                Point center = new Point(
-                    margin + Math.Max(0, TrainingCanvas.ActualWidth - margin * 2) * candidate.X,
-                    margin + Math.Max(0, TrainingCanvas.ActualHeight - margin * 2) * candidate.Y);
-                double visualRadius = TargetDiameter * 0.5 + 46;
-                bool overlapsBack = center.X - visualRadius < backRight &&
-                                    center.Y - visualRadius < backBottom;
-                double distance = hasPreviousTargetPosition
-                    ? Math.Sqrt(Math.Pow(candidate.X - previousTargetPosition.X, 2) +
-                                Math.Pow(candidate.Y - previousTargetPosition.Y, 2))
-                    : 1;
-                if (!overlapsBack && distance > bestDistance)
+                int row = cell / SpatialAccuracyMap.Columns, col = cell % SpatialAccuracyMap.Columns;
+                Point candidate = new Point((col + .2 + .6 * placementRandom.NextDouble()) / SpatialAccuracyMap.Columns,
+                    (row + .2 + .6 * placementRandom.NextDouble()) / SpatialAccuracyMap.Rows);
+                int direction = hasPreviousTargetPosition ? DirectionTo(previousTargetPosition, candidate) : -1;
+                double dx = candidate.X - previousTargetPosition.X, dy = candidate.Y - previousTargetPosition.Y;
+                double score = placementRandom.NextDouble();
+                if (direction >= 0) score += -4 * plannedDirections[direction] + Math.Sqrt(dx * dx + dy * dy);
+                if (score > best)
                 {
-                    bestDistance = distance;
-                    chosen = candidate;
+                    best = score; chosen = cell; chosenPoint = candidate; bestDirection = direction;
                 }
-                if (!overlapsBack && distance >= 0.28) break;
             }
-
-            targetPosition = chosen;
-            previousTargetPosition = chosen;
+            targetCell = chosen;
+            remainingTargetCells.Remove(chosen);
+            targetPosition = chosenPoint;
+            // Use actual clamped target centers for directional diagnostics.
+            Point actual = TargetCenter();
+            Point normalized = new Point(actual.X / TrainingCanvas.ActualWidth, actual.Y / TrainingCanvas.ActualHeight);
+            targetDirection = hasPreviousTargetPosition ? DirectionTo(previousTargetPosition, normalized) : -1;
+            if (targetDirection >= 0) plannedDirections[targetDirection]++;
+            previousTargetPosition = normalized;
             hasPreviousTargetPosition = true;
+        }
+
+        // Keep Back accessible without covering an upper-left grid target.
+        // Move it to the opposite side only when the target overlaps its zone.
+        // Re-arm gaze after relocation to prevent an accidental navigation.
+        private void SetLessonBackPosition(bool right)
+        {
+            if (backOnRight == right) return;
+            backOnRight = right;
+            LessonBackButton.HorizontalAlignment = right ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+            LessonBackButton.Margin = right ? new Thickness(0, 16, 20, 0) : new Thickness(20, 16, 0, 0);
+            gazeButtonBounds.Clear();
+            gazeControlTarget = null;
+            gazeControlTriggered = false;
+            buttonDwellWheel.Hide();
+            requireLookAwayAfterNavigation = live;
+            lastActivatedGazePosition = mostRecentRawGazePosition;
+        }
+
+        // Start timing only when the actual target is revealed, never during
+        // the introduction, blank interval, or previous target's dwell.
+        private void PresentNextTarget()
+        {
+            if (stopping || exitRequested || completed || lessonIntroActive ||
+                currentScreen != AppScreen.Lesson || remainingTargetCells.Count == 0 ||
+                TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
+                TrainingCanvas.ActualHeight < TargetDiameter + 24) return;
+            if (targetIndex < 0) targetIndex = 0;
+            PickRandomTarget();
+            Point center = TargetCenter();
+            double radius = Math.Max(TargetDiameter * .5, 46);
+            double backWidth = Math.Max(LessonBackButton.ActualWidth, LessonBackButton.MinWidth);
+            double backHeight = Math.Max(LessonBackButton.ActualHeight, LessonBackButton.MinHeight);
+            bool topOverlap = center.Y - radius < backHeight + 20;
+            bool leftOverlap = center.X - radius < backWidth + 24;
+            SetLessonBackPosition(topOverlap && leftOverlap);
+            targetShownAt = targetLastSampleAt = DateTimeOffset.UtcNow;
+            targetArrivalSeconds = null;
+            targetTrialInterrupted = false;
+            targetMisses = 0;
+            targetMeasurement.BeginTarget(targetShownAt);
             RepositionTarget();
+        }
+
+        // Hide both visuals and clear the hold for exactly one independent
+        // 500 ms UI timer interval; gaze samples cannot select a hidden target.
+        private void ScheduleNextTarget()
+        {
+            CancelTargetDelay();
+            targetCell = -1;
+            targetMeasurement.CancelHold();
+            TargetRing.Visibility = Visibility.Collapsed;
+            TargetBullseye.Visibility = Visibility.Collapsed;
+            HideTargetDwellVisual();
+            targetDelayTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(InterTargetDelayMilliseconds) };
+            targetDelayTimer.Tick += OnTargetDelayElapsed;
+            targetDelayTimer.Start();
+        }
+
+        private void OnTargetDelayElapsed(object sender, object args)
+        {
+            CancelTargetDelay();
+            PresentNextTarget();
+        }
+
+        // Cancel delayed presentation on navigation, replay or shutdown.
+        private void CancelTargetDelay()
+        {
+            if (targetDelayTimer == null) return;
+            targetDelayTimer.Stop();
+            targetDelayTimer.Tick -= OnTargetDelayElapsed;
+            targetDelayTimer = null;
         }
 
         // Apply the current target position to its visual controls.
         private void RepositionTarget()
         {
-            if (currentScreen != AppScreen.Lesson || targetIndex < 0 ||
-                lessonIntroActive || completed || TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
+            if (currentScreen != AppScreen.Lesson || targetIndex < 0 || targetCell < 0 ||
+                targetDelayTimer != null || lessonIntroActive || completed || TrainingCanvas.ActualWidth < TargetDiameter + 24 ||
                 TrainingCanvas.ActualHeight < TargetDiameter + 24)
             {
                 TargetRing.Visibility = Visibility.Collapsed;
@@ -2404,6 +2546,7 @@ namespace EyeGazeApiViability
             }
 
             Point center = TargetCenter();
+            TargetRing.Width = TargetRing.Height = TargetDiameter;
             Canvas.SetLeft(TargetRing, center.X - TargetDiameter / 2);
             Canvas.SetTop(TargetRing, center.Y - TargetDiameter / 2);
             Canvas.SetLeft(TargetBullseye, center.X - bullseyeDiameter / 2);
@@ -2479,6 +2622,7 @@ namespace EyeGazeApiViability
             DismissNoTrackerNotice();
             StopLevelZero();
             Trace("END stop Level 0; BEGIN stop practice and bonus timers");
+            CancelTargetDelay();
             HideTherapistExportConfirmation();
             if (practiceTimer != null)
             {
@@ -2670,6 +2814,7 @@ namespace EyeGazeApiViability
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             StopIsolationTimer();
+            CancelTargetDelay();
             Trace("BEGIN OnNavigatedFrom");
             // Navigation follows staged gaze release; make the Windows arrow
             // available again on the gaze-free closing page and desktop.
