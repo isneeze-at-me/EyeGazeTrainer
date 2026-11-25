@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     EyeGazeTrainer
+     File: OverlayCompanion/OverlayCompanion.csproj
+     Purpose: Defines the separately compiled .NET Framework desktop helper packaged with the UWP application.
+     ============================================================================ -->
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -15,11 +20,13 @@
     <PlatformTarget>x64</PlatformTarget>
     <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
+  <!-- Debug helper configuration === -->
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
   </PropertyGroup>
+  <!-- Release helper configuration === -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
