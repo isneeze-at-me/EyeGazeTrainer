@@ -1109,6 +1109,7 @@ namespace EyeGazeApiViability
                 CancelBonusTransition();
             }
             if (screen != AppScreen.Bonus) CancelBonusQuestionTimer();
+            if (screen != AppScreen.Lesson) TargetCountdown.Visibility = Visibility.Collapsed;
             lessonIntroActive = screen == AppScreen.Lesson && lessonIntroActive;
             bonusIntroActive = screen == AppScreen.Bonus && bonusIntroActive;
             if (screen != AppScreen.Lesson) LessonIntroOverlay.Visibility = Visibility.Collapsed;
@@ -1686,6 +1687,7 @@ namespace EyeGazeApiViability
         private void BeginLessonIntro()
         {
             LessonIntroOverlay.Visibility = Visibility.Visible;
+            TargetCountdown.Visibility = Visibility.Collapsed;
             LessonBackButton.Visibility = Visibility.Collapsed;
             TargetRing.Visibility = Visibility.Collapsed;
             TargetBullseye.Visibility = Visibility.Collapsed;
@@ -2033,6 +2035,7 @@ namespace EyeGazeApiViability
             }
 
             targetIndex++;
+            UpdateTargetCountdown();
             if (targetIndex >= TargetsPerLevel)
             {
                 completed = true;
@@ -2066,6 +2069,7 @@ namespace EyeGazeApiViability
             HideTargetDwellVisual();
             buttonDwellWheel.Hide();
             CompletionOverlay.Visibility = Visibility.Visible;
+            TargetCountdown.Visibility = Visibility.Collapsed;
             LessonBackButton.Visibility = Visibility.Collapsed;
             bonusTransitionTimer = new DispatcherTimer
             {
@@ -2377,6 +2381,10 @@ namespace EyeGazeApiViability
             Array.Clear(plannedDirections, 0, plannedDirections.Length);
             levelOneDiagnostics.BeginRound();
             SetLessonBackPosition(false);
+            TargetCountdown.HorizontalAlignment = HorizontalAlignment.Left;
+            TargetCountdown.Margin = new Thickness(20, 0, 0, 16);
+            TargetCountdown.Visibility = Visibility.Collapsed;
+            UpdateTargetCountdown();
             targetMeasurement.CancelHold();
             TargetRing.StrokeThickness = 8;
             HideTargetDwellVisual();
@@ -2532,6 +2540,30 @@ namespace EyeGazeApiViability
             targetDelayTimer = null;
         }
 
+        // Remaining-target count decreases only after a successful selection.
+        // The visual stays visible through the 500 ms inter-target pause.
+        private void UpdateTargetCountdown()
+        {
+            int remaining = Math.Max(0, TargetsPerLevel - Math.Max(0, targetIndex));
+            TargetCountdownText.Text = remaining + " remaining";
+        }
+
+        // Keep the noninteractive countdown away from the target and radial
+        // wheel, using the opposite bottom corner whenever necessary.
+        private void PositionTargetCountdown(Point center)
+        {
+            const double marginX = 20, marginY = 16;
+            double clearance = Math.Max(TargetDiameter * .5, 46) + 8;
+            double width = TargetCountdown.Width, height = TargetCountdown.Height;
+            bool right = center.X - clearance < marginX + width &&
+                center.X + clearance > marginX &&
+                center.Y + clearance > TrainingCanvas.ActualHeight - marginY - height;
+            TargetCountdown.HorizontalAlignment = right ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+            TargetCountdown.Margin = right ? new Thickness(0, 0, marginX, marginY) : new Thickness(marginX, 0, 0, marginY);
+            UpdateTargetCountdown();
+            TargetCountdown.Visibility = Visibility.Visible;
+        }
+
         // Apply the current target position to its visual controls.
         private void RepositionTarget()
         {
@@ -2546,6 +2578,7 @@ namespace EyeGazeApiViability
             }
 
             Point center = TargetCenter();
+            PositionTargetCountdown(center);
             TargetRing.Width = TargetRing.Height = TargetDiameter;
             Canvas.SetLeft(TargetRing, center.X - TargetDiameter / 2);
             Canvas.SetTop(TargetRing, center.Y - TargetDiameter / 2);
