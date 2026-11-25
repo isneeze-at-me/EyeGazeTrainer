@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: App.xaml.cs
+// Purpose: Owns UWP activation, diagnostic session identity, packaged overlay coordination and lifecycle tracing.
+// ============================================================================
+
 using System;
 using System.IO;
 using Windows.ApplicationModel;
@@ -20,11 +26,13 @@ namespace EyeGazeApiViability
         private const string OverlaySessionFile = "overlay-session.txt";
         private static string ShutdownSessionId = NewSessionId();
 
+        // Generate a unique timestamped identifier for correlating trainer and companion shutdown traces.
         private static string NewSessionId()
         {
             return DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + "-" + Guid.NewGuid().ToString("N").Substring(0, 8);
         }
 
+        // Initialize application resources and register lifecycle observers.
         public App()
         {
             InitializeComponent();
@@ -33,6 +41,7 @@ namespace EyeGazeApiViability
             Resuming += (s, e) => TraceLifecycle("Application.Resuming");
         }
 
+        // Create or reuse the normal application view and request full-screen training.
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
             var frame = Window.Current.Content as Frame;
@@ -98,6 +107,7 @@ namespace EyeGazeApiViability
 
         // The helper operates on this app's own foreground window, not the
         // gaze APIs or TD Control. Never delay or fail gaze startup if absent.
+        // Launch the packaged full-trust helper once per eligible gaze session; isolation modes can suppress it.
         internal async void TryStartOverlayCompanion()
         {
             if (IsolationMode != null && IsolationMode != "C") { TraceLifecycle("ISOLATION " + IsolationMode + ": companion intentionally skipped"); return; }
@@ -121,6 +131,7 @@ namespace EyeGazeApiViability
             finally { overlayHelperLaunchFinished = true; }
         }
 
+        // Request verified restoration of the trainer window style before closing the view; bound the acknowledgement wait.
         internal async System.Threading.Tasks.Task RequestOverlayRestorationAsync()
         {
             if (!overlayHelperLaunchAttempted)
@@ -169,6 +180,7 @@ namespace EyeGazeApiViability
             }
         }
 
+        // Handle explicit shutdown-isolation protocol activation separately from normal training.
         protected override void OnActivated(IActivatedEventArgs args)
         {
             if (args.Kind != ActivationKind.Protocol)
@@ -233,17 +245,20 @@ namespace EyeGazeApiViability
             TraceLifecycle("ISOLATION " + mode + " activated");
         }
 
+        // Record visibility transitions for external shutdown correlation.
         private void OnVisibilityChanged(object sender,
             Windows.UI.Core.VisibilityChangedEventArgs e)
         {
             TraceLifecycle("Window.VisibilityChanged visible=" + e.Visible);
         }
 
+        // Record the Windows view closure notification.
         private void OnWindowClosed(object sender, Windows.UI.Core.CoreWindowEventArgs e)
         {
             TraceLifecycle("Window.Closed");
         }
 
+        // Append timestamped diagnostic messages to the per-session lifecycle log.
         internal static void TraceLifecycle(string message)
         {
             try
