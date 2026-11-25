@@ -1,3 +1,9 @@
+// ============================================================================
+// EyeGazeTrainer
+// File: TriviaQuestionBank.cs
+// Purpose: Loads the packaged true/false question bank and maintains persistent no-repeat deck history.
+// ============================================================================
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,6 +40,7 @@ namespace EyeGazeApiViability
         private int roundFalse;
         private bool loaded;
 
+        // Load and validate all packaged questions before making the deck available.
         public async Task LoadAsync()
         {
             if (loaded) return;
@@ -78,6 +85,7 @@ namespace EyeGazeApiViability
             loaded = true;
         }
 
+        // Reset per-round topic, fact-group and answer-balance state without clearing deck history.
         public void BeginRound()
         {
             roundGroups.Clear();
@@ -86,6 +94,7 @@ namespace EyeGazeApiViability
             roundFalse = 0;
         }
 
+        // Select an unused question, preferring topic variety and answer balance, and persist its ID.
         public TriviaQuestion Draw()
         {
             if (!loaded) throw new InvalidOperationException("Load trivia before drawing.");
