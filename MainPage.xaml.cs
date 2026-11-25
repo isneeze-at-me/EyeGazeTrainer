@@ -13,7 +13,7 @@ namespace EyeGazeApiViability
     public sealed partial class MainPage : Page
     {
         private bool exitScheduled;
-        private bool foregroundHandoff;
+        private bool nativeCloseExperiment;
         private DispatcherTimer exitTimer;
 
         public MainPage()
@@ -40,7 +40,7 @@ namespace EyeGazeApiViability
                 // The gaze-enabled page has already completed cleanup and
                 // companion restoration. Leave immersive mode separately from
                 // window destruction, retaining the existing two-second timer.
-                foregroundHandoff = afterGazeCleanup;
+                nativeCloseExperiment = afterGazeCleanup;
                 if (afterGazeCleanup) LeaveFullScreenForExit();
                 ScheduleExit(hardwareFreeExitTest
                     ? "HARDWARE FREE: no gaze APIs opened"
@@ -92,10 +92,26 @@ namespace EyeGazeApiViability
                     ApplicationView.GetForCurrentView().IsFullScreenMode);
             }
             catch (Exception ex) { LogLifecycle("Full-screen status unavailable: " + ex.Message); }
-            if (foregroundHandoff)
+            if (nativeCloseExperiment)
             {
-                var app = Application.Current as App;
-                if (app != null) await app.RequestForegroundHandoffAsync();
+                // Supported UWP equivalent of the user closing the view.
+                // Keep normal process termination as a fallback if still running.
+                try
+                {
+                    LogLifecycle("BEGIN native view close (TryConsolidateAsync)");
+                    var operation = ApplicationView.GetForCurrentView().TryConsolidateAsync();
+                    var closeTask = System.WindowsRuntimeSystemExtensions.AsTask(operation);
+                    var finished = await System.Threading.Tasks.Task.WhenAny(closeTask,
+                        System.Threading.Tasks.Task.Delay(1500));
+                    if (finished == closeTask)
+                        LogLifecycle("END native view close; accepted=" + await closeTask);
+                    else
+                        LogLifecycle("Native view close timed out; continuing termination");
+                }
+                catch (Exception ex)
+                {
+                    LogLifecycle("Native view close failed; continuing termination: " + ex);
+                }
             }
             LogLifecycle("CALL Application.Current.Exit() from gaze-free closing page");
             Application.Current.Exit();
