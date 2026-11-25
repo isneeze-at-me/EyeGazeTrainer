@@ -2330,6 +2330,30 @@ namespace EyeGazeApiViability
                 return;
             }
             ScheduleNextTarget();
+            SpeakTargetMilestone(targetIndex);
+        }
+
+        // Short, audio-only encouragement at each ten-target milestone.
+        // Narration runs alongside practice; it does not delay the 500 ms
+        // target interval, change scoring, or display instructional text.
+        private void SpeakTargetMilestone(int selectedCount)
+        {
+            string encouragement;
+            switch (selectedCount)
+            {
+                case 10:
+                    encouragement = "Great start! Keep going at your own pace.";
+                    break;
+                case 20:
+                    encouragement = "You're making great progress. Every target is another opportunity to build control.";
+                    break;
+                case 30:
+                    encouragement = "Excellent effort! Just five targets to go. You've got this!";
+                    break;
+                default:
+                    return;
+            }
+            _ = NarrateLessonAsync(encouragement, AppScreen.Lesson, null);
         }
 
         // Celebrate on the lesson's existing black background, then enter the
@@ -2555,8 +2579,10 @@ namespace EyeGazeApiViability
             BonusProgressText.Text = "BONUS ROUND COMPLETE!";
             BonusFactText.Text = "";
             BonusFinalText.Text = triviaCorrect + " OUT OF " + triviaAnswered + " CORRECT!";
+            const string encouragement = "Great work completing Level One! Try the next level when available, or replay Level One for more practice. Every practice session helps build your eye-gaze skills.";
+            BonusFinalEncouragementText.Text = encouragement;
             _ = NarrateLessonAsync("Bonus round complete! " + triviaCorrect + " out of " +
-                triviaAnswered + " correct!", AppScreen.Bonus, () =>
+                triviaAnswered + " correct! " + encouragement, AppScreen.Bonus, () =>
             {
                 UpdateLevelBadges();
                 LevelsNoticeText.Text = "";
