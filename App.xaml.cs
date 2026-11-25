@@ -140,6 +140,31 @@ namespace EyeGazeApiViability
             }
         }
 
+        internal async System.Threading.Tasks.Task RequestForegroundHandoffAsync()
+        {
+            if (!overlayHelperLaunchAccepted) return;
+            try
+            {
+                string folder = ApplicationData.Current.LocalFolder.Path;
+                string request = Path.Combine(folder, "overlay-focus-" + ShutdownSessionId + ".request");
+                string ack = Path.Combine(folder, "overlay-focus-" + ShutdownSessionId + ".ack");
+                File.WriteAllText(request, ShutdownSessionId);
+                TraceLifecycle("FOREGROUND HANDOFF REQUESTED");
+                var elapsed = System.Diagnostics.Stopwatch.StartNew();
+                while (elapsed.ElapsedMilliseconds < 750)
+                {
+                    if (File.Exists(ack))
+                    {
+                        TraceLifecycle("FOREGROUND HANDOFF ACK: " + File.ReadAllText(ack).Trim());
+                        return;
+                    }
+                    await System.Threading.Tasks.Task.Delay(50);
+                }
+                TraceLifecycle("FOREGROUND HANDOFF TIMEOUT; continuing exit");
+            }
+            catch (Exception ex) { TraceLifecycle("FOREGROUND HANDOFF ERROR: " + ex.Message); }
+        }
+
         protected override void OnActivated(IActivatedEventArgs args)
         {
             if (args.Kind != ActivationKind.Protocol)
