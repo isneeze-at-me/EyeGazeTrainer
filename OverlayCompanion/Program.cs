@@ -18,92 +18,6 @@ namespace EyeGazeTrainer.OverlayCompanion
         private const int SwMaximize = 3;
         private static string restoreRequest;
         private static string restoreAck;
-        private static string focusRequest;
-        private static string focusAck;
-        private static IntPtr priorWindow;
-        private static uint priorPid;
-        private static string priorWindowReason = "candidate not read";
-        [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hwnd);
-        [DllImport("user32.dll")] private static extern bool IsIconic(IntPtr hwnd);
-        [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
-        [DllImport("dwmapi.dll")] private static extern int DwmGetWindowAttribute(IntPtr hwnd, int attribute, out int value, int size);
-
-        private static bool EligiblePriorWindow(IntPtr hwnd, uint pid)
-        {
-            if (hwnd == IntPtr.Zero || !IsWindow(hwnd) || !IsWindowVisible(hwnd) ||
-                IsIconic(hwnd) || IsTarget(hwnd)) return false;
-            uint actual;
-            GetWindowThreadProcessId(hwnd, out actual);
-            if (actual != pid || actual == 0) return false;
-            int cloaked;
-            if (DwmGetWindowAttribute(hwnd, 14, out cloaked, 4) != 0 || cloaked != 0) return false;
-            try
-            {
-                using (var process = Process.GetProcessById((int)actual))
-                {
-                    string n = process.ProcessName.ToLowerInvariant();
-                    return !n.Contains("tobii") && !n.Contains("dynavox") &&
-                        !n.Contains("tdcontrol") && !n.Contains("eyeassist") &&
-                        !n.Contains("eyegaze") && n != "explorer" &&
-                        n != "applicationframehost" && n != "startmenuexperiencehost" &&
-                        n != "shellexperiencehost" && n != "searchhost";
-                }
-            }
-            catch { return false; }
-        }
-
-        private static void ReadPriorWindow(string folder)
-        {
-            try
-            {
-                string path = Path.Combine(folder, "foreground-before-launch.txt");
-                if (!File.Exists(path)) { priorWindowReason = "candidate file missing"; Log("Prior foreground unavailable: " + priorWindowReason); return; }
-                double age = (DateTime.UtcNow - File.GetLastWriteTimeUtc(path)).TotalSeconds;
-                if (age > 15 || age < 0) { priorWindowReason = "candidate timestamp outside freshness window; ageSeconds=" + age; Log("Prior foreground unavailable: " + priorWindowReason); return; }
-                var parts = File.ReadAllText(path).Trim().Split('|');
-                long handle; uint pid;
-                if (parts.Length == 2 && long.TryParse(parts[0], out handle) &&
-                    uint.TryParse(parts[1], out pid) && EligiblePriorWindow(new IntPtr(handle), pid))
-                {
-                    priorWindow = new IntPtr(handle);
-                    priorPid = pid;
-                    priorWindowReason = "captured";
-                    Log("Prior foreground captured by monitor; hwnd=" + handle + "; pid=" + pid);
-                }
-                else { priorWindowReason = "candidate malformed or no longer eligible"; Log("Prior foreground unavailable: " + priorWindowReason); }
-                // Consume this candidate so it cannot be reused by a later launch.
-                try { File.Delete(path); } catch (Exception ex) { Log("Candidate removal failed: " + ex.Message); }
-            }
-            catch (Exception ex) { priorWindowReason = ex.Message; Log("Prior foreground unavailable: " + priorWindowReason); }
-        }
-
-        private static void CompleteForegroundHandoff()
-        {
-            // Style is already restored; this helper will never reapply it.
-            if (focusRequest == null || focusAck == null) return;
-            var wait = Stopwatch.StartNew();
-            while (wait.ElapsedMilliseconds < 6000 && !File.Exists(focusRequest)) Thread.Sleep(50);
-            if (!File.Exists(focusRequest)) { Log("Foreground request not received"); return; }
-            string result = "SKIPPED";
-            try
-            {
-                IntPtr current = GetForegroundWindow();
-                if (EligiblePriorWindow(priorWindow, priorPid) && IsTarget(current))
-                {
-                    bool accepted = SetForegroundWindow(priorWindow);
-                    Thread.Sleep(100);
-                    bool verified = GetForegroundWindow() == priorWindow;
-                    result = verified ? "VERIFIED" : "NOT_VERIFIED";
-                    Log("Foreground restore; accepted=" + accepted + "; verified=" + verified);
-                }
-                else if (priorWindow == IntPtr.Zero) Log("Foreground restore skipped: " + priorWindowReason);
-                else if (!EligiblePriorWindow(priorWindow, priorPid)) Log("Foreground restore skipped: captured window no longer eligible");
-                else Log("Foreground restore skipped: trainer no longer foreground; hwnd=" + current.ToInt64());
-            }
-            catch (Exception ex) { result = "FAILED"; Log("Foreground restore error: " + ex.Message); }
-            try { File.WriteAllText(focusAck, result); } catch (Exception ex) { Log("Foreground ack error: " + ex.Message); }
-        }
-
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         private static extern int GetCurrentPackageFamilyName(ref int length, StringBuilder name);
 
@@ -121,9 +35,7 @@ namespace EyeGazeTrainer.OverlayCompanion
                 if (session.Length == 0 || session.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) return;
                 restoreRequest = Path.Combine(folder, "overlay-restore-" + session + ".request");
                 restoreAck = Path.Combine(folder, "overlay-restore-" + session + ".ack");
-                focusRequest = Path.Combine(folder, "overlay-focus-" + session + ".request");
-                focusAck = Path.Combine(folder, "overlay-focus-" + session + ".ack");
-                ReadPriorWindow(folder);
+                // No previous application is activated in this experiment.
                 Log("Restore channel ready; session=" + session);
             }
             catch (Exception ex) { Log("Restore channel unavailable: " + ex); }
@@ -181,7 +93,7 @@ namespace EyeGazeTrainer.OverlayCompanion
         [STAThread]
         private static void Main()
         {
-            Log("Companion started");
+            Log("Companion started; build=2026-11-24-native-close-v1");
             InitializeRestoreChannel();
             IntPtr changed = IntPtr.Zero;
             IntPtr seen = IntPtr.Zero;
@@ -205,7 +117,7 @@ namespace EyeGazeTrainer.OverlayCompanion
                             changed = IntPtr.Zero;
                         }
                         AcknowledgeRestore(result);
-                        if (result != "FAILED") CompleteForegroundHandoff();
+                        Log("Automatic foreground activation disabled; Windows handles focus");
                         break;
                     }
                     IntPtr foreground = GetForegroundWindow();
