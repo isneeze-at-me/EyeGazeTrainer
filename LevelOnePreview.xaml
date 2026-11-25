@@ -846,12 +846,16 @@
                   <ScaleTransform x:Name="AnimatedExampleBarScale" ScaleX="1.8"/>
                 </Rectangle.RenderTransform>
               </Rectangle>
-              <Image Source="ms-appx:///Assets/PCEye5.png" Canvas.Left="20" Canvas.Top="200"
-                     Width="760" Height="228" Stretch="Uniform"/>
+              <Image x:Name="SettingsPceyeImage" Canvas.Left="20" Canvas.Top="200"
+                     Width="760" Height="228" Stretch="Uniform" Canvas.ZIndex="1">
+                <Image.Source>
+                  <BitmapImage UriSource="ms-appx:///Assets/PCEye5.png"/>
+                </Image.Source>
+              </Image>
               <!-- Pointer terminates at the central camera. -->
-              <Line X1="400" Y1="366" X2="400" Y2="319" Stroke="#E4F1FF" StrokeThickness="3"/>
-              <Polygon Points="392,331 400,317 408,331" Fill="#E4F1FF"/>
-              <TextBlock Canvas.Left="240" Canvas.Top="370" Width="320"
+              <Line Canvas.ZIndex="2" X1="400" Y1="366" X2="400" Y2="319" Stroke="#E4F1FF" StrokeThickness="3"/>
+              <Polygon Canvas.ZIndex="2" Points="392,331 400,317 408,331" Fill="#E4F1FF"/>
+              <TextBlock Canvas.ZIndex="2" Canvas.Left="240" Canvas.Top="370" Width="320"
                          Text="Center camera" FontSize="24" FontWeight="Bold"
                          TextAlignment="Center" Foreground="#E4F1FF"/>
             </Canvas>
