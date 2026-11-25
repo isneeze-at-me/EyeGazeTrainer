@@ -74,6 +74,24 @@ namespace EyeGazeApiViability
         private bool rawFirstHoldCompleted;
         private bool backOnRight;
         private readonly Random placementRandom = new Random();
+        private readonly Random encouragementRandom = new Random();
+        private readonly Dictionary<string, int> lastEncouragement = new Dictionary<string, int>();
+
+        // Draw a variant other than the previous one for this specific prompt.
+        // Separate random state avoids changing the target-placement sequence.
+        private string ChooseEncouragement(string key, params string[] options)
+        {
+            int last;
+            int index;
+            if (lastEncouragement.TryGetValue(key, out last) && options.Length > 1)
+            {
+                index = encouragementRandom.Next(options.Length - 1);
+                if (index >= last) index++;
+            }
+            else index = encouragementRandom.Next(options.Length);
+            lastEncouragement[key] = index;
+            return options[index];
+        }
         private readonly TrainingProgress trainingProgress = new TrainingProgress();
         private readonly TrainingReport trainingReport = new TrainingReport();
         private readonly DwellRecommendation dwellRecommendation = new DwellRecommendation();
@@ -2342,13 +2360,25 @@ namespace EyeGazeApiViability
             switch (selectedCount)
             {
                 case 10:
-                    encouragement = "Great start! Keep going at your own pace.";
+                    encouragement = ChooseEncouragement("L1-10",
+                        "Great start! Keep going at your own pace.",
+                        "Ten targets done! Take your time and keep going.",
+                        "You're off to a strong start. Keep practicing at your own pace.",
+                        "Nice work reaching ten! Focus on one target at a time.");
                     break;
                 case 20:
-                    encouragement = "You're making great progress. Every target is another opportunity to build control.";
+                    encouragement = ChooseEncouragement("L1-20",
+                        "You're making great progress. Every target is another opportunity to build control.",
+                        "Twenty targets complete! Keep focusing on each new target.",
+                        "Nice progress! Each selection is another chance to practice.",
+                        "Well done reaching twenty. Stay steady and take your time.");
                     break;
                 case 30:
-                    encouragement = "Excellent effort! Just five targets to go. You've got this!";
+                    encouragement = ChooseEncouragement("L1-30",
+                        "Excellent effort! Just five targets to go. You've got this!",
+                        "Thirty targets complete! Only five more to go.",
+                        "You're nearly there! Take the last five at your own pace.",
+                        "Great work so far! Five more targets and you've finished the round.");
                     break;
                 default:
                     return;
@@ -2578,7 +2608,11 @@ namespace EyeGazeApiViability
             BonusProgressText.Text = "BONUS ROUND COMPLETE!";
             BonusFactText.Text = "";
             BonusFinalText.Text = triviaCorrect + " OUT OF " + triviaAnswered + " CORRECT!";
-            const string encouragement = "Great work completing Level One! Try the next level when available, or replay Level One for more practice. Every practice session helps build your eye-gaze skills.";
+            string encouragement = ChooseEncouragement("L1-Final",
+                "Great work completing Level One! Try the next level when available, or replay Level One for more practice. Every practice session helps build your eye-gaze skills.",
+                "Well done finishing Level One! Replay this lesson to keep practicing, or try the next level when available.",
+                "You've completed Level One! Keep building your skills by practicing this lesson again or moving to the next level when available.",
+                "Excellent effort completing Level One! Continue at your own pace. Repeat this lesson for more practice, or explore the next level when available.");
             BonusFinalEncouragementText.Text = encouragement;
             _ = NarrateLessonAsync("Bonus round complete! " + triviaCorrect + " out of " +
                 triviaAnswered + " correct! " + encouragement, AppScreen.Bonus, () =>
