@@ -427,7 +427,7 @@
                   VerticalAlignment="Stretch" HorizontalContentAlignment="Center"/>
         </Grid>
         <Grid x:Name="SkillsMetricsGrid" Grid.Row="2"
-              ColumnSpacing="12" RowSpacing="12" IsHitTestVisible="False"/>
+              ColumnSpacing="12" RowSpacing="12"/>
       </Grid>
 
       <!-- Compare two location maps without shrinking them into quarter-size cards. -->
