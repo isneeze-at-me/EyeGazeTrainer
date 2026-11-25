@@ -917,7 +917,7 @@
         <StackPanel Spacing="24">
           <TextBlock Text="NO EYE TRACKER DETECTED" FontSize="32" FontWeight="Bold"
                      Foreground="White" TextAlignment="Center"/>
-          <TextBlock Text="Eye Gaze Trainer requires a Tobii PCEye 5 for eye-gaze control. No eye tracker was detected. The app will start in mouse mode. Eye-gaze diagnostics will not be collected."
+          <TextBlock Text="Eye Gaze Trainer requires a Tobii PCEye 5 for eye-gaze control. No usable gaze input was received. The app will start in mouse mode. Eye-gaze diagnostics will not be collected."
                      FontSize="25" Foreground="White" TextWrapping="Wrap" TextAlignment="Center"/>
           <Button Content="CONTINUE WITH MOUSE" Click="OnDismissNoTrackerNotice"
                   Style="{StaticResource PrimaryGazeButton}" MinWidth="350" MinHeight="88"
