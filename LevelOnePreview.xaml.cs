@@ -95,6 +95,11 @@ namespace EyeGazeApiViability
         private static readonly string[] TherapistSkillCategoryNames =
             { "Targets", "Dwell", "Tracking", "Endurance", "Function", "Navigation" };
         private Button[] skillCategoryButtons;
+        private Button directionalDetailsButton;
+        private StackPanel directionalSummaryPanel;
+        private Viewbox directionalGraphic;
+        private Canvas directionalCanvas;
+        private bool directionalDetailsVisible;
         private int selectedSkillCategory;
         private readonly TextBlock[] skillMetricNames = new TextBlock[6];
         private readonly TextBlock[] skillMetricValues = new TextBlock[6];
@@ -259,6 +264,7 @@ namespace EyeGazeApiViability
                 SkillsEnduranceButton, SkillsFunctionButton };
             BuildDiagnosticGrids();
             BuildSkillsGrid();
+            diagnosticsSkillsButtons = diagnosticsSkillsButtons.Concat(new[] { directionalDetailsButton }).ToArray();
             SelectSkillsCategory(0);
             allLevelButtons = new[] { LevelOneButton, LevelTwoButton,
                 LevelThreeButton, LevelFourButton, LevelFiveButton, LevelSixButton };
@@ -986,6 +992,8 @@ namespace EyeGazeApiViability
                 OnExportTherapistReport(null, null);
             else if (target == LevelZeroContinueButton)
                 OnLevelZeroContinue(null, null);
+            else if (target == directionalDetailsButton)
+                OnDirectionalDetailsClicked(null, null);
             else if (target == SkillsIntroButton || target == SkillsTargetsButton ||
                      target == SkillsDwellButton ||
                      target == SkillsTrackingButton || target == SkillsEnduranceButton ||
@@ -1388,7 +1396,7 @@ namespace EyeGazeApiViability
                     BorderThickness = new Thickness(1),
                     CornerRadius = new CornerRadius(10),
                     Padding = new Thickness(15),
-                    IsHitTestVisible = false
+                    IsHitTestVisible = i == 4
                 };
                 var content = new StackPanel
                 {
@@ -1434,7 +1442,8 @@ namespace EyeGazeApiViability
                 content.Children.Add(value);
                 content.Children.Add(detail);
                 content.Children.Add(status);
-                card.Child = content;
+                if (i == 4) BuildDirectionalCard(card, content);
+                else card.Child = content;
                 Grid.SetRow(card, i / 2);
                 Grid.SetColumn(card, i % 2);
                 SkillsMetricsGrid.Children.Add(card);
@@ -1443,6 +1452,132 @@ namespace EyeGazeApiViability
                 skillMetricStatuses[i] = status;
                 skillMetricDetails[i] = detail;
             }
+        }
+
+        // Directional diagnostic details ===
+        // Keep the toggle in one fixed corner of the card so looking at it
+        // cannot immediately select a newly positioned control.
+        private void BuildDirectionalCard(Border card, StackPanel summary)
+        {
+            directionalSummaryPanel = summary;
+            var layout = new Grid();
+            layout.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            layout.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            layout.Children.Add(summary);
+            directionalCanvas = new Canvas { Width = 420, Height = 184, IsHitTestVisible = false };
+            directionalGraphic = new Viewbox
+            {
+                Child = directionalCanvas, Stretch = Stretch.Uniform,
+                Visibility = Visibility.Collapsed, IsHitTestVisible = false
+            };
+            layout.Children.Add(directionalGraphic);
+            directionalDetailsButton = new Button
+            {
+                Content = "DETAILS",
+                Style = (Style)Resources["SecondaryGazeButton"],
+                MinWidth = 104, MinHeight = 64,
+                Padding = new Thickness(8),
+                Margin = new Thickness(8, 0, 0, 0),
+                FontSize = 16,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            directionalDetailsButton.Click += OnDirectionalDetailsClicked;
+            Grid.SetColumn(directionalDetailsButton, 1);
+            layout.Children.Add(directionalDetailsButton);
+            card.Child = layout;
+        }
+
+        // Shared click and gaze-dwell action. Do not clear gazeControlTriggered:
+        // the learner must look away before activating the same toggle again.
+        private void OnDirectionalDetailsClicked(object sender, RoutedEventArgs e)
+        {
+            if (stopping || exitRequested || currentScreen != AppScreen.Diagnostics ||
+                selectedDiagnosticsTab != DiagnosticsTab.Skills || selectedSkillCategory != 0) return;
+            SetDirectionalDetails(!directionalDetailsVisible);
+            gazeButtonBounds.Clear();
+        }
+
+        private void SetDirectionalDetails(bool visible)
+        {
+            directionalDetailsVisible = visible;
+            directionalSummaryPanel.Visibility = visible ? Visibility.Collapsed : Visibility.Visible;
+            directionalGraphic.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            directionalDetailsButton.Content = visible ? "SUMMARY" : "DETAILS";
+            if (visible) DrawDirectionalCompass();
+        }
+
+        // Draw eight measured first-hold success rates around the overall
+        // directional score. NA and trial counts distinguish missing data
+        // from actual zero-percent performance. Colors are descriptive only.
+        private void DrawDirectionalCompass()
+        {
+            directionalCanvas.Children.Clear();
+            const double cx = 210, cy = 92;
+            var white = WhiteTextBrush;
+            string[] names = { "Right", "Down-right", "Down", "Down-left",
+                "Left", "Up-left", "Up", "Up-right" };
+            for (int i = 0; i < 8; i++)
+            {
+                int successes, trials;
+                levelOneDiagnostics.GetDirectionCounts(i, out successes, out trials);
+                double rate = trials == 0 ? 0 : 100.0 * successes / trials;
+                Brush brush = trials == 0 ? NoDataBrush :
+                    rate >= 90 ? GoodBrush : rate >= 70 ? MediumBrush : PoorBrush;
+                double angle = i * Math.PI / 4;
+                double dx = Math.Cos(angle), dy = Math.Sin(angle);
+                // Elliptical arrangement fits the existing wide diagnostic card.
+                double ex = cx + dx * 82, ey = cy + dy * 40;
+                var line = new Windows.UI.Xaml.Shapes.Line
+                {
+                    X1 = cx + dx * 31, Y1 = cy + dy * 29,
+                    X2 = ex, Y2 = ey,
+                    Stroke = brush, StrokeThickness = 5,
+                    StrokeStartLineCap = PenLineCap.Round,
+                    StrokeEndLineCap = PenLineCap.Round
+                };
+                directionalCanvas.Children.Add(line);
+                var arrow = new Windows.UI.Xaml.Shapes.Polygon
+                {
+                    Fill = brush,
+                    Points = new PointCollection
+                    {
+                        new Point(ex + dx * 5, ey + dy * 5),
+                        new Point(ex - dx * 8 - dy * 6, ey - dy * 8 + dx * 6),
+                        new Point(ex - dx * 8 + dy * 6, ey - dy * 8 - dx * 6)
+                    }
+                };
+                directionalCanvas.Children.Add(arrow);
+                string score = trials == 0 ? "NA" :
+                    Math.Round(rate).ToString() + "% (" + successes + "/" + trials + ")";
+                var label = new TextBlock
+                {
+                    Width = 116, Height = 38,
+                    Text = names[i] + "\n" + score,
+                    Foreground = white, FontSize = 14,
+                    FontWeight = Windows.UI.Text.FontWeights.SemiBold,
+                    TextAlignment = TextAlignment.Center
+                };
+                Canvas.SetLeft(label, cx + dx * 145 - 58);
+                Canvas.SetTop(label, cy + dy * 72 - 19);
+                directionalCanvas.Children.Add(label);
+            }
+            var center = new Border
+            {
+                Width = 60, Height = 54, CornerRadius = new CornerRadius(27),
+                BorderThickness = new Thickness(2), BorderBrush = white,
+                Background = new SolidColorBrush(Color.FromArgb(255, 33, 78, 131)),
+                Child = new TextBlock
+                {
+                    Text = levelOneDiagnostics.Latest(4), Foreground = white,
+                    FontSize = 18, FontWeight = Windows.UI.Text.FontWeights.Bold,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                }
+            };
+            Canvas.SetLeft(center, cx - 30);
+            Canvas.SetTop(center, cy - 27);
+            directionalCanvas.Children.Add(center);
         }
 
         // Select the requested skills diagnostic category.
@@ -1459,6 +1594,8 @@ namespace EyeGazeApiViability
         {
             if (category < 0 || category >= SkillMetrics.Length) return;
             selectedSkillCategory = category;
+            SetDirectionalDetails(false);
+            directionalDetailsButton.Visibility = category == 0 ? Visibility.Visible : Visibility.Collapsed;
             for (int i = 0; i < 6; i++)
             {
                 string[] parts = SkillMetrics[category][i].Split('|');
@@ -1472,7 +1609,7 @@ namespace EyeGazeApiViability
                 {
                     skillMetricValues[i].Text = levelOneDiagnostics.Latest(i);
                     skillMetricStatuses[i].Text = levelOneDiagnostics.Summary(i);
-                    if (i == 4) skillMetricDetails[i].Text += "\n" + levelOneDiagnostics.Directions();
+                    // Individual direction counts appear in the optional compass view.
                 }
             }
             for (int i = 0; i < skillCategoryButtons.Length; i++)
@@ -1514,6 +1651,8 @@ namespace EyeGazeApiViability
             DiagnosticsSessionsPanel.Visibility =
                 selectedDiagnosticsTab == DiagnosticsTab.Sessions
                     ? Visibility.Visible : Visibility.Collapsed;
+            if (selectedDiagnosticsTab == DiagnosticsTab.Skills)
+                SelectSkillsCategory(selectedSkillCategory);
             if (selectedDiagnosticsTab == DiagnosticsTab.Sessions)
                 RefreshLevelZeroSessionHistory();
 
