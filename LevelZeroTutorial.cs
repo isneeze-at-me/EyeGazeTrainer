@@ -585,7 +585,7 @@ namespace EyeGazeApiViability
                 case MovementStep.DiagonalUp:
                     return "Try looking diagonally between the bottom left and top right.";
                 case MovementStep.Circles:
-                    return "Try making comfortable circles with your eyes.";
+                    return "Try making large circles with your eyes.";
                 default:
                     return "Try moving your eyes around the screen.";
             }
@@ -694,7 +694,7 @@ namespace EyeGazeApiViability
                     break;
                 case MovementStep.DiagonalUp:
                     NextMovementStep(MovementStep.Circles,
-                        "Good effort! Next, practice making comfortable circles with your eyes for fifteen seconds.");
+                        "Good effort! Next, practice making large circles with your eyes for fifteen seconds.");
                     break;
                 case MovementStep.Circles:
                     GoToLevelZeroPursuit(true);
@@ -717,7 +717,7 @@ namespace EyeGazeApiViability
                 case MovementStep.DiagonalUp:
                     return "For this exercise, look between the bottom left and top right.";
                 case MovementStep.Circles:
-                    return "For this exercise, move your eyes in comfortable circles.";
+                    return "For this exercise, move your eyes in large circles.";
                 default:
                     return "look around the screen and move the eye cursor with you.";
             }
@@ -1137,7 +1137,7 @@ namespace EyeGazeApiViability
                         "Great work! You've completed the first diagonal. Now look from the bottom left toward the top right, then back again. Practice for fifteen seconds.");
                 else
                     NextMovementStep(MovementStep.Circles,
-                        "Excellent! You've practiced both diagonal directions. Now make comfortable circles with your eyes for fifteen seconds.");
+                        "Excellent! You've practiced both diagonal directions. Now make large circles with your eyes for fifteen seconds.");
             }
         }
 
@@ -1384,8 +1384,8 @@ namespace EyeGazeApiViability
             levelZeroCoachedButton = false;
             levelZeroFeedbackQueue.Clear();
             string explanation = skipped
-                ? "Good effort, let's move on. One final step. A large Home button will appear. Look toward it and keep looking until the circular ring fills to open your training levels."
-                : "Fantastic! You've learned how to follow a moving target. One final step. A large Home button will appear. It takes you to the Level Menu, where you can start Level One. Look at the button and keep looking until the circular ring fills. Give it a try!";
+                ? "Good effort, let's move on. One final step. A large Home button will appear. Look at the Home button and keep looking until the circular ring fills to open your training levels."
+                : "Fantastic! You've learned how to follow a moving target. One final step. A large Home button will appear. It takes you to the Level Menu, where you can start Level One. Look at the Home button and keep looking until the circular ring fills. Give it a try!";
             levelZeroStageInstructionSpeech = explanation;
             SpeakLevelZero(explanation, true);
         }
