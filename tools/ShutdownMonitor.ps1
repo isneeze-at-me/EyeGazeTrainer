@@ -1,6 +1,6 @@
 # Read-only independent observer; run before opening the trainer.
 [CmdletBinding()]
-param([int]$PostExitSeconds = 60, [int]$WaitForLaunchSeconds = 300)
+param([int]$PostExitSeconds = 60, [int]$WaitForLaunchSeconds = 0)
 $ErrorActionPreference = 'Stop'
 $directory = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'EyeGazeTrainer\Diagnostics'
 [IO.Directory]::CreateDirectory($directory) | Out-Null
@@ -125,10 +125,9 @@ function Get-State($processes) {
     return ($items -join '; ')
 }
 Write-Host "External shutdown log: $log"
-Write-Trace 'External monitor started. Process/window responsiveness is not proof of functional gaze control.'
+Write-Trace 'External monitor started; build=2026-11-24-native-close-v1. Process/window responsiveness is not proof of functional gaze control.'
 $sessionCount = 0
 $activeTrainerIds = ''
-$candidateKey = ''
 # Invalidate stale candidates from previous monitor runs.
 foreach ($folder in $packageFolders) {
     try { Remove-Item (Join-Path $folder 'foreground-before-launch.txt') -ErrorAction SilentlyContinue } catch {}
@@ -158,40 +157,11 @@ try {
                 }
             } catch { Write-Trace ('Window snapshot error: ' + $_.Exception.Message) }
         }
-        # Keep a fresh candidate only before trainer launch. Ignore shell,
-        # debug helper windows, and assistive software. Never activate anything.
-        if ($trainer.Count -eq 0 -and $windowProbeReady) {
-            try {
-                $candidate = [TrainerWindowProbe]::GetForegroundWindow()
-                [uint32]$candidateId = 0
-                [void][TrainerWindowProbe]::GetWindowThreadProcessId($candidate,[ref]$candidateId)
-                $candidateProcess = Get-Process -Id $candidateId -ErrorAction SilentlyContinue
-                if ($candidateProcess) {
-                    try {
-                        if ([TrainerWindowProbe]::IsWindowVisible($candidate) -and
-                            -not [TrainerWindowProbe]::IsIconic($candidate) -and
-                            $candidateProcess.ProcessName -notmatch 'Tobii|Dynavox|TDControl|EyeAssist|EyeGaze|^explorer$|^ApplicationFrameHost$|^StartMenuExperienceHost$|^ShellExperienceHost$|^SearchHost$|^WindowsTerminal$|^powershell$|^cmd$') {
-                            $key = '{0}|{1}' -f $candidate.ToInt64(),$candidateId
-                            foreach ($folder in $packageFolders) {
-                                if (Test-Path $folder) {
-                                    [IO.File]::WriteAllText((Join-Path $folder 'foreground-before-launch.txt'), $key)
-                                }
-                            }
-                            if ($key -ne $candidateKey) {
-                                Write-Trace ('Prior foreground candidate for next session: ' + $key + ' owner=' + $candidateProcess.ProcessName)
-                                $candidateKey = $key
-                            }
-                        }
-                    } finally { $candidateProcess.Dispose() }
-                }
-            } catch { Write-Trace ('Prior foreground capture error: ' + $_.Exception.Message) }
-        }
         $currentTrainerIds = (($trainer | ForEach-Object { $_.Id } | Sort-Object) -join ',')
         if ($trainer.Count -gt 0 -and $currentTrainerIds -ne $activeTrainerIds) {
             $sessionCount++
             $activeTrainerIds = $currentTrainerIds
             $exitObserved = $null
-            $candidateKey = ''
             Write-Trace ('SESSION ' + $sessionCount + ' START; trainer pid=' + $currentTrainerIds)
         }
         if ($trainer.Count -eq 0 -and $activeTrainerIds -ne '') {
@@ -203,7 +173,7 @@ try {
             Write-Trace ('Final session observation completed; sessions=' + $sessionCount)
             break
         }
-        if ($sessionCount -eq 0 -and ($now - $started).TotalSeconds -ge $WaitForLaunchSeconds) {
+        if ($sessionCount -eq 0 -and $WaitForLaunchSeconds -gt 0 -and ($now - $started).TotalSeconds -ge $WaitForLaunchSeconds) {
             Write-Trace 'Trainer not observed before launch timeout.'; break
         }
         foreach ($p in $processes) { $p.Dispose() }
