@@ -93,7 +93,7 @@ namespace EyeGazeTrainer.OverlayCompanion
         [STAThread]
         private static void Main()
         {
-            Log("Companion started; build=2026-11-24-native-close-v1");
+            Log("Companion started; build=2026-11-24-native-close-v2");
             InitializeRestoreChannel();
             IntPtr changed = IntPtr.Zero;
             IntPtr seen = IntPtr.Zero;
