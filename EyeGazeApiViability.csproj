@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================================================
+     EyeGazeTrainer
+     File: EyeGazeApiViability.csproj
+     Purpose: Defines the x64 UWP application build, source membership, packaged assets and full-trust helper dependency.
+     ============================================================================ -->
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -27,6 +32,7 @@
     <AppxBundlePlatforms>x64</AppxBundlePlatforms>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
   </PropertyGroup>
+  <!-- Debug x64 configuration === -->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -37,6 +43,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
+  <!-- Release x64 configuration === -->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
@@ -99,6 +106,7 @@
       <Name>Windows Desktop Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>
+  <!-- Build the companion before preparing the main application build. -->
   <Target Name="BuildOverlayCompanion" BeforeTargets="PrepareForBuild">
     <MSBuild Projects="$(MSBuildProjectDirectory)\OverlayCompanion\OverlayCompanion.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=x64" />
   </Target>
