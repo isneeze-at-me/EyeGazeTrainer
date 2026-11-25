@@ -152,6 +152,50 @@ try {
                 }
             } catch { Write-Trace ('Window snapshot error: ' + $_.Exception.Message) }
         }
+        # Keep a fresh candidate only before trainer launch. Ignore shell,
+        # debug helper windows, and assistive software. Never activate anything.
+        if (-not $seenTrainer -and $trainer.Count -eq 0 -and $windowProbeReady) {
+            try {
+                $candidate = [TrainerWindowProbe]::GetForegroundWindow()
+                [uint32]$candidateId = 0
+                [void][TrainerWindowProbe]::GetWindowThreadProcessId($candidate,[ref]$candidateId)
+                $candidateProcess = Get-Process -Id $candidateId -ErrorAction SilentlyContinue
+                if ($candidateProcess) {
+                    try {
+                        if ([TrainerWindowProbe]::IsWindowVisible($candidate) -and
+                            -not [TrainerWindowProbe]::IsIconic($candidate) -and
+                            $candidateProcess.ProcessName -notmatch 'Tobii|Dynavox|TDControl|EyeAssist|EyeGaze|^explorer$|^ApplicationFrameHost$|^StartMenuExperienceHost$|^ShellExperienceHost$|^SearchHost$|^WindowsTerminal$|^powershell$|^cmd
+            $seenTrainer = $true
+            Write-Trace 'Trainer process observed.'
+        }
+        if ($seenTrainer -and $trainer.Count -eq 0 -and $null -eq $exitObserved) {
+            $exitObserved = $now
+            Write-Trace 'Trainer process no longer observed; begin post-exit observation.'
+        }
+        if ($null -ne $exitObserved -and ($now - $exitObserved).TotalSeconds -ge $PostExitSeconds) { break }
+        if (-not $seenTrainer -and ($now - $started).TotalSeconds -ge $WaitForLaunchSeconds) {
+            Write-Trace 'Trainer not observed before launch timeout.'; break
+        }
+        foreach ($p in $processes) { $p.Dispose() }
+        Start-Sleep -Milliseconds 500
+    }
+} catch { Write-Trace ('Monitor exception: ' + $_.Exception.ToString()) }
+finally {
+    Copy-NewTraceLines
+    Write-Trace 'Monitoring ended.'
+    Write-Host "Saved: $log"
+}
+) {
+                            foreach ($folder in $packageFolders) {
+                                if (Test-Path $folder) {
+                                    [IO.File]::WriteAllText((Join-Path $folder 'foreground-before-launch.txt'), ('{0}|{1}' -f $candidate.ToInt64(),$candidateId))
+                                }
+                            }
+                        }
+                    } finally { $candidateProcess.Dispose() }
+                }
+            } catch { Write-Trace ('Prior foreground capture error: ' + $_.Exception.Message) }
+        }
         if ($trainer.Count -gt 0 -and -not $seenTrainer) {
             $seenTrainer = $true
             Write-Trace 'Trainer process observed.'
